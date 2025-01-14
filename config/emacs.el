@@ -2,129 +2,125 @@
 (setq system-username "prestonpan")
 (setq system-fullname "Preston Pan")
 
-(require 'tex-site)
-(pixel-scroll-precision-mode 1)
-(setq scroll-conservatively 101)
-(display-battery-mode 1)
-(setq display-time-24hr-format t)
-(display-time-mode 1)
-(menu-bar-mode -1)
-(scroll-bar-mode -1)
-(tool-bar-mode -1)
-(load-theme 'catppuccin :no-confirm)
-(setq display-line-numbers-type 'relative)
-(add-hook 'prog-mode-hook #'display-line-numbers-mode)
-(add-hook 'org-mode-hook #'display-line-numbers-mode)
-(setq org-confirm-babel-evaluate nil)
-(set-face-attribute 'default nil :height 120)
-(setq use-short-answers t)
-(setq make-backup-files nil)
-(setq org-export-with-broken-links t)
-(setq org-src-fontify-natively t)
-;; (setq org-highlight-latex-and-related '(latex script entities))
-(setq warning-minimum-level :emergency)
-(add-hook 'text-mode-hook 'visual-line-mode)
-(and window-system (server-start))
-(setq debug-ignored-errors
-      (cons 'remote-file-error debug-ignored-errors))
-(set-face-attribute 'default nil :font "Iosevka Nerd Font" :height 140)
-(setq preview-default-option-list '("displaymath" "textmath" "graphics"))
-(setq preview-image-type 'png)
-(setq org-latex-pdf-process
-      '("xelatex -interaction=nonstopmode -output-directory=%o %f"))
-(setq org-latex-preview-image-directory (expand-file-name "~/.cache/ltximg/"))
-(setq org-preview-latex-image-directory (expand-file-name "~/.cache/ltximg/"))
-(setq-default line-spacing 2)
-(setq org-startup-with-latex-preview t)
-(setq-default org-startup-indented t
-	      org-pretty-entities t
-	      org-use-sub-superscripts "{}"
-	      org-hide-emphasis-markers t
-	      org-startup-with-inline-images t
-	      org-image-actual-width '(300))
+(use-package emacs
+  :custom
+  (scroll-conservatively 101)
+  (display-time-24hr-format t)
+  (display-line-numbers-type 'relative)
+  (use-short-answers t)
+  (make-backup-files nil)
+  (warning-minimum-level :emergency)
+  (debug-ignored-errors
+   (cons 'remote-file-error debug-ignored-errors))
+  (mouse-wheel-scroll-amount '(1 ((shift) . 1)))
+  (mouse-wheel-progressive-speed nil)
+  (mouse-wheel-follow-mouse 't)
+  (scroll-step 1)
+  (display-fill-column-indicator-column 100)
+  :config
+  (require 'tex-site)
+  (pixel-scroll-precision-mode 1)
+  (display-battery-mode 1)
+  (display-time-mode 1)
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
+  (tool-bar-mode -1)
+  (and window-system (server-start))
+  (load-theme 'catppuccin :no-confirm)
+  (set-face-attribute 'default nil :height 120)
+  (set-frame-parameter nil 'alpha-background 90)
+  (add-to-list 'default-frame-alist '(alpha-background . 90))
+  (set-face-attribute 'default nil :font "Iosevka Nerd Font" :height 140)
+  (setq-default line-spacing 2)
+  (setq-default fill-column 100)
+  (global-prettify-symbols-mode 1)
 
-(setq-default fill-column 100)
-(add-hook 'text-mode-hook #'auto-fill-mode)
-(add-hook 'prog-mode-hook #'auto-fill-mode)
-(add-hook 'org-mode-hook #'auto-fill-mode)
+  :hook ((text-mode . auto-fill-mode)
+	 (text-mode . visual-line-mode)
+	 (prog-mode . auto-fill-mode)
+	 (prog-mode . display-line-numbers-mode)
+	 (prog-mode . display-fill-column-indicator-mode)
+	 (org-mode . auto-fill-mode)
+	 (org-mode . display-fill-column-indicator-mode)
 
-(setopt display-fill-column-indicator-column 100)
-(add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
-(add-hook 'org-mode-hook #'display-fill-column-indicator-mode)
-(setq TeX-engine 'xetex)
+	 (org-mode . (lambda ()
+  		       (setq prettify-symbols-alist
+  			     '(("#+begin_src" . ?)
+  			       ("#+BEGIN_SRC" . ?)
+  			       ("#+end_src" . ?)
+  			       ("#+END_SRC" . ?)
+  			       ("#+begin_example" . ?)
+  			       ("#+BEGIN_EXAMPLE" . ?)
+  			       ("#+end_example" . ?)
+  			       ("#+END_EXAMPLE" . ?)
+  			       ("#+header:" . ?)
+  			       ("#+HEADER:" . ?)
+  			       ("#+name:" . ?﮸)
+  			       ("#+NAME:" . ?﮸)
+  			       ("#+results:" . ?)
+  			       ("#+RESULTS:" . ?)
+  			       ("#+call:" . ?)
+  			       ("#+CALL:" . ?)
+  			       (":PROPERTIES:" . ?)
+  			       (":properties:" . ?)
+  			       ("lambda" . ?λ)
+  			       ("->"     . ?→)
+  			       ("map"    . ?↦)
+  			       ("/="     . ?≠)
+  			       ("!="     . ?≠)
+  			       ("=="     . ?≡)
+  			       ("<="     . ?≤)
+  			       (">="     . ?≥)
+  			       ("&&"     . ?∧)
+  			       ("||"     . ?∨)
+  			       ("sqrt"   . ?√)
+  			       ("..."    . ?…)))
+  		   (prettify-symbols-mode)))
+	 (prog-mode .
+  		    (lambda ()
+  		      (setq prettify-symbols-alist
+  			    '(("lambda" . ?λ)
+  			      ("->"     . ?→)
+  			      ("map"    . ?↦)
+  			      ("/="     . ?≠)
+  			      ("!="     . ?≠)
+  			      ("=="     . ?≡)
+  			      ("<="     . ?≤)
+  			      (">="     . ?≥)
+  			      ("&&"     . ?∧)
+  			      ("||"     . ?∨)
+  			      ("sqrt"   . ?√)
+  			      ("..."    . ?…)))
+  		      (prettify-symbols-mode)))))
 
-(add-hook 'prog-mode-hook
-  	  (lambda ()
-  	    (setq prettify-symbols-alist
-  		  '(("lambda" . ?λ)
-  		    ("->"     . ?→)
-  		    ("map"    . ?↦)
-  		    ("/="     . ?≠)
-  		    ("!="     . ?≠)
-  		    ("=="     . ?≡)
-  		    ("<="     . ?≤)
-  		    (">="     . ?≥)
-  		    ("&&"     . ?∧)
-  		    ("||"     . ?∨)
-  		    ("sqrt"   . ?√)
-  		    ("..."    . ?…)))
-  	    (prettify-symbols-mode)))
-
-(add-hook 'org-mode-hook (lambda ()
-  			   (setq prettify-symbols-alist
-  				 '(("#+begin_src" . ?)
-  				   ("#+BEGIN_SRC" . ?)
-  				   ("#+end_src" . ?)
-  				   ("#+END_SRC" . ?)
-  				   ("#+begin_example" . ?)
-  				   ("#+BEGIN_EXAMPLE" . ?)
-  				   ("#+end_example" . ?)
-  				   ("#+END_EXAMPLE" . ?)
-  				   ("#+header:" . ?)
-  				   ("#+HEADER:" . ?)
-  				   ("#+name:" . ?﮸)
-  				   ("#+NAME:" . ?﮸)
-  				   ("#+results:" . ?)
-  				   ("#+RESULTS:" . ?)
-  				   ("#+call:" . ?)
-  				   ("#+CALL:" . ?)
-  				   (":PROPERTIES:" . ?)
-  				   (":properties:" . ?)
-  				   ("lambda" . ?λ)
-  				   ("->"     . ?→)
-  				   ("map"    . ?↦)
-  				   ("/="     . ?≠)
-  				   ("!="     . ?≠)
-  				   ("=="     . ?≡)
-  				   ("<="     . ?≤)
-  				   (">="     . ?≥)
-  				   ("&&"     . ?∧)
-  				   ("||"     . ?∨)
-  				   ("sqrt"   . ?√)
-  				   ("..."    . ?…))))
-  	  (prettify-symbols-mode))
-(global-prettify-symbols-mode 1)
-
-(use-package unicode-fonts
-  :init (unicode-fonts-setup))
-
-(set-frame-parameter nil 'alpha-background 90)
-(add-to-list 'default-frame-alist '(alpha-background . 90))
-
-(setq mouse-wheel-scroll-amount '(1 ((shift) . 1)))
-(setq mouse-wheel-progressive-speed nil)
-(setq mouse-wheel-follow-mouse 't)
-(setq scroll-step 1)
-
-(require 'org-habit)
-(setq org-agenda-files (list "~/org/agenda.org"
-			     "~/org/notes.org"
-			     "~/org/website/agenda.org"))
-(setq org-default-notes-file (concat org-directory "/notes.org"))
-(setq org-habit-preceding-days 1)
-
-(require 'ox-publish)
-(setq org-publish-project-alist
+(use-package org
+  :init
+  (setq org-confirm-babel-evaluate nil)
+  (setq org-export-with-broken-links t)
+  (setq org-src-fontify-natively t)
+  (setq org-latex-preview-image-directory (expand-file-name "~/.cache/ltximg/"))
+  (setq org-preview-latex-image-directory (expand-file-name "~/.cache/ltximg/"))
+  (setq org-latex-pdf-process
+	'("xelatex -interaction=nonstopmode -output-directory=%o %f"))
+  (setq preview-default-option-list '("displaymath" "textmath" "graphics"))
+  (setq preview-image-type 'png)
+  (setq TeX-engine 'xetex)
+  (setq TeX-PDF-mode t)
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
+  (setq org-return-follows-link t)
+  (setq org-startup-with-latex-preview t)
+  (setq org-habit-preceding-days 1)
+  (setq-default org-startup-indented t
+  		org-pretty-entities t
+  		org-use-sub-superscripts "{}"
+  		org-hide-emphasis-markers t
+  		org-startup-with-inline-images t
+  		org-image-actual-width '(300))
+  (setq org-agenda-files (list "~/org/agenda.org"
+			       "~/org/notes.org"
+			       "~/org/website/agenda.org"))
+  (setq org-default-notes-file (concat org-directory "/notes.org"))
+  (setq org-publish-project-alist
 	'(("website-org"
 	   :base-directory "~/org/website"
 	   :base-extension "org"
@@ -141,28 +137,22 @@
 	   :recursive t
 	   :publishing-function org-publish-attachment)
 	  ("website" :auto-sitemap t :components ("website-org" "website-static"))))
-(setq org-html-postamble "Copyright © 2024 Preston Pan")
+  (setq org-html-postamble "Copyright © 2024 Preston Pan")
+  :config
+  (require 'ox-publish)
+  (require 'org-tempo)
+  (require 'org-habit)
+  (org-babel-do-load-languages 'org-babel-load-languages
+			       '((shell . t)
+				 (python . t)
+				 (latex . t))))
 
-(defun electric-pair ()
-  "If at end of line, insert character pair without surrounding spaces.
-Otherwise, just insert the typed character."
-  (interactive)
-  (if (eolp) (let (parens-require-spaces) (insert-pair)) (self-insert-command 1)))
+(use-package unicode-fonts
+  :init (unicode-fonts-setup))
 
-(add-hook 'org-mode-hook
-	      (lambda ()
-		(define-key org-mode-map "\"" 'electric-pair)
-		(define-key org-mode-map "(" 'electric-pair)
-		(define-key org-mode-map "[" 'electric-pair)
-		(define-key org-mode-map "{" 'electric-pair)))
-
-(add-hook 'prog-mode-hook
-	    (lambda ()
-		(define-key prog-mode-map "\"" 'electric-pair)
-		(define-key prog-mode-map "(" 'electric-pair)
-		(define-key prog-mode-map "[" 'electric-pair)
-		(define-key prog-mode-map "{" 'electric-pair)))
-(electric-pair-mode)
+(use-package electric-pair
+  :hook ((org-mode . electric-pair-mode)
+	 (prog-mode . electric-pair-mode)))
 
 (use-package lyrics-fetcher
   :after (emms)
@@ -176,15 +166,16 @@ Otherwise, just insert the typed character."
 (use-package yasnippet
   :config
   (add-to-list 'yas-snippet-dirs "~/org/website/yasnippet/")
-  (yas-global-mode 1))
-(add-hook 'org-mode-hook
-	  (lambda () (yas-minor-mode)
-	      (yas-activate-extra-mode 'latex-mode)))
+  (yas-global-mode 1)
+  :hook (org-mode . (lambda () (yas-minor-mode) (yas-activate-extra-mode 'latex-mode))))
 
-(eval-after-load "company" '(add-to-list 'company-backends
-					   '(company-ispell company-capf company-irony
-							    company-yasnippet company-files)))
-(add-hook 'after-init-hook 'global-company-mode)
+(use-package company
+  :config
+  '(add-to-list 'company-backends
+		'(company-ispell company-capf company-irony
+				 company-yasnippet company-files))
+  :hook ((after-init . global-company-mode)))
+
 (use-package ispell
   :init
   (setq ispell-program-name "aspell")
@@ -192,18 +183,9 @@ Otherwise, just insert the typed character."
   (setq ispell-dictionary "en")
   (setq ispell-alternate-dictionary "~/.local/share/dict"))
 
-(dolist (hook '(text-mode-hook))
-  (add-hook hook (lambda () (flyspell-mode 1))))
+(use-package flyspell
+  :hook (text-mode . flyspell-mode))
 
-(org-babel-do-load-languages 'org-babel-load-languages
-    '(
-	  (shell . t)
-	  (python . t)
-	  (latex . t)
-    )
-)
-
-(require 'org-tempo)
 (use-package evil
   :init
   (setq evil-want-keybinding nil)
@@ -212,6 +194,7 @@ Otherwise, just insert the typed character."
   (evil-set-undo-system 'undo-redo))
 
 (use-package evil-collection
+  :after (evil)
   :init
   (setq evil-want-keybinding nil)
   :config
@@ -222,11 +205,12 @@ Otherwise, just insert the typed character."
 (define-key evil-motion-state-map (kbd "TAB") nil))
 
 (use-package evil-commentary
+  :after (evil)
   :config
   (evil-commentary-mode))
 
 (use-package evil-org
-  :after org
+  :after (evil org) 
   :hook (org-mode . (lambda () evil-org-mode))
   :config
   (require 'evil-org-agenda)
@@ -258,28 +242,24 @@ Otherwise, just insert the typed character."
 
   (setq org-journal-file-header 'org-journal-file-header-func)
   (setq org-journal-file-format "%Y%m%d.org")
-  (setq org-journal-enable-agenda-integration t)
-)
+  (setq org-journal-enable-agenda-integration t))
 
 (use-package doom-modeline
   :config
   (doom-modeline-mode 1))
 
-(use-package writegood-mode)
-
-(dolist (hook '(text-mode-hook))
-  (add-hook hook (lambda () (writegood-mode))))
+(use-package writegood-mode
+  :hook (text-mode . writegood-mode))
 
 (use-package org-superstar
   :after (org)
-  :config
-  (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
+  :hook (org-mode . (lambda () (org-superstar-mode 1))))
 
 (use-package eglot
   :config
   (add-to-list 'eglot-server-programs '(nix-mode . ("nil")))
-  (add-hook 'prog-mode-hook 'eglot-ensure)
   :hook
+  (prog-mode . eglot-ensure)
   (nix-mode . eglot-ensure))
 (use-package lsp
   :hook
@@ -288,14 +268,14 @@ Otherwise, just insert the typed character."
   :hook (prog-mode . platformio-conditionally-enable))
 
 (use-package irony-mode
-  :config
-  (add-hook 'c++-mode-hook 'irony-mode)
-  (add-hook 'c-mode-hook 'irony-mode)
-  (add-hook 'objc-mode-hook 'irony-mode)
-  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+  :hook (
+  (c++-mode . irony-mode)
+  (c-mode . irony-mode)
+  (objc-mode . irony-mode)
+  (irony-mode . irony-cdb-autosetup-compile-options)))
 
 (use-package irony-eldoc
-  :config (add-hook 'irony-mode-hook #'irony-eldoc))
+  :hook ((irony-mode . irony-eldoc)))
 
 (use-package solidity-mode)
 (use-package company-solidity)
@@ -304,7 +284,7 @@ Otherwise, just insert the typed character."
   (setq solidity-flycheck-solc-checker-active t))
 
 (use-package flycheck
-  :init (global-flycheck-mode))
+  :config (global-flycheck-mode))
 
 (use-package projectile
   :init
@@ -333,55 +313,52 @@ Otherwise, just insert the typed character."
   :init
   (setq ivy-use-virtual-buffers t)
   (setq enable-recursive-minibuffers t)
+  :bind
   ;; enable this if you want `swiper' to use it
   ;; (setq search-default-mode #'char-fold-to-regexp)
-  (global-set-key "\C-s" 'swiper)
-  (global-set-key (kbd "C-c C-r") 'ivy-resume)
-  (global-set-key (kbd "<f6>") 'ivy-resume)
-  (global-set-key (kbd "M-x") 'counsel-M-x)
-  (global-set-key (kbd "C-x C-f") 'counsel-find-file)
-  (global-set-key (kbd "<f1> f") 'counsel-describe-function)
-  (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
-  (global-set-key (kbd "<f1> o") 'counsel-describe-symbol)
-  (global-set-key (kbd "<f1> l") 'counsel-find-library)
-  (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
-  (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
-  (global-set-key (kbd "C-c g") 'counsel-git)
-  (global-set-key (kbd "C-c j") 'counsel-git-grep)
-  (global-set-key (kbd "C-c k") 'counsel-ag)
-  (global-set-key (kbd "C-x l") 'counsel-locate)
-  (global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
+  ("C-s" . swiper)
+  ("C-c C-r" . ivy-resume)
+  ("M-x" . counsel-M-x)
+  ("C-x C-f" . counsel-find-file)
+  ("<f1> f" . counsel-describe-function)
+  ("<f1> v" . counsel-describe-variable)
+  ("<f1> o" . counsel-describe-symbol)
+  ("<f1> l" . counsel-find-library)
+  ("<f2> i" . counsel-info-lookup-symbol)
+  ("<f2> u" . counsel-unicode-char)
+  ("C-c g" . counsel-git)
+  ("C-c j" . counsel-git-grep)
+  ("C-c k" . counsel-ag)
+  ("C-x l" . counsel-locate)
   :config
   (ivy-mode))
 (define-key ivy-minibuffer-map (kbd "C-j") 'ivy-immediate-done)
 
 (use-package magit)
 
-(setq
- erc-nick system-username
- erc-user-full-name system-fullname)
-
-(defun prestonpan ()
-  (interactive)
-  (erc-tls :server "nullring.xyz"
-	     :port   "6697"))
-
-(defun liberachat ()
-  (interactive)
-  (erc-tls :server "irc.libera.chat"
-	     :port   "6697"))
-
-
-(defun efnet ()
-  (interactive)
-  (erc-tls :server "irc.prison.net"
-	     :port   "6697"))
-
-(defun matrix-org ()
-  (interactive)
-  (ement-connect :uri-prefix "http://localhost:8009"))
+(use-package erc
+  :init
+  (setq
+   erc-nick system-username
+   erc-user-full-name system-fullname))
 
 (use-package general
+  :init
+  (defun prestonpan ()
+    (interactive)
+    (erc-tls :server "nullring.xyz"
+  	     :port   "6697"))
+  (defun liberachat ()
+    (interactive)
+    (erc-tls :server "irc.libera.chat"
+  	     :port   "6697"))
+  (defun efnet ()
+    (interactive)
+    (erc-tls :server "irc.prison.net"
+  	     :port   "6697"))
+  (defun matrix-org ()
+    (interactive)
+    (ement-connect :uri-prefix "http://localhost:8009"))
   :config
   (general-create-definer leader-key
     :prefix "SPC")
@@ -434,8 +411,7 @@ Otherwise, just insert the typed character."
     "w r" '(writeroom-mode :wk "focus mode for writing")
     "y n s" '(yas-new-snippet :wk "Create new snippet")
     "u w" '((lambda () (interactive) (shell-command "rsync -azvP ~/website_html/ root@nullring.xyz:/usr/share/nginx/ret2pop/")) :wk "rsync website update")
-    "h r r" '(lambda () (interactive) (org-babel-load-file (expand-file-name "~/org/website/config/emacs.org")))
-    ))
+    "h r r" '(lambda () (interactive) (org-babel-load-file (expand-file-name "~/org/website/config/emacs.org")))))
 
 (use-package ellama
   :init
@@ -447,9 +423,10 @@ Otherwise, just insert the typed character."
 	     :chat-model "gemma:7b")))
 
 (use-package elfeed
+  :hook ((elfeed-search-mode . elfeed-update))
   :init
-  (add-hook 'elfeed-search-mode-hook #'elfeed-update)
   (setq elfeed-search-filter "@1-month-ago +unread"))
+
 (use-package elfeed-org
   :init
   (setq rmh-elfeed-org-files '("~/org/website/config/elfeed.org"))
@@ -487,21 +464,21 @@ Otherwise, just insert the typed character."
 (use-package treemacs-magit
   :after (treemacs magit))
 
-(setq search-engines
-      '(
-        (("google" "g") "https://google.com/search?q=%s")
-        (("duckduckgo" "d" "ddg") "https://duckduckgo.com/?q=%s")
-        (("rfc" "r") "https://www.rfc-editor.org/rfc/rfc%s.txt")
-        (("rfc-kw" "rk") "https://www.rfc-editor.org/search/rfc_search_detail.php?title=%s")))
+(use-package eww
+  :init
+  (setq search-engines
+	'((("google" "g") "https://google.com/search?q=%s")
+          (("duckduckgo" "d" "ddg") "https://duckduckgo.com/?q=%s")
+          (("rfc" "r") "https://www.rfc-editor.org/rfc/rfc%s.txt")
+          (("rfc-kw" "rk") "https://www.rfc-editor.org/search/rfc_search_detail.php?title=%s")))
 
-(setq search-engine-default "google")
-(setq eww-search-prefix "https://google.com/search?q=")
-(setq browse-url-secondary-browser-function 'browse-url-generic browse-url-generic-program "firefox")
-;; (setq browse-url-browser-function "firefox")
-(add-hook 'eww-mode-hook
-          (lambda () (local-set-key (kbd "y Y") #'eww-copy-page-url)))
+  (setq search-engine-default "google")
+  (setq eww-search-prefix "https://google.com/search?q=")
+  (setq browse-url-secondary-browser-function 'browse-url-generic browse-url-generic-program "firefox")
+  :hook ((eww-mode . (lambda () (local-set-key (kbd "y Y") #'eww-copy-page-url)))))
 
 (use-package org-roam
+    :after (org)
     :init
     (setq org-roam-db-update-on-save t)
     (setq org-roam-graph-viewer "chromium")
@@ -526,24 +503,23 @@ Otherwise, just insert the typed character."
   :init (setq epa-pinentry-mode `loopback)
   :config (pinentry-start))
 
-(setq TeX-PDF-mode t)
-(setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
-(setq org-return-follows-link t)
 ;; (use-package latex-preview-pane
 ;;   :config
 ;;   (latex-preview-pane-enable))
 
 ;; SMTP settings:
-(setq user-mail-address system-email)
-(setq user-full-name system-fullname)
-(setq sendmail-program "msmtp"
+(use-package smtpmail
+  :config
+  (setq user-mail-address system-email)
+  (setq user-full-name system-fullname)
+  (setq sendmail-program "msmtp"
 	send-mail-function 'smtpmail-send-it
 	message-sendmail-f-is-evil t
 	message-sendmail-extra-arguments '("--read-envelope-from")
-	message-send-mail-function 'message-send-mail-with-sendmail)
+	message-send-mail-function 'message-send-mail-with-sendmail))
 
-(require 'smtpmail)
 (use-package mu4e
+  :after smtpmail
   :init
   (setq mu4e-drafts-folder "/Drafts")
   (setq mu4e-sent-folder   "/Sent")
@@ -577,7 +553,4 @@ Otherwise, just insert the typed character."
   (setq emms-player-list '(emms-player-mpd))
   (add-to-list 'emms-info-functions 'emms-info-mpd)
   (add-to-list 'emms-player-list 'emms-player-mpd)
-:config
-  (emms-player-mpd-connect))
-
-(server-start)
+:config (emms-player-mpd-connect))

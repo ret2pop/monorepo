@@ -12,31 +12,72 @@
 #+html_head: <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
 #+html_head: <meta name="msapplication-TileColor" content="#da532c">
 #+html_head: <meta name="theme-color" content="#ffffff">
+
+This agenda is a public list of things that I need to keep track of. This is public because
+I also keep a private version, and if anyone wants to know what I'm up to or the status of a certain
+project, it can be referenced here.
+
 * Tasks
-These are general life tasks that I need to do, not following a schedule.
-** TODO Resume
+These are general life tasks that I need to do, which don't depend on a specific time or date.
+** TODO [#A] ToughNix
+I need to work on my monorepo flake which builds all my systems, and should accommodate future
+systems and also should be relatively abstractable (i.e. identifiers tied to me should be easily
+removed from the flake).
+*** TODO [#A] NixOS Modules
+:LOGBOOK:
+CLOCK: [2025-01-11 Sat 17:03]--[2025-01-11 Sat 19:35] =>  2:32
+:END:
+I need to fix my NixOS configuration to not be as monolithic and to be more modular.
+*** TODO [#B] VPS
+My VPS needs to be a NixOS configuration.
+*** TODO [#B] Workstation
+My NixOS Monorepo needs to incorporate my workstation, and I need to install this config.
+*** TODO [#C] Gammastep
+Fix gammastep in my config so that it actually works on my dell machine.
+** TODO [#B] Resume
 I need to update my resume with my work experience. Additionally, I want to re-write my resume
 in org mode.
-** NixOS Configuration
-*** TODO Gammastep
-Fix gammastep in my config so that it actually works on my dell machine.
-*** TODO VPS
-My VPS needs to be a NixOS configuration.
-** TODO Umami
+** TODO [#B] Nullring
+Update the nullring to be in org mode, and also include a couple more sites.
+** TODO [#B] Umami
 My client server protocol needs to continue to be written. I also need to make a git repository
 for it.
 ** Music and Media
-*** TODO Write Another Song
+*** TODO [#B] Write Another Song
 I want to write another song.
-** TODO Analogue Computer
+*** TODO [#B] Make A YouTube Video
+I want to start making YouTube videos.
+** TODO [#C] Analogue Computer
 I want to make an analogue computer.
-* Friends
-These are tasks related to seeing my friends.
-** TODO Travis and Friends Meetup
-Eating dinner with them.
-SCHEDULED: <2025-01-12 Sun>
-* Groceries
+** TODO [#A] Dishes
+There will be a TODO when I need to do the dishes.
+** Groceries
 There will be a TODO when I need to get groceries.
 
-* TODO Dishes
-There will be a TODO when I need to do the dishes.
+* Scheduled tasks
+These are one-time tasks that are scheduled at a particular date, and that don't require regular
+schedules.
+** Friends
+These are tasks related to seeing my friends. There will be tasks listed here when I schedule
+something.
+*** TODO Travis and Friends Meetup
+SCHEDULED: <2025-01-12 Sun 17:00>
+Eating dinner with them.
+
+* Habits
+These are some habits I want to track. They are repeated according to a calendar schedule in
+general.
+** TODO Stretch
+SCHEDULED: <2025-01-12 Sun .+1d>
+:PROPERTIES:
+:LAST_REPEAT: [2025-01-11 Sat 02:26]
+:END:
+- State "DONE"       from "TODO"       [2025-01-11 Sat 02:26]
+I want to stretch every day so that I can become more flexible.
+** TODO Journal
+SCHEDULED: <2025-01-12 Sun .+1d>
+:PROPERTIES:
+:LAST_REPEAT: [2025-01-11 Sat 02:25]
+:END:
+- State "DONE"       from "TODO"       [2025-01-11 Sat 02:25]
+I want to journal every day, at least a little bit, about my life and track it with a git repo.

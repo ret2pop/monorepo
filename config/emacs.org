@@ -133,13 +133,13 @@ Change these variables:
     		org-hide-emphasis-markers t
     		org-startup-with-inline-images t
     		org-image-actual-width '(300))
-    (setq org-agenda-files (list "~/org/agenda.org"
+    (setq org-agenda-files (list "~/monorepo/agenda.org"
   			       "~/org/notes.org"
-  			       "~/org/website/agenda.org"))
+  			       "~/org/agenda.org"))
     (setq org-default-notes-file (concat org-directory "/notes.org"))
     (setq org-publish-project-alist
   	'(("website-org"
-  	   :base-directory "~/org/website"
+  	   :base-directory "~/monorepo"
   	   :base-extension "org"
   	   :publishing-directory "~/website_html"
   	   :recursive t
@@ -148,7 +148,7 @@ Change these variables:
   	   :html-preamble t
   	   :html-preamble-format (("en" "<p class=\"preamble\"><a href=\"/index.html\">home</a> | <a href=\"./index.html\">section main page</a></p><hr>")))
   	  ("website-static"
-  	   :base-directory "~/org/website"
+  	   :base-directory "~/monorepo"
   	   :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|ico\\|asc\\|pub\\|webmanifest\\|xml"
   	   :publishing-directory "~/website_html/"
   	   :recursive t
@@ -194,7 +194,7 @@ what electric-pair does based on the mode.
 #+begin_src emacs-lisp
   (use-package yasnippet
     :config
-    (add-to-list 'yas-snippet-dirs "~/org/website/yasnippet/")
+    (add-to-list 'yas-snippet-dirs "~/monorepo/yasnippet/")
     (yas-global-mode 1)
     :hook (org-mode . (lambda () (yas-minor-mode) (yas-activate-extra-mode 'latex-mode))))
 #+end_src
@@ -268,7 +268,7 @@ I use org-journal to journal about my life, and it's a part of my website:
   (use-package org-journal
     :after (org)
     :init
-      (setq org-journal-dir "~/org/website/journal/")
+      (setq org-journal-dir "~/monorepo/journal/")
       (setq org-journal-date-format "%A, %d %B %Y")
 
       (defun org-journal-file-header-func (time)
@@ -483,7 +483,7 @@ Ivy is a pretty cool general program for displaying stuff:
       "w r" '(writeroom-mode :wk "focus mode for writing")
       "y n s" '(yas-new-snippet :wk "Create new snippet")
       "u w" '((lambda () (interactive) (shell-command "rsync -azvP ~/website_html/ root@nullring.xyz:/usr/share/nginx/ret2pop/")) :wk "rsync website update")
-      "h r r" '(lambda () (interactive) (org-babel-load-file (expand-file-name "~/org/website/config/emacs.org")))))
+      "h r r" '(lambda () (interactive) (org-babel-load-file (expand-file-name "~/monorepo/config/emacs.org")))))
 #+end_src
 ** LLM
 I use LLMs in order to help me come up with ideas. I use a local LLM so that I can have a
@@ -509,7 +509,7 @@ elfeed to fetch feeds found on my website:
 
   (use-package elfeed-org
     :init
-    (setq rmh-elfeed-org-files '("~/org/website/config/elfeed.org"))
+    (setq rmh-elfeed-org-files '("~/monorepo/config/elfeed.org"))
     :config
     (elfeed-org))
 #+end_src
@@ -574,7 +574,7 @@ For all my mathematics and programming notes:
       :init
       (setq org-roam-db-update-on-save t)
       (setq org-roam-graph-viewer "chromium")
-      (setq org-roam-directory (file-truename "~/org/website/mindmap"))
+      (setq org-roam-directory (file-truename "~/monorepo/mindmap"))
       (setq org-roam-capture-templates '(("d" "default" plain "%?"
       :target (file+head "${title}.org"
   	   "#+title: ${title}\n#+author: Preston Pan\n#+html_head: <link rel=\"stylesheet\" type=\"text/css\" href=\"../style.css\" />\n#+html_head: <script src=\"https://polyfill.io/v3/polyfill.min.js?features=es6\"></script>\n#+html_head: <script id=\"MathJax-script\" async src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js\"></script>\n#+options: broken-links:t")

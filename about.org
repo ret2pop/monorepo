@@ -25,7 +25,8 @@ by the will of Francois. Ret2pop is a relentlessly curious force willing to ente
 ideas that are unconventional and unorthodox; Preston Pan is the individual that tries
 to live this out and fails in a somewhat cringy manner.
 
-Some might know me as ret2pop, some as Preston Pan, and others as LiCoO2.
+Some might know me as ret2pop, some as Preston Pan, and others as LiCoO2. Others may know that
+I have an ENS domain, at ~ret2pop.eth~.
 ** Contact
 Here are all the methods you should use to contact me:
 *** IRC

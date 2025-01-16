@@ -75,7 +75,8 @@ rsync -azvP --chmod="Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r" ~/website_html/ root@nu
 Then I run magit after.
 * Donate
 If you like anything that I do, donate! But [[file:blog/crypto.org][should you use cryptocurrency]]? Should
-it be used as a means of exchange? Probably not, but it's cool and free for me to do so here you go:
+it be used as a means of exchange? Probably not, but it's cool and free for me to do so here you go.
+Alternatively for all of these addresses, you can use ~ret2pop.eth~, if you can resolve ENS.
 ** XMR
 An anonymous form of ecash, the only one out of these that is actually being used for the purpose
 of currency (on the dark web):

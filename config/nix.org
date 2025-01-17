@@ -4,4 +4,2405 @@
 #+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 
 * Introduction
-This is my NixOS configuration.
+This is my NixOS configuration. It is a part of my monorepo, and this file automatically tangles
+to all the under the nix/ directory in my monorepo [[https://git.nullring.xyz/monorepo.git][git repository]]. My monorepo also stores my
+website, as my website stores my [[file:elfeed.org][elfeed]] and [[file:emacs.org][emacs]] configurations. Additionally, I want to track
+my emacs configuration with my Nix configuration. Having them in one repository means that my
+emacs configuration is pinned to my flake.
+
+Hence, my monorepo serves a dual purpose, as do many of the files within my monorepo. They are
+often data files used in my configuration (i.e. emacs, elfeed, org-roam, agenda, journal, etc...)
+and they are webpages as well. This page is one such example of this concept.
+* Flake.nix
+The flake is the entry point of the NixOS configuration. Here, I have a list of all the systems
+that I use with all the modules that they use. My NixOS configuration  is heavily modularized,
+so that adding new configurations that add modifications is made simple.
+#+begin_src nix :tangle ../nix/flake.nix
+  {
+    description = "Emacs centric configurations for a complete networked system";
+
+    inputs = {
+      nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+
+      home-manager = {
+        url = "github:nix-community/home-manager/release-24.11";
+        inputs.nixpkgs.follows = "nixpkgs";
+      };
+
+      disko = {
+        url = "github:nix-community/disko";
+        inputs.nixpkgs.follows = "nixpkgs";
+      };
+
+      lanzaboote = {
+        url = "github:nix-community/lanzaboote/v0.4.1";
+        inputs.nixpkgs.follows = "nixpkgs";
+      };
+
+      nur.url = "github:nix-community/NUR";
+      sops-nix.url = "github:Mic92/sops-nix";
+      scripts.url = "github:ret2pop/scripts";
+      wallpapers.url = "github:ret2pop/wallpapers";
+      sounds.url = "github:ret2pop/sounds";
+    };
+
+    outputs = { nixpkgs, home-manager, nur, disko, lanzaboote, sops-nix, ... }@attrs: {
+      nixosConfigurations = {
+        installer = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [
+            (
+              { pkgs, modulesPath, ... }:
+              {
+                imports = [ (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix") ];
+              }
+            )
+            ./systems/installer/default.nix
+          ];
+        };
+
+        continuity = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = attrs;
+          modules = [
+            lanzaboote.nixosModules.lanzaboote
+            disko.nixosModules.disko
+            home-manager.nixosModules.home-manager
+            sops-nix.nixosModules.sops
+            { nixpkgs.overlays = [ nur.overlays.default ]; }
+            { home-manager.extraSpecialArgs = attrs; }
+
+            ./modules/sda-simple.nix
+            ./systems/continuity/default.nix
+          ];
+        };
+
+        spontaneity = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = attrs;
+          modules = [];
+        };
+
+        affinity = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = attrs;
+          modules = [];
+        };
+      };
+    };
+  }
+#+end_src
+Listed here is my installer as well, which is used to install the systems in my configuration.
+* Sops Configuration
+In order to use the sops configuration, you must change the age public key to the one that
+you own:
+#+begin_src yaml :tangle ../nix/.sops.yaml
+keys:
+  - &primary age165ul43e8rc0qwzz2f2q9cw02psm2mkudsrwavq2e0pxs280p64yqy2z0dr
+creation_rules:
+  - path_regex: secrets/secrets.yaml$
+    key_groups:
+      - age:
+        - *primary
+#+end_src
+also note that you will have to write your own secrets.yaml file, with an entry called ~mail~,
+which is used for the imaps and smtps password.
+* Modules
+** Vars
+Variables used for regular configuration in your system ~defafult.nix~ file. The options are
+largely self-documenting.
+#+begin_src nix :tangle ../nix/modules/vars.nix
+  { lib, ... }:
+  {
+    options.monorepo.vars = {
+      hostName = lib.mkOption {
+        type = lib.types.str;
+        default = "continuity";
+        example = "hostname";
+        description = "system hostname";
+      };
+
+      userName = lib.mkOption {
+        type = lib.types.str;
+        default = "preston";
+        example = "myUser";
+        description = "system username";
+      };
+
+      fullName = lib.mkOption {
+        type = lib.types.str;
+        default = "Preston Pan";
+        example = "John Doe";
+        description = "Full Name";
+      };
+
+      gpgKey = lib.mkOption {
+        type = lib.types.str;
+        default = "AEC273BF75B6F54D81343A1AC1FE6CED393AE6C1";
+        example = "1234567890ABCDEF...";
+        description = "GPG key fingerprint";
+      };
+
+      remoteHost = lib.mkOption {
+        type = lib.types.str;
+        default = "nullring.xyz";
+        example = "example.com";
+        description = "Address to push to and pull from for website and git repos";
+      };
+
+      timeZone = lib.mkOption {
+        type = lib.types.str;
+        default = "America/Vancouver";
+        example = "America/Chicago";
+        description = "Linux timezone";
+      };
+
+      monitors = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [
+          "HDMI-A-1"
+          "eDP-1"
+          "DP-2"
+          "DP-3"
+          "LVDS-1"
+        ];
+        example = [];
+        description = "Monitors that waybar will use";
+      };
+    };
+  }
+#+end_src
+** Default Profile
+Again, these are self documenting variables that you may see used below. These are to be used
+under ~default.nix~ in the ~systems~ folder.
+#+begin_src nix :tangle ../nix/modules/default.nix
+{ lib, config, pkgs, ... }:
+{
+  imports = [
+    ./configuration.nix
+    ./home/home.nix
+    ./vars.nix
+  ];
+
+  options = {
+    monorepo = {
+      profiles = {
+        cuda.enable = lib.mkEnableOption "Enables CUDA support";
+        documentation.enable = lib.mkEnableOption "Enables documentation on system.";
+        secureBoot.enable = lib.mkEnableOption "Enables secure boot. See sbctl.";
+        pipewire.enable = lib.mkEnableOption "Enables pipewire low latency audio setup";
+        tor.enable = lib.mkEnableOption "Enables tor along with torsocks";
+        home.enable = lib.mkEnableOption "Enables home user";
+      };
+    };
+  };
+
+  config = {
+    home-manager.users."${config.monorepo.vars.userName}" = {
+      programs.home-manager.enable = config.monorepo.profiles.home.enable;
+    };
+
+    environment.systemPackages = lib.mkIf config.monorepo.profiles.documentation.enable (with pkgs; [
+      linux-manual
+      man-pages
+      man-pages-posix
+    ]);
+
+    monorepo = {
+      profiles = {
+        documentation.enable = lib.mkDefault true;
+        pipewire.enable = lib.mkDefault true;
+        tor.enable = lib.mkDefault true;
+        home.enable = lib.mkDefault true;
+      };
+    };
+  };
+}
+#+end_src
+** X11
+My Xorg configuration is used as a backup for when wayland applications don't work. Note that
+using this configuration is extremely inefficient and my i3 configuration is unoptimized.
+Still, it is suitable for using Krita.
+#+begin_src nix :tangle ../nix/modules/xserver.nix
+{ lib, pkgs, ... }:
+{
+  services.xserver = {
+    enable = lib.mkDefault true;
+    displayManager = {
+      startx.enable = true;
+    };
+
+    windowManager = {
+      i3 = {
+        enable = true;
+        package = pkgs.i3-gaps;
+      };
+    };
+
+    desktopManager = {
+      runXdgAutostartIfNone = true;
+    };
+
+    xkb = {
+      layout = "us";
+      variant = "";
+      options = "caps:escape";
+    };
+
+    videoDrivers = [];
+  };
+}
+#+end_src
+You should add your own video drivers in a custom machine configuration.
+** Pipewire
+My low latency pipewire configuration is used for music production, as well as for regular
+desktop usage. Pipewire is much better than pulseaudio because it supports jack with the same
+underlying interface and it breaks significantly less often.
+#+begin_src nix :tangle ../nix/modules/pipewire.nix
+{ lib, config, ... }:
+{
+  services.pipewire = {
+    enable = lib.mkDefault config.monorepo.profiles.pipewire.enable;
+    alsa = {
+      enable = true;
+      support32Bit = true;
+    };
+    pulse.enable = true;
+    jack.enable = true;
+    wireplumber.enable = true;
+    extraConfig.pipewire-pulse."92-low-latency" = {
+      "context.properties" = [
+        {
+          name = "libpipewire-module-protocol-pulse";
+          args = { };
+        }
+      ];
+      "pulse.properties" = {
+        "pulse.min.req" = "32/48000";
+        "pulse.default.req" = "32/48000";
+        "pulse.max.req" = "32/48000";
+        "pulse.min.quantum" = "32/48000";
+        "pulse.max.quantum" = "32/48000";
+      };
+      "stream.properties" = {
+        "node.latency" = "32/48000";
+        "resample.quality" = 1;
+      };
+    };
+  };
+}
+#+end_src
+** SSH
+My SSH daemon configuration.
+#+begin_src nix :tangle ../nix/modules/ssh.nix
+{ config, ... }:
+{
+  services.openssh = {
+    enable = true;
+    settings = {
+      PasswordAuthentication = true;
+      AllowUsers = [ config.monorepo.vars.userName ];
+      PermitRootLogin = "no";
+      KbdInteractiveAuthentication = false;
+    };
+  };
+}
+#+end_src
+** Tor
+This is my tor configuration, used for my cryptocurrency wallets and whatever else I want
+it to do.
+#+begin_src nix :tangle ../nix/modules/tor.nix
+{ config, lib, ... }:
+{
+  services.tor = {
+    enable = lib.mkDefault config.monorepo.profiles.tor.enable;
+    openFirewall = true;
+    client = {
+      enable = lib.mkDefault config.monorepo.profiles.tor.enable;
+      socksListenAddress = {
+        IsolateDestAddr = true;
+        addr = "127.0.0.1";
+        port = 9050;
+      };
+      dns.enable = true;
+    };
+    torsocks = {
+      enable = lib.mkDefault config.monorepo.profiles.tor.enable;
+      server = "127.0.0.1:9050";
+    };
+  };
+}
+#+end_src
+** Kubo IPFS
+I use IPFS for my website and also for my ISOs for truly declarative and deterministic
+configuration. NixOS might be moving to IPFS for binary cache distribution and package
+distribution soon, and I'm waiting on that.
+#+begin_src nix :tangle ../nix/modules/kubo.nix
+{ config, pkgs, ... }:
+{
+  services.kubo = {
+    enable = true;
+  };
+}
+#+end_src
+** Main Configuration
+This is the backbone of the all the NixOS configurations, with all these options being shared
+because they enhance security.
+#+begin_src nix :tangle ../nix/modules/configuration.nix
+  { config, pkgs, lib, ... }:
+  {
+    imports = [
+      ./xserver.nix
+      ./ssh.nix
+      ./pipewire.nix
+      ./tor.nix
+      ./kubo.nix
+    ];
+
+    documentation = {
+      enable = lib.mkDefault config.monorepo.profiles.documentation.enable;
+      man.enable = lib.mkDefault config.monorepo.profiles.documentation.enable;
+      dev.enable = lib.mkDefault config.monorepo.profiles.documentation.enable;
+    };
+
+    environment = {
+      etc = {
+        securetty.text = ''
+            # /etc/securetty: list of terminals on which root is allowed to login.
+            # See securetty(5) and login(1).
+            '';
+      };
+    };
+
+    systemd = {
+      coredump.enable = false;
+      network.config.networkConfig.IPv6PrivacyExtensions = "kernel";
+      tmpfiles.settings = {
+        "restricthome"."/home/*".Z.mode = "~0700";
+
+        "restrictetcnixos"."/etc/nixos/*".Z = {
+          mode = "0000";
+          user = "root";
+          group = "root";
+        };
+      };
+    };
+
+
+    boot = {
+      extraModulePackages = [ ];
+
+      initrd = {
+        availableKernelModules = [
+          "xhci_pci"
+          "ahci"
+          "usb_storage"
+          "sd_mod"
+          "nvme"
+          "sd_mod"
+          "ehci_pci"
+          "rtsx_pci_sdmmc"
+          "usbhid"
+        ];
+
+        kernelModules = [ ];
+      };
+
+      lanzaboote = {
+        enable = config.monorepo.profiles.secureBoot.enable;
+        pkiBundle = "/etc/secureboot";
+      };
+
+      loader = {
+        systemd-boot.enable = lib.mkForce (! config.monorepo.profiles.secureBoot.enable);
+        efi.canTouchEfiVariables = true;
+      };
+      
+      kernelModules = [
+        "snd-seq"
+        "snd-rawmidi"
+        "xhci_hcd"
+        "kvm_intel"
+      ];
+
+      kernelParams = [
+        "debugfs=off"
+        "page_alloc.shuffle=1"
+        "slab_nomerge"
+        "page_poison=1"
+
+        # madaidan
+        "pti=on"
+        "randomize_kstack_offset=on"
+        "vsyscall=none"
+        "module.sig_enforce=1"
+        "lockdown=confidentiality"
+
+        # cpu
+        "spectre_v2=on"
+        "spec_store_bypass_disable=on"
+        "tsx=off"
+        "tsx_async_abort=full,nosmt"
+        "mds=full,nosmt"
+        "l1tf=full,force"
+        "nosmt=force"
+        "kvm.nx_huge_pages=force"
+
+        # hardened
+        "extra_latent_entropy"
+
+        # mineral
+        "init_on_alloc=1"
+        "random.trust_cpu=off"
+        "random.trust_bootloader=off"
+        "intel_iommu=on"
+        "amd_iommu=force_isolation"
+        "iommu=force"
+        "iommu.strict=1"
+        "init_on_free=1"
+        "quiet"
+        "loglevel=0"
+      ];
+
+      blacklistedKernelModules = [
+        "netrom"
+        "rose"
+
+        "adfs"
+        "affs"
+        "bfs"
+        "befs"
+        "cramfs"
+        "efs"
+        "erofs"
+        "exofs"
+        "freevxfs"
+        "f2fs"
+        "hfs"
+        "hpfs"
+        "jfs"
+        "minix"
+        "nilfs2"
+        "ntfs"
+        "omfs"
+        "qnx4"
+        "qnx6"
+        "sysv"
+        "ufs"
+      ];
+
+      kernel.sysctl = {
+        "kernel.ftrace_enabled" = false;
+        "net.core.bpf_jit_enable" = false;
+        "kernel.kptr_restrict" = 2;
+
+        # madaidan
+        "vm.swappiness" = 1;
+        "vm.unprivileged_userfaultfd" = 0;
+        "dev.tty.ldisc_autoload" = 0;
+        "kernel.kexec_load_disabled" = 1;
+        "kernel.sysrq" = 4;
+        "kernel.perf_event_paranoid" = 3;
+
+        # net
+        "net.ipv4.icmp_echo_ignore_broadcasts" = true;
+
+        "net.ipv4.conf.all.accept_redirects" = false;
+        "net.ipv4.conf.all.secure_redirects" = false;
+        "net.ipv4.conf.default.accept_redirects" = false;
+        "net.ipv4.conf.default.secure_redirects" = false;
+        "net.ipv6.conf.all.accept_redirects" = false;
+        "net.ipv6.conf.default.accept_redirects" = false;
+      };
+    };
+
+    networking = {
+      useDHCP = lib.mkDefault true;
+      hostName = config.monorepo.vars.hostName;
+      networkmanager = {
+        enable = true;
+        # wifi.macAddress = "";
+      };
+      firewall = {
+        allowedTCPPorts = [ ];
+        allowedUDPPorts = [ ];
+      };
+    };
+
+    hardware = {
+      enableAllFirmware = true;
+      cpu.intel.updateMicrocode = true;
+      graphics.enable = true;
+      pulseaudio.enable = ! config.monorepo.profiles.pipewire.enable;
+
+      bluetooth = {
+        enable = true;
+        powerOnBoot = true;
+      };
+    };
+
+    services = {
+      chrony = {
+        enable = true;
+        enableNTS = true;
+        servers = [ "time.cloudflare.com" "ptbtime1.ptb.de" "ptbtime2.ptb.de" ];
+      };
+
+      jitterentropy-rngd.enable = true;
+      resolved.dnssec = true;
+      # usbguard.enable = true;
+      usbguard.enable = false;
+      dbus.apparmor = "enabled";
+
+      kanata.enable = true;
+
+      # Misc.
+      udev = {
+        extraRules = '''';
+        packages = with pkgs; [ 
+          platformio-core
+          platformio-core.udev
+          openocd
+        ];
+      };
+
+      printing.enable = true;
+      udisks2.enable = true;
+    };
+
+    programs = {
+      nix-ld.enable = true;
+      zsh.enable = true;
+      light.enable = true;
+      ssh.enableAskPassword = false;
+    };
+
+    nixpkgs = {
+      hostPlatform = lib.mkDefault "x86_64-linux";
+      config = {
+        allowUnfree = true;
+        cudaSupport = lib.mkDefault config.monorepo.profiles.cuda.enable;
+      };
+    };
+
+    security = {
+      apparmor = {
+        enable = true;
+        killUnconfinedConfinables = true;
+      };
+
+      pam.loginLimits = [
+        { domain = "*"; item = "nofile"; type = "-"; value = "32768"; }
+        { domain = "*"; item = "memlock"; type = "-"; value = "32768"; }
+      ];
+      rtkit.enable = true;
+
+      lockKernelModules = true;
+      protectKernelImage = true;
+      allowSimultaneousMultithreading = false;
+      forcePageTableIsolation = true;
+
+      tpm2 = {
+        enable = true;
+        pkcs11.enable = true;
+        tctiEnvironment.enable = true;
+      };
+
+      auditd.enable = true;
+      audit.enable = true;
+      chromiumSuidSandbox.enable = true;
+      sudo.enable = true;
+    };
+
+    xdg.portal = {
+      enable = true;
+      wlr.enable = true;
+      extraPortals = with pkgs; [
+        xdg-desktop-portal-gtk
+        xdg-desktop-portal
+        xdg-desktop-portal-hyprland
+      ];
+      config.common.default = "*";
+    };
+
+    environment.systemPackages = with pkgs; [
+      restic
+      sbctl
+      git
+      vim
+      curl
+    ];
+    
+    users.users = {
+      root.openssh.authorizedKeys.keys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINSshvS1N/42pH9Unp3Zj4gjqs9BXoin99oaFWYHXZDJ preston@preston-arch"
+      ];
+
+      "${config.monorepo.vars.userName}" = {
+        initialPassword = "${config.monorepo.vars.userName}";
+        isNormalUser = true;
+        description = config.monorepo.vars.fullName;
+        extraGroups = [ "networkmanager" "wheel" "video" "docker" "jackaudio" "tss" "dialout" ];
+        shell = pkgs.zsh;
+        packages = [];
+      };
+    };
+
+    nix.settings.experimental-features = "nix-command flakes";
+    time.timeZone = config.monorepo.vars.timeZone;
+    i18n.defaultLocale = "en_CA.UTF-8";
+    system.stateVersion = "24.11";
+  }
+#+end_src
+** Disko
+This is the disko configuration for my continuity system. It features a boot and ext4 partition,
+on disk /dev/sda. All my SATA disks have this location by default, but if you want to use nvme,
+you will have to import that configuration in your ~systems/xxx/default.nix~.
+#+begin_src nix :tangle ../nix/modules/sda-simple.nix
+{
+  disko.devices = {
+    disk = {
+      my-disk = {
+        device = "/dev/sda";
+        type = "disk";
+        content = {
+          type = "gpt";
+          partitions = {
+            ESP = {
+              type = "EF00";
+              size = "500M";
+              priority = 1;
+              content = {
+                type = "filesystem";
+                format = "vfat";
+                mountpoint = "/boot";
+                mountOptions = [ "umask=0077" ];
+              };
+            };
+            root = {
+              size = "100%";
+              priority = 2;
+              content = {
+                type = "filesystem";
+                format = "ext4";
+                mountpoint = "/";
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+}
+#+end_src
+** Home
+Time for my home user configuration, which is managed by home-manager. First we start off with
+this module to enter us into the home-manager namespace:
+#+begin_src nix :tangle ../nix/modules/home/home.nix
+{ config, sops-nix, ... }:
+{
+  home-manager = {
+    sharedModules = [
+      sops-nix.homeManagerModules.sops
+    ];
+    useGlobalPkgs = true;
+    useUserPackages = true;
+    users."${config.monorepo.vars.userName}" = import ./default.nix;
+  };
+}
+#+end_src
+as you can see, we import default.nix which puts us in the home-manager namespace. Everything
+in the top level from now on will implicitly be located at
+~users."${config.monorepo.vars.userName}".xxxxx~, and we will look at default.nix next.
+*** Default Home Profile
+As you can see, I have my installed home packages installed based on the profiles enabled. Also,
+I have many imports that we'll go through next.
+#+begin_src nix :tangle ../nix/modules/home/default.nix
+{ lib, config, pkgs, ... }:
+{
+  imports = [
+    ../vars.nix
+    ./fcitx.nix
+    ./secrets.nix
+    ./emacs.nix
+    ./firefox.nix
+    ./git.nix
+    ./hyprland.nix
+    ./mpv.nix
+    ./yt-dlp.nix
+    ./wofi.nix
+    ./kitty.nix
+    ./waybar.nix
+    ./zsh.nix
+    ./mbsync.nix
+    ./msmtp.nix
+    ./gammastep.nix
+    ./mpd.nix
+    ./mako.nix
+    ./user.nix
+  ];
+
+  options = {
+    monorepo.profiles = {
+      enable = lib.mkEnableOption "Enables home manager desktop configuration";
+      # Programs
+      lang-c.enable = lib.mkEnableOption "Enables C language support";
+      lang-sh.enable = lib.mkEnableOption "Enables sh language support";
+      lang-rust.enable = lib.mkEnableOption "Enables Rust language support";
+      lang-python.enable = lib.mkEnableOption "Enables python language support";
+      lang-sol.enable = lib.mkEnableOption "Enables solidity language support";
+      lang-openscad.enable = lib.mkEnableOption "Enables openscad language support";
+      lang-js.enable = lib.mkEnableOption "Enables javascript language support";
+      lang-nix.enable = lib.mkEnableOption "Enables nix language support";
+      lang-coq.enable = lib.mkEnableOption "Enables coq language support";
+
+      crypto.enable = lib.mkEnableOption "Enables various cryptocurrency wallets";
+      art.enable = lib.mkEnableOption "Enables various art programs";
+      music.enable = lib.mkEnableOption "Enables mpd";
+
+      hyprland = {
+        enable = lib.mkEnableOption "Enables hyprland";
+        monitors = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [
+            "HDMI-A-1"
+            "eDP-1"
+            "DP-2"
+            "DP-3"
+            "LVDS-1"
+          ];
+          example = [];
+          description = "Hyprland monitors";
+        };
+      };
+      email = {
+        email = lib.mkOption {
+          type = lib.types.str;
+          default = "ret2pop@gmail.com";
+          example = "john@example.com";
+          description = "Email address and imaps/smtps account";
+        };
+        imapsServer = lib.mkOption {
+          type = lib.types.str;
+          default = "imap.gmail.com";
+          example = "imap.example.com";
+          description = "imaps server address";
+        };
+        smtpsServer = lib.mkOption {
+          type = lib.types.str;
+          default = "smtp.gmail.com";
+          example = "smtp.example.com";
+          description = "smtp server address";
+        };
+        enable = lib.mkEnableOption "Enables email";
+      };
+    };
+  };
+
+  config = {
+    home.packages = (if config.monorepo.profiles.email.enable then [ pkgs.mu ] else [])
+                    ++
+                    (if config.monorepo.profiles.lang-c.enable then (with pkgs; [
+                      autobuild
+                      clang
+                      gdb
+                      gnumake
+                      bear
+                      clang-tools
+                    ]) else [])
+                    ++
+                    (if config.monorepo.profiles.lang-js.enable then (with pkgs; [
+                      nodejs
+                      bun
+                      yarn
+                      typescript
+                      vscode-langservers-extracted
+                    ]) else [])
+                    ++
+                    (if config.monorepo.profiles.lang-rust.enable then (with pkgs; [
+                      cargo
+                      rust-analyzer
+                      rustfmt
+                    ]) else [])
+                    ++
+                    (if config.monorepo.profiles.lang-python.enable then (with pkgs; [
+                      poetry
+                      python3
+                      python312Packages.jedi
+                    ]) else [])
+                    ++
+                    (if config.monorepo.profiles.lang-sol.enable then (with pkgs; [
+                      solc
+                    ]) else [])
+                    ++
+                    (if config.monorepo.profiles.lang-openscad.enable then (with pkgs; [
+                      openscad
+                      openscad-lsp
+                    ]) else [])
+                    ++
+                    (if config.monorepo.profiles.lang-sh.enable then (with pkgs; [
+                      bash-language-server
+                    ]) else [])
+                    ++
+                    (if config.monorepo.profiles.lang-coq.enable then (with pkgs; [
+                      coq
+                    ]) else [])
+                    ++
+                    (if config.monorepo.profiles.lang-nix.enable then (with pkgs; [
+                      nil
+                      nixd
+                      nixfmt-rfc-style
+                    ]) else [])
+                    ++
+                    (if config.monorepo.profiles.crypto.enable then (with pkgs; [
+                      bitcoin
+                      electrum
+                      monero-cli
+                      monero-gui
+                    ]) else [])
+                    ++
+                    (if config.monorepo.profiles.art.enable then (with pkgs; [
+                      inkscape
+                      krita
+                    ]) else [])
+                    ++
+                    (if config.monorepo.profiles.music.enable then (with pkgs; [
+                      mpc-cli
+                      sox
+                    ]) else []);
+
+    monorepo.profiles = {
+      enable = lib.mkDefault true;
+      music.enable = lib.mkDefault true;
+      hyprland.enable = lib.mkDefault true;
+      email.enable = lib.mkDefault true;
+
+      # Programming
+      lang-c.enable = lib.mkDefault true;
+      lang-rust.enable = lib.mkDefault true;
+      lang-python.enable = lib.mkDefault true;
+      lang-sol.enable = lib.mkDefault true;
+      lang-sh.enable = lib.mkDefault true;
+      lang-openscad.enable = lib.mkDefault true;
+      lang-js.enable = lib.mkDefault true;
+      lang-nix.enable = lib.mkDefault true;
+      lang-coq.enable = lib.mkDefault true;
+
+      crypto.enable = lib.mkDefault true;
+      art.enable = lib.mkDefault true;
+    };
+  };
+}
+#+end_src
+*** Firefox
+I conditionally enable metamask based on the cryptocurrency option. Everything else here should
+be straightforward.
+#+begin_src nix :tangle ../nix/modules/home/firefox.nix
+{ lib, config, pkgs, ... }:
+{
+  programs.firefox = {
+    enable = true;
+    policies = {
+      EnableTrackingProtection = true;
+      OfferToSaveLogins = false;
+    };
+    package = pkgs.firefox-wayland;
+    profiles = {
+      default = {
+        id = 0;
+        name = "default";
+        isDefault = true;
+
+        extensions = with pkgs.nur.repos.rycee.firefox-addons; [
+          ublock-origin
+          tree-style-tab
+          firefox-color
+          vimium
+        ]
+        ++ (lib.optional
+          config.monorepo.profiles.crypto.enable pkgs.nur.repos.rycee.firefox-addons.metamask);
+
+        settings = {
+          media = {
+            memory_cache_max_size = 65536;
+            cache_readahead_limit = 7200;
+            cache_resume_threshold = 3600;
+            peerconnection.ice = {
+              proxy_only_if_behind_proxy = true;
+              default_address_only = true;
+            };
+          };
+
+          gfx = {
+            content.skia-font-cache-size = 20;
+            canvas.accelerated = {
+              cache-items = 4096;
+              cache-size = 512;
+            };
+          };
+
+          network = {
+            http = {
+              max-connections = 1800;
+              max-persistent-connections-per-server = 10;
+              max-urgent-start-excessive-connections-per-host = 5;
+              referer.XOriginTrimmingPolicy = 2;
+            };
+
+            buffer.cache = {
+              size = 262144;
+              count = 128;
+            };
+
+            dns = {
+              max_high_priority_threads = 8;
+              disablePrefetch = true;
+            };
+
+            pacing.requests.enabled = false;
+            dnsCacheExpiration = 3600;
+            ssl_tokens_cache_capacity = 10240;
+            prefetch-next = false;
+            predictor.enabled = false;
+            cookie.sameSite.noneRequiresSecure = true;
+            IDN_show_punycode = true;
+            auth.subresource-http-auth-allow = 1;
+            captive-portal-service.enabled = false;
+            connectivity-service.enabled = false;
+          };
+
+          browser = {
+            download = {
+              always_ask_before_handling_new_types = true;
+              manager.addToRecentDocs = false;
+              open_pdf_attachments_inline = true;
+              start_downloads_in_tmp_dir = true;
+            };
+
+            urlbar = {
+              suggest.quicksuggest.sponsored = false;
+              suggest.quicksuggest.nonsponsored = false;
+              suggest.calculator = true;
+              update2.engineAliasRefresh = true;
+              unitConversion.enabled = true;
+              trending.featureGate = false;
+            };
+
+            search = {
+              separatePrivateDefault.ui.enabled = true;
+              suggest.enabled = false;
+            };
+
+            newtabpage.activity-stream = {
+              feeds = {
+                topsites = false;
+                section.topstories = false;
+                telemetry = false;
+              };
+              asrouter.userprefs.cfr = {
+                addons = false;
+                features = false;
+              };
+              telemetry = false;
+            };
+
+            privatebrowsing = {
+              vpnpromourl = "";
+              forceMediaMemoryCache = true;
+            };
+
+            display = {
+              focus_ring_on_anything = true;
+              focus_ring_style = 0;
+              focus_ring_width = 0;
+            };
+
+            cache.jsbc_compression_level = 3;
+            helperApps.deleteTempFileOnExit = true;
+            uitour.enabled = false;
+            sessionstore.interval = 60000;
+            formfill.enable = false;
+            xul.error_pages.expert_bad_cert = true;
+            contentblocking.category = "strict";
+            ping-centre.telemetry = false;
+            discovery.enabled = false;
+            shell.checkDefaultBrowser = false;
+            preferences.moreFromMozilla = false;
+            tabs.tabmanager.enabled = false;
+            aboutConfig.showWarning = false;
+            aboutwelcome.enabled = false;
+            bookmarks.openInTabClosesMenu = false;
+            menu.showViewImageInfo = true;
+            compactmode.show = true;
+            safebrowsing.downloads.remote.enabled = false;
+            tabs.crashReporting.sendReport = false;
+            crashReports.unsubmittedCheck.autoSubmit2 = false;
+            privateWindowSeparation.enabled = false;
+          };
+
+          security = {
+            mixed_content = {
+              block_display_content = true;
+              upgrade_display_content = true;
+            };
+            insecure_connection_text = {
+              enabled = true;
+              pbmode.enabled = true;
+            };
+            OCSP.enabled = 0;
+            remote_settings.crlite_filters.enabled = true;
+            pki.crlite_mode = 2;
+            ssl.treat_unsafe_negotiation_as_broken = true;
+            tls.enable_0rtt_data = false;
+          };
+
+          toolkit = {
+            telemetry = {
+              unified = false;
+              enabled = false;
+              server = "data:,";
+              archive.enabled = false;
+              newProfilePing.enabled = false;
+              shutdownPingSender.enabled = false;
+              updatePing.enabled = false;
+              bhrPing.enabled = false;
+              firstShutdownPing.enabled = false;
+              coverage.opt-out = true;
+            };
+            coverage = {
+              opt-out = true;
+              endpoint.base = "";
+            };
+            legacyUserProfileCustomizations.stylesheets = true;
+          };
+
+          dom = {
+            security = {
+              https_first = true;
+              https_first_schemeless = true;
+              sanitizer.enabled = true;
+            };
+            enable_web_task_scheduling = true;
+          };
+
+          layout = {
+            css = {
+              grid-template-masonry-value.enabled = true;
+              has-selector.enabled = true;
+              prefers-color-scheme.content-override = 2;
+            };
+            word_select.eat_space_to_next_word = false;
+          };
+
+          urlclassifier = {
+            trackingSkipURLs = "*.reddit.com, *.twitter.com, *.twimg.com, *.tiktok.com";
+            features.socialtracking.skipURLs = "*.instagram.com, *.twitter.com, *.twimg.com";
+          };
+
+          privacy = {
+            globalprivacycontrol.enabled = true;
+            history.custom = true;
+            userContext.ui.enabled = true;
+          };
+
+          full-screen-api = {
+            transition-duration = {
+              enter = "0 0";
+              leave = "0 0";
+            };
+            warning = {
+              delay = -1;
+              timeout = 0;
+            };
+          };
+
+          permissions.default = {
+            desktop-notification = 2;
+            geo = 2;
+          };
+
+          signon = {
+            formlessCapture.enabled = false;
+            privateBrowsingCapture.enabled = false;
+          };
+
+          datareporting = {
+            policy.dataSubmissionEnabled = false;
+            healthreport.uploadEnabled = false;
+          };
+
+          extensions = {
+            pocket.enabled = false;
+            getAddons.showPane = false;
+            htmlaboutaddons.recommendations.enabled = false;
+            postDownloadThirdPartyPrompt = false;
+          };
+
+          app = {
+            shield.optoutstudies.enabled = false;
+            normandy.enabled = false;
+            normandy.api_url = "";
+          };
+
+          image.mem.decode_bytes_at_a_time = 32768;
+          editor.truncate_user_pastes = false;
+          pdfjs.enableScripting = false;
+          geo.provider.network.url = "https://location.services.mozilla.com/v1/geolocate?key=%MOZILLA_API_KEY%";
+          permissions.manager.defaultsUrl = "";
+          webchannel.allowObject.urlWhitelist = "";
+          breakpad.reportURL = "";
+          captivedetect.canonicalURL = "";
+          cookiebanners.service.mode = 1;
+          findbar.highlightAll = true;
+          content.notify.interval = 100000;
+        };
+      };
+    };
+  };
+}
+#+end_src
+*** Fcitx
+This is a virtual keyboard program for writing in multiple languages. I use this sometimes.
+#+begin_src nix :tangle ../nix/modules/home/fcitx.nix
+{ pkgs, ... }:
+{
+  i18n.inputMethod = {
+    enabled = "fcitx5";
+    fcitx5.addons = with pkgs; [
+      fcitx5-gtk
+      fcitx5-chinese-addons
+      fcitx5-configtool
+      fcitx5-mozc
+      fcitx5-rime
+    ];
+  };
+}
+#+end_src
+Note that I configure fcitx with chinese and some japanese input enabled.
+*** Emacs
+I install all my emacs packages within Nix so that they build deterministically with native
+compilation, and because I can fetch their exact versions. Note that I have a stub
+configuration here that tells emacs to load my real configuration at ~~/monorepo/config/emacs.org~
+as an org file which gets automatically tangled to an emacs-lisp file.
+#+begin_src nix :tangle ../nix/modules/home/emacs.nix
+{ lib, config, pkgs, ... }:
+{
+  programs.emacs = 
+    {
+      enable = true;
+      package = pkgs.emacs29-pgtk;
+      extraConfig = ''
+      (setq debug-on-error t)
+      (org-babel-load-file
+        (expand-file-name "~/monorepo/config/emacs.org"))'';
+      extraPackages = epkgs: [
+        epkgs.all-the-icons
+        epkgs.auctex
+        epkgs.catppuccin-theme
+        epkgs.chatgpt-shell
+        epkgs.company
+        epkgs.company-solidity
+        epkgs.counsel
+        epkgs.dashboard
+        epkgs.doom-modeline
+        epkgs.elfeed
+        epkgs.elfeed-org
+        epkgs.elfeed-tube
+        epkgs.elfeed-tube-mpv
+        epkgs.ellama
+        epkgs.elpher
+        epkgs.ement
+        epkgs.emmet-mode
+        epkgs.emms
+        epkgs.enwc
+        epkgs.evil
+        epkgs.evil-collection
+        epkgs.evil-commentary
+        epkgs.evil-org
+        epkgs.f
+        epkgs.flycheck
+        epkgs.general
+        epkgs.gptel
+        epkgs.gruvbox-theme
+        epkgs.htmlize
+        epkgs.irony-eldoc
+        epkgs.ivy
+        epkgs.ivy-pass
+        epkgs.latex-preview-pane
+        epkgs.lsp-ivy
+        epkgs.lsp-mode
+        epkgs.lyrics-fetcher
+        epkgs.magit
+        epkgs.magit-delta
+        epkgs.mu4e
+        epkgs.nix-mode
+        epkgs.org-fragtog
+        epkgs.org-journal
+        epkgs.org-roam
+        epkgs.org-roam-ui
+        epkgs.org-superstar
+        epkgs.page-break-lines
+        epkgs.password-store
+        epkgs.pdf-tools
+        epkgs.pinentry
+        epkgs.platformio-mode
+        epkgs.projectile
+        epkgs.rustic
+        epkgs.scad-mode
+        epkgs.simple-httpd
+        epkgs.solidity-flycheck
+        epkgs.solidity-mode
+        epkgs.sudo-edit
+        epkgs.treemacs
+        epkgs.treemacs-evil
+        epkgs.treemacs-magit
+        epkgs.treemacs-projectile
+        epkgs.treesit-auto
+        epkgs.typescript-mode
+        epkgs.unicode-fonts
+        epkgs.use-package
+        epkgs.vterm
+        epkgs.web-mode
+        epkgs.websocket
+        epkgs.which-key
+        epkgs.writegood-mode
+        epkgs.writeroom-mode
+        epkgs.yaml-mode
+        epkgs.yasnippet
+        epkgs.yasnippet-snippets
+      ];
+    };
+}
+#+end_src
+*** Gammastep
+This is a program like redshift for making your screen emit more red and less blue light. Here
+I have the long and lat set for Vancouver, but you should replace it if you live outside
+the timezone.
+#+begin_src nix :tangle ../nix/modules/home/gammastep.nix
+{ lib, config, ... }:
+{
+  services.gammastep = {
+    enable = true;
+    provider = "manual";
+    latitude = 49.282730;
+    longitude = -123.120735;
+    
+    temperature = {
+      day = 5000;
+      night = 3000;
+    };
+
+    settings = {
+      general = {
+        adjustment-method = "wayland";
+      };
+    };
+  };
+}
+#+end_src
+*** Git
+My git configuration uses information set in the ~vars.nix~ in order to set configuration options.
+Make sure those are set correctly. I've set it to sign by default.
+#+begin_src nix :tangle ../nix/modules/home/git.nix
+{ lib, config, ... }:
+{
+  programs.git = {
+    enable = true;
+    userName = config.monorepo.vars.fullName;
+    userEmail = config.monorepo.profiles.email.email;
+    signing = {
+      key = config.monorepo.vars.gpgKey;
+      signByDefault = true;
+    };
+
+    extraConfig = {
+      init.defaultBranch = "main";
+    };
+
+    aliases = {
+      co = "checkout";
+      c = "commit";
+      a = "add";
+      s = "switch";
+      b = "branch";
+    };
+  };
+}
+#+end_src
+*** Hyprland
+My compositor/window manager. This automatically starts on startup. Instructions on how
+to use this component will come soon.
+#+begin_src nix :tangle ../nix/modules/home/hyprland.nix
+{ lib, config, wallpapers, pkgs, scripts, ... }:
+{
+  wayland.windowManager.hyprland = {
+    enable = lib.mkDefault config.monorepo.profiles.hyprland.enable;
+    package = pkgs.hyprland;
+    xwayland.enable = true;
+    systemd.enable = true;
+    settings = {
+      "$mod" = "SUPER";
+      exec-once = [
+        "waybar"
+        "swww-daemon --format xrgb"
+        "swww img ${wallpapers}/imagination.png"
+        "fcitx5-remote -r"
+        "fcitx5 -d --replace"
+        "fcitx5-remote -r"
+        "emacs"
+        "firefox"
+      ];
+      env = [
+        "LIBVA_DRIVER_NAME,nvidia"
+        "XDG_SESSION_TYPE,wayland"
+        "GBM_BACKEND,nvidia-drm"
+        "__GLX_VENDOR_LIBRARY_NAME,nvidia"
+        "ELECTRON_OZONE_PLATFORM_HINT,auto"
+      ];
+      blurls = [
+        "waybar"
+      ];
+      monitor = [
+        "Unknown-1,disable"
+      ];
+      windowrule = [
+        "workspace 1, ^(.*emacs.*)$"
+        "workspace 2, ^(.*firefox.*)$"
+        "workspace 2, ^(.*Tor Browser.*)$"
+        "workspace 2, ^(.*Chromium-browser.*)$"
+        "workspace 2, ^(.*chromium.*)$"
+        "workspace 3, ^(.*discord.*)$"
+        "workspace 3, ^(.*vesktop.*)$"
+        "workspace 3, ^(.*fluffychat.*)$"
+        "workspace 3, ^(.*element-desktop.*)$"
+        "workspace 4, ^(.*qpwgraph.*)$"
+        "workspace 4, ^(.*mpv.*)$"
+        "workspace 5, ^(.*Monero.*)$"
+        "workspace 5, ^(.*org\.bitcoin\..*)$"
+        "workspace 5, ^(.*Bitcoin Core - preston.*)$"
+        "workspace 5, ^(.*org\.getmonero\..*)$"
+        "workspace 5, ^(.*Monero - preston.*)$"
+        "workspace 5, ^(.*electrum.*)$"
+        "pseudo,fcitx"
+      ];
+      bind = [
+        "$mod, F, exec, firefox"
+        "$mod, T, exec, tor-browser"
+        "$mod, Return, exec, kitty"
+        "$mod, E, exec, emacs"
+        "$mod, B, exec, bitcoin-qt"
+        "$mod, M, exec, monero-wallet-gui"
+        "$mod, V, exec, vesktop"
+        "$mod, D, exec, wofi --show run"
+        "$mod, P, exec, bash ${scripts}/powermenu.sh"
+        "$mod, Q, killactive"
+        "$mod SHIFT, H, movewindow, l"
+        "$mod SHIFT, L, movewindow, r"
+        "$mod SHIFT, K, movewindow, u"
+        "$mod SHIFT, J, movewindow, d"
+        "$mod, H, movefocus, l"
+        "$mod, L, movefocus, r"
+        "$mod, K, movefocus, u"
+        "$mod, J, movefocus, d"
+        ", XF86AudioPlay, exec, mpc toggle"
+        ", Print, exec, grim"
+      ]
+      ++ (
+        builtins.concatLists (builtins.genList
+          (
+            x:
+            let
+              ws =
+                let
+                  c = (x + 1) / 10;
+                in
+                  builtins.toString (x + 1 - (c * 10));
+            in
+              [
+                "$mod, ${ws}, workspace, ${toString (x + 1)}"
+                "$mod SHIFT, ${ws}, movetoworkspace, ${toString (x + 1)}"
+              ]
+          )
+          10)
+      );
+      bindm = [
+        "$mod, mouse:272, movewindow"
+        "$mod, mouse:273, resizewindow"
+        "$mod ALT, mouse:272, resizewindow"
+      ];
+      binde = [
+        ", XF86AudioRaiseVolume, exec, wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+"
+        ", XF86AudioLowerVolume, exec, wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%-"
+        ", XF86AudioNext, exec, mpc next"
+        ", XF86AudioPrev, exec, mpc prev"
+        ", XF86MonBrightnessUp , exec, xbacklight -inc 10"
+        ", XF86MonBrightnessDown, exec, xbacklight -dec 10"
+      ];
+      decoration = {
+        blur = {
+          enabled = true;
+          size = 5;
+          passes = 2;
+        };
+        rounding = 5;
+      };
+      input = {
+        kb_options = "caps:swapescape";
+        repeat_delay = 300;
+        repeat_rate = 50;
+        natural_scroll = true;
+        touchpad = {
+          natural_scroll = true;
+          disable_while_typing = true;
+          tap-to-click = true;
+        };
+      };
+      cursor = {
+        no_hardware_cursors = true;
+      };
+      misc = {
+        force_default_wallpaper = 0;
+        disable_hyprland_logo = true;
+      };
+    };
+  };
+}
+#+end_src
+*** Kitty
+I've set my terminal, kitty, to use catppuccin colors.
+#+begin_src nix :tangle ../nix/modules/home/kitty.nix
+{ lib, config, ... }:
+{
+  programs.kitty = {
+    enable = lib.mkDefault config.monorepo.profiles.hyprland.enable;
+    settings = {
+      enable_audio_bell = false;
+      font_family = "Iosevka Nerd Font";
+      font_size = 14;
+      confirm_os_window_close = 0;
+      background_opacity = "0.9";
+      # Catppuccin theme
+      foreground = "#cdd6f4";
+      background = "#1e1e2e";
+      selection_foreground = "#1e1e2e";
+      selection_background = "#f5e0dc";
+      cursor = "#f5e0dc";
+      cursor_text_color = "#1e1e2e";
+      url_color = "#f5e0dc";
+      active_border_color = "#B4BEFE";
+      inactive_border_color = "#6C7086";
+      bell_border_color = "#F9E2AF";
+      wayland_titlebar_color = "#1E1E2E";
+      macos_titlebar_color = "#1E1E2E";
+      active_tab_foreground = "#11111B";
+      active_tab_background = "#CBA6F7";
+      inactive_tab_foreground = "#CDD6F4";
+      inactive_tab_background = "#181825";
+      tab_bar_background = "#11111B";
+      mark1_foreground = "#1E1E2E";
+      mark1_background = "#B4BEFE";
+      mark2_foreground = "#1E1E2E";
+      mark2_background = "#CBA6F7";
+      mark3_foreground = "#1E1E2E";
+      mark3_background = "#74C7EC";
+      color0 = "#45475A";
+      color8 = "#585B70";
+      color1 = "#F38BA8";
+      color9 = "#F38BA8";
+      color2 = "#A6E3A1";
+      color10 = "#A6E3A1";
+      color3 = "#F9E2AF";
+      color11 = "#F9E2AF";
+      color4 = "#89B4FA";
+      color12 = "#89B4FA";
+      color5 = "#F5C2E7";
+      color13 = "#F5C2E7";
+      color6 = "#94E2D5";
+      color14 = "#94E2D5";
+      color7 = "#BAC2DE";
+      color15 = "#A6ADC8";
+    };
+  };
+}
+#+end_src
+*** Mako
+This is my notification system. My flake automatically fetches the notification sound, so you
+are all set from the get-go!
+#+begin_src nix :tangle ../nix/modules/home/mako.nix
+{ lib, config, sounds, ... }:
+{
+  services.mako = {
+    enable = true;
+    backgroundColor = "#11111bf8";
+    textColor = "#cdd6f4";
+    borderColor = "#89b4faff";
+    borderRadius = 1;
+    font = "Fira Code 10";
+    defaultTimeout = 3000;
+    extraConfig = ''
+on-notify=exec mpv ${sounds}/polite.ogg --no-config --no-video
+'';
+  };
+}
+#+end_src
+*** Mbsync
+Note that in order to use my email configuration, your imaps and smtps servers must be
+encrypted. This module uses the ~vars.nix~ as well as the home ~default.nix~ options.
+#+begin_src nix :tangle ../nix/modules/home/mbsync.nix
+{ lib, config, ... }:
+{
+  programs.mbsync = {
+    enable = lib.mkDefault config.monorepo.profiles.email.enable;
+    extraConfig = ''
+      IMAPAccount ret2pop
+      Host ${config.monorepo.profiles.email.imapsServer}
+      User ${config.monorepo.profiles.email.email}
+      PassCmd "cat ${config.sops.secrets.mail.path}"
+      Port 993
+      TLSType IMAPS
+      AuthMechs *
+      CertificateFile /etc/ssl/certs/ca-certificates.crt
+
+      IMAPStore ret2pop-remote
+      Account ret2pop
+
+      MaildirStore ret2pop-local
+      Path ~/email/ret2pop/
+      Inbox ~/email/ret2pop/INBOX
+      SubFolders Verbatim
+
+      Channel ret2pop 
+      Far :ret2pop-remote:
+      Near :ret2pop-local:
+      Patterns *
+      Create Near
+      Sync All
+      Expunge None
+      SyncState *
+    '';
+  };
+}
+#+end_src
+*** MSMTP
+This is the program I use to send email from emacs. It is really the same thing as above,
+just set the options to the ones you want in your system ~default.nix~.
+#+begin_src nix :tangle ../nix/modules/home/msmtp.nix
+{ lib, config, ... }:
+{
+  programs.msmtp = {
+    enable = lib.mkDefault config.monorepo.profiles.email.enable;
+    extraConfig = ''
+      # Set default values for all following accounts.
+      defaults
+      auth           on
+      tls            on
+      tls_trust_file /etc/ssl/certs/ca-certificates.crt
+      tls_certcheck  off
+      logfile        ~/.msmtp.log
+
+      # Gmail
+      account        ${config.monorepo.vars.userName}
+      host           ${config.monorepo.profiles.email.smtpsServer}
+      port           587
+      from           ${config.monorepo.profiles.email.email}
+      user           ${config.monorepo.profiles.email.email}
+      passwordeval   "cat ${config.sops.secrets.mail.path}"
+
+
+      # Set a default account
+      account default : ${config.monorepo.vars.userName}
+    '';
+  };
+}
+#+end_src
+*** Mpd
+This mpd configuration uses pipewire by default, and it should just work if you place music
+in the ~~/music~ directory and then run ~mpc add /~ afterwards.
+#+begin_src nix :tangle ../nix/modules/home/mpd.nix
+{ lib, config, ... }:
+{
+  services.mpd = {
+  enable = lib.mkDefault config.monorepo.profiles.music.enable;
+  dbFile = "/home/${config.monorepo.vars.userName}/.config/mpd/db";
+  dataDir = "/home/${config.monorepo.vars.userName}/.config/mpd/";
+  network.port = 6600;
+  musicDirectory = "/home/${config.monorepo.vars.userName}/music";
+  playlistDirectory = "/home/${config.monorepo.vars.userName}/.config/mpd/playlists";
+  network.listenAddress = "0.0.0.0";
+  extraConfig = ''
+      audio_output {
+        type "pipewire"
+        name "pipewire output"
+      }
+      audio_output {
+        type		"httpd"
+        name		"My HTTP Stream"
+        encoder		"opus"		# optional
+        port		"8000"
+     #	quality		"5.0"			# do not define if bitrate is defined
+        bitrate		"128000"			# do not define if quality is defined
+        format		"48000:16:1"
+        always_on       "yes" # prevent MPD from disconnecting all listeners when playback is stopped.
+        tags            "yes" # httpd supports sending tags to listening streams.
+      }
+    '';
+  };
+}
+#+end_src
+*** MPV
+I have some emacs + yt-dlp integrations with mpv with my rss feed, and therefore we need it
+here:
+#+begin_src nix :tangle ../nix/modules/home/mpv.nix
+{ lib, config, ... }:
+{
+  programs.mpv = {
+    enable = true;
+    config = {
+      profile = "gpu-hq";
+      force-window = true;
+      ytdl-format = "bestvideo+bestaudio";
+      cache-default = 4000000;
+    };
+  };
+}
+#+end_src
+*** Secrets
+This uses sops in order to declaratively create the secrets on my system by unencrypting
+the yaml file specified. Yes, this is safe to include in the repo.
+#+begin_src nix :tangle ../nix/modules/secrets.nix
+{ config, ... }:
+{
+  sops = {
+    defaultSopsFile = ../../secrets/secrets.yaml;
+    age = {
+      keyFile = "/home/${config.monorepo.vars.userName}/.ssh/keys.txt";
+    };
+    secrets.mail = {
+      format = "yaml";
+      path = "${config.sops.defaultSymlinkPath}/mail";
+    };
+    secrets.digikey = {
+      format = "yaml";
+      path = "${config.sops.defaultSymlinkPath}/digikey";
+    };
+
+    defaultSymlinkPath = "/run/user/1000/secrets";
+    defaultSecretsMountPoint = "/run/user/1000/secrets.d";
+  };
+}
+#+end_src
+*** Waybar
+This is the bar I use for my hyprland configuration. You will need to adjust the monitors field
+in the ~default.nix~ for it to really appear.
+#+begin_src nix :tangle ../nix/modules/home/waybar.nix
+{ lib, config, ... }:
+{
+  programs.waybar = {
+    enable = lib.mkDefault config.monorepo.profiles.hyprland.enable;
+    style = ''
+      * {
+          border: none;
+          border-radius: 0px;
+          font-family: Iosevka Nerd Font, FontAwesome, Noto Sans CJK;
+          font-size: 14px;
+          font-style: normal;
+          min-height: 0;
+      }
+
+      window#waybar {
+          background: rgba(30, 30, 46, 0.5);
+          border-bottom: 1px solid #45475a;
+          color: #cdd6f4;
+      }
+
+      #workspaces {
+        background: #45475a;
+        margin: 5px 5px 5px 5px;
+        padding: 0px 5px 0px 5px;
+        border-radius: 16px;
+        border: solid 0px #f4d9e1;
+        font-weight: normal;
+        font-style: normal;
+      }
+      #workspaces button {
+          padding: 0px 5px;
+          border-radius: 16px;
+          color: #a6adc8;
+      }
+
+      #workspaces button.active {
+          color: #f4d9e1;
+          background-color: transparent;
+          border-radius: 16px;
+      }
+
+      #workspaces button:hover {
+      	background-color: #cdd6f4;
+      	color: black;
+      	border-radius: 16px;
+      }
+
+      #custom-date, #clock, #battery, #pulseaudio, #network, #custom-randwall, #custom-launcher {
+      	background: transparent;
+      	padding: 5px 5px 5px 5px;
+      	margin: 5px 5px 5px 5px;
+        border-radius: 8px;
+        border: solid 0px #f4d9e1;
+      }
+
+      #custom-date {
+      	color: #D3869B;
+      }
+
+      #custom-power {
+      	color: #24283b;
+      	background-color: #db4b4b;
+      	border-radius: 5px;
+      	margin-right: 10px;
+      	margin-top: 5px;
+      	margin-bottom: 5px;
+      	margin-left: 0px;
+      	padding: 5px 10px;
+      }
+
+      #tray {
+          background: #45475a;
+          margin: 5px 5px 5px 5px;
+          border-radius: 16px;
+          padding: 0px 5px;
+          /*border-right: solid 1px #282738;*/
+      }
+
+      #clock {
+          color: #cdd6f4;
+          background-color: #45475a;
+          border-radius: 0px 0px 0px 24px;
+          padding-left: 13px;
+          padding-right: 15px;
+          margin-right: 0px;
+          margin-left: 10px;
+          margin-top: 0px;
+          margin-bottom: 0px;
+          font-weight: bold;
+          /*border-left: solid 1px #282738;*/
+      }
+
+      #battery {
+          color: #89b4fa;
+      }
+
+      #battery.charging {
+          color: #a6e3a1;
+      }
+
+      #battery.warning:not(.charging) {
+          background-color: #f7768e;
+          color: #f38ba8;
+          border-radius: 5px 5px 5px 5px;
+      }
+
+      #backlight {
+          background-color: #24283b;
+          color: #db4b4b;
+          border-radius: 0px 0px 0px 0px;
+          margin: 5px;
+          margin-left: 0px;
+          margin-right: 0px;
+          padding: 0px 0px;
+      }
+
+      #network {
+          color: #f4d9e1;
+          border-radius: 8px;
+          margin-right: 5px;
+      }
+
+      #pulseaudio {
+          color: #f4d9e1;
+          border-radius: 8px;
+          margin-left: 0px;
+      }
+
+      #pulseaudio.muted {
+          background: transparent;
+          color: #928374;
+          border-radius: 8px;
+          margin-left: 0px;
+      }
+
+      #custom-randwall {
+          color: #f4d9e1;
+          border-radius: 8px;
+          margin-right: 0px;
+      }
+
+      #custom-launcher {
+          color: #e5809e;
+          background-color: #45475a;
+          border-radius: 0px 24px 0px 0px;
+          margin: 0px 0px 0px 0px;
+          padding: 0 20px 0 13px;
+          /*border-right: solid 1px #282738;*/
+          font-size: 20px;
+      }
+
+      #custom-launcher button:hover {
+          background-color: #FB4934;
+          color: transparent;
+          border-radius: 8px;
+          margin-right: -5px;
+          margin-left: 10px;
+      }
+
+      #custom-playerctl {
+      	background: #45475a;
+      	padding-left: 15px;
+        padding-right: 14px;
+      	border-radius: 16px;
+        /*border-left: solid 1px #282738;*/
+        /*border-right: solid 1px #282738;*/
+        margin-top: 5px;
+        margin-bottom: 5px;
+        margin-left: 0px;
+        font-weight: normal;
+        font-style: normal;
+        font-size: 16px;
+      }
+
+      #custom-playerlabel {
+          background: transparent;
+          padding-left: 10px;
+          padding-right: 15px;
+          border-radius: 16px;
+          /*border-left: solid 1px #282738;*/
+          /*border-right: solid 1px #282738;*/
+          margin-top: 5px;
+          margin-bottom: 5px;
+          font-weight: normal;
+          font-style: normal;
+      }
+
+      #window {
+          background: #45475a;
+          padding-left: 15px;
+          padding-right: 15px;
+          border-radius: 16px;
+          /*border-left: solid 1px #282738;*/
+          /*border-right: solid 1px #282738;*/
+          margin-top: 5px;
+          margin-bottom: 5px;
+          font-weight: normal;
+          font-style: normal;
+      }
+
+      #custom-wf-recorder {
+          padding: 0 20px;
+          color: #e5809e;
+          background-color: #1E1E2E;
+      }
+
+      #cpu {
+          background-color: #45475a;
+          /*color: #FABD2D;*/
+          border-radius: 16px;
+          margin: 5px;
+          margin-left: 5px;
+          margin-right: 5px;
+          padding: 0px 10px 0px 10px;
+          font-weight: bold;
+      }
+
+      #memory {
+          background-color: #45475a;
+          /*color: #83A598;*/
+          border-radius: 16px;
+          margin: 5px;
+          margin-left: 5px;
+          margin-right: 5px;
+          padding: 0px 10px 0px 10px;
+          font-weight: bold;
+      }
+
+      #disk {
+          background-color: #45475a;
+          /*color: #8EC07C;*/
+          border-radius: 16px;
+          margin: 5px;
+          margin-left: 5px;
+          margin-right: 5px;
+          padding: 0px 10px 0px 10px;
+          font-weight: bold;
+      }
+
+      #custom-hyprpicker {
+          background-color: #45475a;
+          /*color: #8EC07C;*/
+          border-radius: 16px;
+          margin: 5px;
+          margin-left: 5px;
+          margin-right: 5px;
+          padding: 0px 11px 0px 9px;
+          font-weight: bold;
+      }
+    '';
+    settings = {
+      mainBar = {
+        layer = "top";
+        position = "top";
+        height = 50;
+
+        output = config.monorepo.vars.monitors;
+
+        modules-left = [ "hyprland/workspaces" ];
+        modules-center = [ "hyprland/window" ];
+        modules-right = [ "battery" "clock" ];
+
+        battery = {
+          format = "{icon}  {capacity}%";
+          format-icons = ["" "" "" "" "" ];
+        };
+
+        clock = {
+          format = "⏰ {:%a %d, %b %H:%M}";
+        };
+      };
+    };
+  };
+}
+#+end_src
+*** Wofi
+This is a run launcher for wayland. I also use it for my powermenu.
+#+begin_src nix :tangle ../nix/modules/home/wofi.nix
+{ lib, config, ... }:
+{
+  programs.wofi = {
+    enable = true; 
+    settings = {
+      location = "bottom-right";
+      allow_markup = true;
+      show = "drun";
+      width = 750;
+      height = 400;
+      always_parse_args = true;
+      show_all = false;
+      term = "kitty";
+      hide_scroll = true;
+      print_command = true;
+      insensitive = true;
+      prompt = "Run what, Commander?";
+      columns = 2;
+    };
+
+    style = ''
+      @define-color	rosewater  #f5e0dc;
+      @define-color	rosewater-rgb  rgb(245, 224, 220);
+      @define-color	flamingo  #f2cdcd;
+      @define-color	flamingo-rgb  rgb(242, 205, 205);
+      @define-color	pink  #f5c2e7;
+      @define-color	pink-rgb  rgb(245, 194, 231);
+      @define-color	mauve  #cba6f7;
+      @define-color	mauve-rgb  rgb(203, 166, 247);
+      @define-color	red  #f38ba8;
+      @define-color	red-rgb  rgb(243, 139, 168);
+      @define-color	maroon  #eba0ac;
+      @define-color	maroon-rgb  rgb(235, 160, 172);
+      @define-color	peach  #fab387;
+      @define-color	peach-rgb  rgb(250, 179, 135);
+      @define-color	yellow  #f9e2af;
+      @define-color	yellow-rgb  rgb(249, 226, 175);
+      @define-color	green  #a6e3a1;
+      @define-color	green-rgb  rgb(166, 227, 161);
+      @define-color	teal  #94e2d5;
+      @define-color	teal-rgb  rgb(148, 226, 213);
+      @define-color	sky  #89dceb;
+      @define-color	sky-rgb  rgb(137, 220, 235);
+      @define-color	sapphire  #74c7ec;
+      @define-color	sapphire-rgb  rgb(116, 199, 236);
+      @define-color	blue  #89b4fa;
+      @define-color	blue-rgb  rgb(137, 180, 250);
+      @define-color	lavender  #b4befe;
+      @define-color	lavender-rgb  rgb(180, 190, 254);
+      @define-color	text  #cdd6f4;
+      @define-color	text-rgb  rgb(205, 214, 244);
+      @define-color	subtext1  #bac2de;
+      @define-color	subtext1-rgb  rgb(186, 194, 222);
+      @define-color	subtext0  #a6adc8;
+      @define-color	subtext0-rgb  rgb(166, 173, 200);
+      @define-color	overlay2  #9399b2;
+      @define-color	overlay2-rgb  rgb(147, 153, 178);
+      @define-color	overlay1  #7f849c;
+      @define-color	overlay1-rgb  rgb(127, 132, 156);
+      @define-color	overlay0  #6c7086;
+      @define-color	overlay0-rgb  rgb(108, 112, 134);
+      @define-color	surface2  #585b70;
+      @define-color	surface2-rgb  rgb(88, 91, 112);
+      @define-color	surface1  #45475a;
+      @define-color	surface1-rgb  rgb(69, 71, 90);
+      @define-color	surface0  #313244;
+      @define-color	surface0-rgb  rgb(49, 50, 68);
+      @define-color	base  #1e1e2e;
+      @define-color	base-rgb  rgb(30, 30, 46);
+      @define-color	mantle  #181825;
+      @define-color	mantle-rgb  rgb(24, 24, 37);
+      @define-color	crust  #11111b;
+      @define-color	crust-rgb  rgb(17, 17, 27);
+
+      * {
+        font-family: 'Iosevka Nerd Font', monospace;
+        font-size: 14px;
+      }
+
+      /* Window */
+      window {
+        margin: 0px;
+        padding: 10px;
+        border: 0.16em solid @lavender;
+        border-radius: 0.1em;
+        background-color: @base;
+        animation: slideIn 0.5s ease-in-out both;
+      }
+
+      /* Slide In */
+      @keyframes slideIn {
+        0% {
+           opacity: 0;
+        }
+
+        100% {
+           opacity: 1;
+        }
+      }
+
+      /* Inner Box */
+      #inner-box {
+        margin: 5px;
+        padding: 10px;
+        border: none;
+        background-color: @base;
+        animation: fadeIn 0.5s ease-in-out both;
+      }
+
+      /* Fade In */
+      @keyframes fadeIn {
+        0% {
+           opacity: 0;
+        }
+
+        100% {
+           opacity: 1;
+        }
+      }
+
+      /* Outer Box */
+      #outer-box {
+        margin: 5px;
+        padding: 10px;
+        border: none;
+        background-color: @base;
+      }
+
+      /* Scroll */
+      #scroll {
+        margin: 0px;
+        padding: 10px;
+        border: none;
+        background-color: @base;
+      }
+
+      /* Input */
+      #input {
+        margin: 5px 20px;
+        padding: 10px;
+        border: none;
+        border-radius: 0.1em;
+        color: @text;
+        background-color: @base;
+        animation: fadeIn 0.5s ease-in-out both;
+      }
+
+      #input image {
+          border: none;
+          color: @red;
+      }
+
+      #input * {
+        outline: 4px solid @red!important;
+      }
+
+      /* Text */
+      #text {
+        margin: 5px;
+        border: none;
+        color: @text;
+        animation: fadeIn 0.5s ease-in-out both;
+      }
+
+      #entry {
+        background-color: @base;
+      }
+
+      #entry arrow {
+        border: none;
+        color: @lavender;
+      }
+
+      /* Selected Entry */
+      #entry:selected {
+        border: 0.11em solid @lavender;
+      }
+
+      #entry:selected #text {
+        color: @mauve;
+      }
+
+      #entry:drop(active) {
+        background-color: @lavender!important;
+      }
+    '';
+  };
+}
+#+end_src
+*** yt-dlp
+A classic program that allows you to download from youtube. Also has integrations with mpv.
+#+begin_src nix :tangle ../nix/modules/home/yt-dlp.nix
+{ lib, config, ... }:
+{
+  programs.yt-dlp = {
+    enable = true;
+    settings = {
+      embed-thumbnail = true;
+      embed-subs = true;
+      sub-langs = "all";
+      downloader = "aria2c";
+      downloader-args = "aria2c:'-c -x8 -s8 -k1M'";
+    };
+  };
+}
+#+end_src
+*** Zsh
+My zsh config has some useful aliases that one should read through. Otherwise it is pretty
+standard.
+#+begin_src nix :tangle ../nix/modules/home/zsh.nix
+{ lib, config, pkgs, ... }:
+{
+  programs.zsh = {
+    enable = true;
+    initExtra = ''
+    umask 0077
+    export EXTRA_CCFLAGS="-I/usr/include"
+    source ${pkgs.zsh-vi-mode}/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh
+    export QT_QPA_PLATFORM="wayland"
+    '';
+
+    localVariables = {
+      EDITOR = "emacsclient --create-frame --alternate-editor=vim";
+      INPUT_METHOD = "fcitx";
+      QT_IM_MODULE = "fcitx";
+      GTK_IM_MODULE = "fcitx";
+      XMODIFIERS = "@im=fcitx";
+      XIM_SERVERS = "fcitx";
+      WXSUPPRESS_SIZER_FLAGS_CHECK = "1";
+    };
+
+    shellAliases = {
+      c = "clear";
+      g = "git";
+      v = "vim";
+      py = "python3";
+      rb = "sudo nixos-rebuild switch --flake .#continuity";
+      nfu = "cd ~/monorepo/nix && git add . && git commit -m \"new flake lock\" &&  nix flake update";
+      usite
+      = "cd ~/monorepo/publish-org-roam-ui && bash local.sh && rm -rf ~/website_html/graph_view; cp -r ~/monorepo/publish-org-roam-ui/out ~/website_html/graph_view && rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/website_html/ root@${config.monorepo.vars.remoteHost}:/usr/share/nginx/ret2pop/";
+      sai = "eval \"$(ssh-agent -s)\" && ssh-add ~/.ssh/id_ed25519 && ssh-add -l";
+      i3 = "exec ${pkgs.i3-gaps}/bin/i3";
+    };
+    loginExtra = ''
+      if [[ "$(tty)" = "/dev/tty1" ]]; then
+          exec Hyprland
+      fi
+    '';
+  };
+}
+#+end_src
+*** User
+This configuration is the backbone configuration for the default user. It specifies some
+generally useful packages and something every home should have, as well as some dependencies
+for these configurations.
+#+begin_src nix :tangle ../nix/modules/home/user.nix
+{ lib, config, pkgs, ... }:
+{
+  home = {
+    activation.startup-files = lib.hm.dag.entryAfter [ "installPackages" ] ''
+    if [ ! -d "/home/${config.monorepo.vars.userName}/email/ret2pop/" ]; then
+      mkdir -p /home/${config.monorepo.vars.userName}/email/ret2pop/
+    fi
+    if [ ! -d "/home/${config.monorepo.vars.userName}/music" ]; then
+      mkdir -p /home/${config.monorepo.vars.userName}/music
+    fi
+    if [ ! -d /home/${config.monorepo.vars.userName}/org ]; then
+      mkdir -p /home/${config.monorepo.vars.userName}/org
+    fi
+    touch /home/${config.monorepo.vars.userName}/org/agenda.org
+    touch /home/${config.monorepo.vars.userName}/org/notes.org
+    '';
+
+    enableNixpkgsReleaseCheck = false;
+    username = config.monorepo.vars.userName;
+    homeDirectory = "/home/${config.monorepo.vars.userName}";
+    stateVersion = "24.11";
+
+    packages = with pkgs; [
+      # passwords
+      age sops
+
+      # formatting
+      ghostscript texliveFull pandoc
+
+      # Emacs Deps
+      graphviz jq
+
+      # Apps
+      octaveFull vesktop grim swww vim 
+
+      # Sound/media
+      pavucontrol alsa-utils imagemagick ffmpeg helvum
+
+      # Net
+      curl rsync git
+
+      # Tor
+      torsocks tor-browser
+
+      # fonts
+      noto-fonts
+      noto-fonts-cjk-sans
+      noto-fonts-emoji
+      fira-code
+      font-awesome_6
+      (aspellWithDicts
+        (dicts: with dicts; [ en en-computers en-science ]))
+      (nerdfonts.override { fonts = [ "Iosevka" ]; })
+
+      # Misc.
+      pinentry
+      x11_ssh_askpass
+      xdg-utils
+      acpilight
+      pfetch
+      libnotify
+    ];
+  };
+
+  services = {
+    gpg-agent = {
+      pinentryPackage = pkgs.pinentry-emacs;
+      enable = true;
+      extraConfig = ''
+      allow-emacs-pinentry
+      allow-loopback-pinentry
+    '';
+    };
+  };
+
+  programs.bash.enable = true;
+
+  gtk = {
+    enable = true;
+    theme = null;
+    iconTheme = null;
+  };
+
+  fonts.fontconfig.enable = true;
+  nixpkgs.config.cudaSupport = lib.mkDefault config.monorepo.profiles.cuda.enable;
+}
+#+end_src
+* Systems
+** Continuity
+This is pretty understandable, if you understand all the above.
+#+begin_src nix :tangle ../nix/systems/continuity/default.nix
+{ ... }:
+{
+  imports = [
+    ../../modules/default.nix
+  ];
+}
+#+end_src
+** Installer
+My installer installs my systems almost completely without interaction. You can also make them
+install the exact version of the system that you want it to by pinning the commits to make it
+always work in the exact same deterministic way.
+*** Commit Hash Pinning
+Modify this to pin the installer image hash to make the installer image always
+work deterministically.
+#+begin_src nix :tangle ../nix/systems/installer/commits.nix
+{
+  diskoCommitHash = "latest";
+  monorepoCommitHash = "HEAD";
+}
+#+end_src
+*** ISO Default Profile
+This contains the installation script I use to install my systems.
+#+begin_src nix :tangle ../nix/systems/installer/default.nix
+{ pkgs, config, ... }:
+let
+  commits = import ./commits.nix;
+in
+{
+  networking = {
+    hostName = "nixos";
+    networkmanager = {
+      enable = true;
+    };
+    firewall = {
+      allowedTCPPorts = [ ];
+      allowedUDPPorts = [ ];
+    };
+    wireless.enable = false;
+  };
+
+  users.extraUsers.root.password = "nixos";
+  users.extraUsers.nixos.password = "nixos";
+  users.users = {
+    nixos = {
+      packages = with pkgs; [
+        git
+        curl
+        gum
+        (writeShellScriptBin "nix_installer"
+          ''
+#!/usr/bin/env bash
+
+set -euo pipefail
+if [ "$(id -u)" -eq 0 ]; then
+  echo "ERROR! $(basename "$0") should be run as a regular user"
+  exit 1
+fi
+ping -q -c1 google.com &>/dev/null && echo "online! Proceeding with the installation..." || nmtui
+cd
+if [ ! -d "$HOME/monorepo/" ]; then
+  git clone --recurse-submodules https://git.nullring.xyz/monorepo.git
+  cd monorepo
+  git checkout "${commits.monorepoCommitHash}"
+fi
+vim "$HOME/monorepo/nix/systems/continuity/default.nix"
+sudo nix --experimental-features "nix-command flakes" run "github:nix-community/disko/${commits.diskoCommitHash}" -- --mode destroy,format,mount "$HOME/monorepo/nix/modules/sda-simple.nix"
+cd /mnt
+sudo nixos-install --flake $HOME/monorepo/nix#continuity
+sudo cp -r $HOME/monorepo "/mnt/home/$(ls /mnt/home/)/"
+echo "rebooting..."; sleep 3; reboot
+'')
+      ];
+    };
+  };
+
+  systemd = {
+    services.sshd.wantedBy = pkgs.lib.mkForce [ "multi-user.target" ];
+    targets = {
+      sleep.enable = false;
+      suspend.enable = false;
+      hibernate.enable = false;
+      hybrid-sleep.enable = false;
+    };
+  };
+}
+#+end_src

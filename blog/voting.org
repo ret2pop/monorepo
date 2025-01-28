@@ -19,20 +19,17 @@ In this article I endorse a system that has been tried out before, but has been 
 argue that it has game theoretic foundations that make it superior to other kinds of voting systems.
 
 ** The Model
-Let us assume that there is a small probability that you can swing the election $$ \rho $$, and a cost to voting; that
-is to say, it takes some amount of time, which has opportunity cost associated with it to vote, which we
-will call $$ \alpha $$. Let us assume that there is a high /reward/ in swinging the vote; that is to say, if you were
-the one that swings the vote, your vote is worth some high monetary value. Let $$ \beta $$ be the median price of swinging.
-Let $$ n $$ be the number of people voting, and let the weight of each vote be equal between all participants.
-Let the choice of candidate between all voters be binary; voting for one candidate mutually excludes you from
-voting for another, and there are two candidates (this is to simply the model; you will see that this does not
-lose generality). Then, let us model the expected value of voting for singular individuals.
-
-For a given person, the probability that your vote swings (or at least ties) depends on the probability that
-$$ x = \frac{n - 1}{2} $$, where $ x $$ is the number of people that vote for your candidate. The probability
-density function for the probability that $$ m $$ people vote for your candidate we'll call $$ f $$. We will assume
-it is binomial, and you might expect it to be closer to 50/50 most of the time, but that is pretty hard to model.
-We will therefore compensate by modeling it more accurately afterwards. For now, we assume all participants have
-a 50% chance to pick either candidate.
-\begin{align*}
-\end{align*}
+Let us assume there is a small probability of swinging the
+election $$ \rho $$, and a large reward for winning the election $$ W $$.
+Let us assume that there are two candidates, and the probability of
+voting for a single candidate is 50%. Therefore, the final probability
+distribution for the number of votes each candidate gets is binomial,
+centered around the mean outcome (which is the outcome where there are
+an equal amount of votes on each side, and we can count the number of
+/red/ votes only; let's let $$ k $$ represent the number of red votes).
+Let's remind ourselves of the binomial distribution:
+\begin{align}
+  P(X = k) = { n \choose k } p^{k}(1 - p)^{n - k}
+\end{align}
+where $$ n $$ is the number of samples, and $$ k $$ is the observed
+number. Now, we can calculate the probability

@@ -6,29 +6,27 @@
 
 * What is this?
 It's ret2pop! My website for all things math. Wait, no. Computer science.
-Music. Okay, let me try that again.
+Music. Okay, let me try that again. Is this even a website?
 
-It's ret2pop! My website for all things.
-** Sounds awesome! But why is it written in org instead of html?
-Because I have converted to the church of emacs. Remember:
-anything and everything that can be rewritten in org should be rewritten in org.
-*** so how did you actually do that?
+It's ret2pop, a wholistic experience powered by NixOS and Emacs.
+** so how did you actually do that?
 By using the ~org-publish~ function, ~org-roam~, and ~org-journal~,
 as well as writing a lot of things with a literate config. To see more, see my
-[[file:config/emacs.org][emacs configuration]] and my [[https://git.nullring.xyz/toughnix.git/tree/][NixOS configuration]].
+[[file:config/emacs.org][emacs configuration]] and my [[file:nix.org][NixOS configuration]].
 ** So, where is this website of yours located?
 https://ret2pop.nullring.xyz, it is the road to enlightenment.
 * Wait, so where are your dotfiles?
-To use my dotfiles, clone this repository:
+To use my dotfiles, download the ISO image for the installer, log in, and run:
 #+begin_src bash
-git clone https://github.com/ret2pop/ret2pop-website.git ~/org/website
+  nmtui
+  git clone https://git.nullring.xyz/monorepo.git
+  # use vim to change whatever nix files you want
+  nix_installer
 #+end_src
-and install my [[https://git.nullring.xyz/toughnix.git/][NixOS configuration]]. The org files /are/ the dotfiles, or
-at least in the case of emacs.
-
-To use my full system, you also need to have a ~password-store~ from the ~pass~
-password manager in its standard location with an entry called ~Mail~, and you should
-otherwise follow the instructions listed on the hyprnixmacs repository.
-
+That's it! If you want to install with all the default settings (look at them first), just run:
+#+begin_src bash
+  nix_installer
+#+end_src
+and it will work for you.
 * License
 See the [[file:LICENSE.org][license]]. The style.css has its own license.

@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: tu
+# key: tu
+# --
+/*! @brief $3 */
+typedef union $1 {
+  $0
+} $2;

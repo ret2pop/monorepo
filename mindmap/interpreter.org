@@ -1,0 +1,13 @@
+:PROPERTIES:
+:ID:       2193dd78-50c4-4119-832a-e04c707687df
+:END:
+#+title: interpreter
+#+author: Preston Pan
+#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+options: broken-links:t
+* Introduction
+An interpreter in programming is a computer program that runs another
+computer program. A formal definition of these concepts are required
+in order to make sense of it.

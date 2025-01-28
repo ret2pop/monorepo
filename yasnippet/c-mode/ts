@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: ts
+# key: ts
+# --
+/*! @brief $3 */
+typedef struct $1 {
+  $0
+} $2;

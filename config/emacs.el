@@ -4,37 +4,26 @@
 
 (use-package emacs
   :custom
-  (scroll-conservatively 101)
-  (display-time-24hr-format t)
-  (display-line-numbers-type 'relative)
-  (use-short-answers t)
-  (make-backup-files nil)
-  (warning-minimum-level :emergency)
-  (debug-ignored-errors
-   (cons 'remote-file-error debug-ignored-errors))
-  (mouse-wheel-scroll-amount '(1 ((shift) . 1)))
-  (mouse-wheel-progressive-speed nil)
-  (mouse-wheel-follow-mouse 't)
-  (scroll-step 1)
-  (display-fill-column-indicator-column 100)
-  :config
-  (require 'tex-site)
-  (pixel-scroll-precision-mode 1)
-  (display-battery-mode 1)
-  (display-time-mode 1)
-  (menu-bar-mode -1)
-  (scroll-bar-mode -1)
-  (tool-bar-mode -1)
-  (and window-system (server-start))
-  (load-theme 'catppuccin :no-confirm)
-  (set-face-attribute 'default nil :height 120)
-  (set-frame-parameter nil 'alpha-background 90)
-  (add-to-list 'default-frame-alist '(alpha-background . 90))
-  (set-face-attribute 'default nil :font "Iosevka Nerd Font" :height 140)
-  (setq-default line-spacing 2)
-  (setq-default fill-column 100)
-  (global-prettify-symbols-mode 1)
+  ;; Startup errors
+  (warning-minimum-level :emergency "Supress emacs warnings")
+  (debug-ignored-errors (cons 'remote-file-error debug-ignored-errors) "Remove annoying error from debug errors")
 
+  ;; Mouse wheel
+  (mouse-wheel-scroll-amount '(1 ((shift) . 1)) "Nicer scrolling")
+  (mouse-wheel-progressive-speed nil "Make scrolling non laggy")
+  (mouse-wheel-follow-mouse 't "Scroll correct window")
+  (scroll-conservatively 101 "Sort of smooth scrolling")
+  (scroll-step 1 "Scroll one line at a time")
+  (display-time-24hr-format t "Use 24 hour format to read the time")
+  (display-line-numbers-type 'relative "Relative line numbers for easy vim jumping")
+  (use-short-answers t "Use y instead of yes")
+  (make-backup-files nil "Don't make backups")
+  (display-fill-column-indicator-column 100 "Draw a line at 100 characters")
+  (line-spacing 2 "Default line spacing")
+
+  ;; Editor comments
+  (c-doc-comment-style '((c-mode . doxygen)
+			 (c++-mode . doxygen)))
   :hook ((text-mode . auto-fill-mode)
 	 (text-mode . visual-line-mode)
 	 (prog-mode . auto-fill-mode)
@@ -42,85 +31,100 @@
 	 (prog-mode . display-fill-column-indicator-mode)
 	 (org-mode . auto-fill-mode)
 	 (org-mode . display-fill-column-indicator-mode)
-
+	 (org-mode . display-line-numbers-mode)
 	 (org-mode . (lambda ()
-  		       (setq prettify-symbols-alist
-  			     '(("#+begin_src" . ?)
-  			       ("#+BEGIN_SRC" . ?)
-  			       ("#+end_src" . ?)
-  			       ("#+END_SRC" . ?)
-  			       ("#+begin_example" . ?)
-  			       ("#+BEGIN_EXAMPLE" . ?)
-  			       ("#+end_example" . ?)
-  			       ("#+END_EXAMPLE" . ?)
-  			       ("#+header:" . ?)
-  			       ("#+HEADER:" . ?)
-  			       ("#+name:" . ?﮸)
-  			       ("#+NAME:" . ?﮸)
-  			       ("#+results:" . ?)
-  			       ("#+RESULTS:" . ?)
-  			       ("#+call:" . ?)
-  			       ("#+CALL:" . ?)
-  			       (":PROPERTIES:" . ?)
-  			       (":properties:" . ?)
-  			       ("lambda" . ?λ)
-  			       ("->"     . ?→)
-  			       ("map"    . ?↦)
-  			       ("/="     . ?≠)
-  			       ("!="     . ?≠)
-  			       ("=="     . ?≡)
-  			       ("<="     . ?≤)
-  			       (">="     . ?≥)
-  			       ("&&"     . ?∧)
-  			       ("||"     . ?∨)
-  			       ("sqrt"   . ?√)
-  			       ("..."    . ?…)))
-  		   (prettify-symbols-mode)))
+		       (setq prettify-symbols-alist
+			     '(("#+begin_src" . ?)
+			       ("#+BEGIN_SRC" . ?)
+			       ("#+end_src" . ?)
+			       ("#+END_SRC" . ?)
+			       ("#+begin_example" . ?)
+			       ("#+BEGIN_EXAMPLE" . ?)
+			       ("#+end_example" . ?)
+			       ("#+END_EXAMPLE" . ?)
+			       ("#+header:" . ?)
+			       ("#+HEADER:" . ?)
+			       ("#+name:" . ?﮸)
+			       ("#+NAME:" . ?﮸)
+			       ("#+results:" . ?)
+			       ("#+RESULTS:" . ?)
+			       ("#+call:" . ?)
+			       ("#+CALL:" . ?)
+			       (":PROPERTIES:" . ?)
+			       (":properties:" . ?)
+			       ("lambda" . ?λ)
+			       ("->"     . ?→)
+			       ("map"    . ?↦)
+			       ("/="     . ?≠)
+			       ("!="     . ?≠)
+			       ("=="     . ?≡)
+			       ("<="     . ?≤)
+			       (">="     . ?≥)
+			       ("&&"     . ?∧)
+			       ("||"     . ?∨)
+			       ("sqrt"   . ?√)
+			       ("..."    . ?…)))
+		       (prettify-symbols-mode)))
 	 (prog-mode .
-  		    (lambda ()
-  		      (setq prettify-symbols-alist
-  			    '(("lambda" . ?λ)
-  			      ("->"     . ?→)
-  			      ("map"    . ?↦)
-  			      ("/="     . ?≠)
-  			      ("!="     . ?≠)
-  			      ("=="     . ?≡)
-  			      ("<="     . ?≤)
-  			      (">="     . ?≥)
-  			      ("&&"     . ?∧)
-  			      ("||"     . ?∨)
-  			      ("sqrt"   . ?√)
-  			      ("..."    . ?…)))
-  		      (prettify-symbols-mode)))))
+		    (lambda ()
+		      (setq prettify-symbols-alist
+			    '(("lambda" . ?λ)
+			      ("->"     . ?→)
+			      ("map"    . ?↦)
+			      ("/="     . ?≠)
+			      ("!="     . ?≠)
+			      ("=="     . ?≡)
+			      ("<="     . ?≤)
+			      (">="     . ?≥)
+			      ("&&"     . ?∧)
+			      ("||"     . ?∨)
+			      ("sqrt"   . ?√)
+			      ("..."    . ?…)))
+		      (prettify-symbols-mode))))
+  :config
+  (require 'tex-site)
+  (server-start)
+
+  ;; start wiith sane defaults
+  (pixel-scroll-precision-mode 1)
+  (display-battery-mode 1)
+  (display-time-mode 1)
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
+  (tool-bar-mode -1)
+
+  ;; load theme, fonts, and transparency. Prettify symbols.
+  (global-prettify-symbols-mode 1)
+  (load-theme 'catppuccin :no-confirm)
+  (set-face-attribute 'default nil :font "Iosevka Nerd Font" :height 130)
+  (set-frame-parameter nil 'alpha-background 90)
+  (add-to-list 'default-frame-alist '(alpha-background . 90)))
 
 (use-package org
-  :init
-  (setq org-confirm-babel-evaluate nil)
-  (setq org-export-with-broken-links t)
-  (setq org-src-fontify-natively t)
-  (setq org-latex-preview-image-directory (expand-file-name "~/.cache/ltximg/"))
-  (setq org-preview-latex-image-directory (expand-file-name "~/.cache/ltximg/"))
-  (setq org-latex-pdf-process
-	'("xelatex -interaction=nonstopmode -output-directory=%o %f"))
-  (setq preview-default-option-list '("displaymath" "textmath" "graphics"))
-  (setq preview-image-type 'png)
-  (setq TeX-engine 'xetex)
-  (setq TeX-PDF-mode t)
-  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
-  (setq org-return-follows-link t)
-  (setq org-startup-with-latex-preview t)
-  (setq org-habit-preceding-days 1)
-  (setq-default org-startup-indented t
-  		org-pretty-entities t
-  		org-use-sub-superscripts "{}"
-  		org-hide-emphasis-markers t
-  		org-startup-with-inline-images t
-  		org-image-actual-width '(300))
-  (setq org-agenda-files (list "~/monorepo/agenda.org"
-			       "~/org/notes.org"
-			       "~/org/agenda.org"))
-  (setq org-default-notes-file (concat org-directory "/notes.org"))
-  (setq org-publish-project-alist
+  :custom
+  (org-confirm-babel-evaluate nil "Don't ask to evaluate code block")
+  (org-export-with-broken-links t "publish website even with broken links")
+  (org-src-fontify-natively t "Colors!")
+  (org-latex-preview-image-directory (expand-file-name "~/.cache/ltximg/") "don't use weird cache location")
+  (org-preview-latex-image-directory (expand-file-name "~/.cache/ltximg/") "don't use weird cache location")
+  (TeX-PDF-mode t)
+  (org-latex-pdf-process '("xelatex -interaction=nonstopmode -output-directory=%o %f") "set xelatex as default")
+  (TeX-engine 'xetex "set xelatex as default engine")
+  (preview-default-option-list '("displaymath" "textmath" "graphics") "preview latex")
+  (preview-image-type 'png "Use PNGs")
+  (org-format-latex-options (plist-put org-format-latex-options :scale 1.5) "space latex better")
+  (org-return-follows-link t "be able to follow links without mouse")
+  (org-habit-preceding-days 1 "See org habit entries")
+  (org-startup-indented t "Indent the headings")
+  (org-image-actual-width '(300) "Cap width") 
+  (org-startup-with-latex-preview t "see latex previews on opening file")
+  (org-startup-with-inline-images t "See images on opening file")
+  (org-hide-emphasis-markers t "prettify org mode")
+  (org-use-sub-superscripts "{}" "Only display superscripts and subscripts when enclosed in {}")
+  (org-pretty-entities t "prettify org mode")
+  (org-agenda-files (list "~/monorepo/agenda.org" "~/org/notes.org" "~/org/agenda.org") "set default org files")
+  (org-default-notes-file (concat org-directory "/notes.org") "Notes file")
+  (org-publish-project-alist
 	'(("website-org"
 	   :base-directory "~/monorepo"
 	   :base-extension "org"
@@ -136,8 +140,8 @@
 	   :publishing-directory "~/website_html/"
 	   :recursive t
 	   :publishing-function org-publish-attachment)
-	  ("website" :auto-sitemap t :components ("website-org" "website-static"))))
-  (setq org-html-postamble "Copyright © 2024 Preston Pan")
+	  ("website" :auto-sitemap t :components ("website-org" "website-static"))) "functions to publish website")
+  (org-html-postamble "Copyright © 2024 Preston Pan" "set copyright notice on bottom of site")
   :config
   (require 'ox-publish)
   (require 'org-tempo)
@@ -151,14 +155,13 @@
   :init (unicode-fonts-setup))
 
 (use-package electric-pair
-  :hook ((org-mode . electric-pair-mode)
-	 (prog-mode . electric-pair-mode)))
+  :hook ((prog-mode . electric-pair-mode)))
 
 (use-package lyrics-fetcher
   :after (emms)
+  :custom
+  (lyrics-fetcher-genius-access-token (password-store-get "genius_api") "Use genius for backend")
   :config
-  (setq lyrics-fetcher-genius-access-token
-    (password-store-get "genius_api"))
   (lyrics-fetcher-use-backend 'genius))
 
 (use-package org-fragtog :hook (org-mode . org-fragtog-mode))
@@ -171,38 +174,36 @@
 
 (use-package company
   :config
-  '(add-to-list 'company-backends
-		'(company-ispell company-capf company-irony
-				 company-yasnippet company-files))
+  '(add-to-list 'company-backends '(company-ispell company-capf company-yasnippet company-files))
   :hook ((after-init . global-company-mode)))
 
 (use-package ispell
-  :init
-  (setq ispell-program-name "aspell")
-  (setq ispell-silently-savep t)
-  (setq ispell-dictionary "en")
-  (setq ispell-alternate-dictionary "~/.local/share/dict"))
+  :custom
+  (ispell-program-name "aspell" "use aspell")
+  (ispell-silently-savep t "Save changes to dict without confirmation")
+  (ispell-dictionary "en" "Use english dictionary")
+  (ispell-alternate-dictionary "~/.local/share/dict" "dict location"))
 
 (use-package flyspell
   :hook (text-mode . flyspell-mode))
 
 (use-package evil
-  :init
-  (setq evil-want-keybinding nil)
+  :custom
+  (evil-want-keybinding nil "Don't load a whole bunch of default keybindings")
   :config
   (evil-mode 1)
-  (evil-set-undo-system 'undo-redo))
+  (evil-set-undo-system 'undo-redo)
+  (evil-set-initial-state 'pdf-view-mode 'normal))
 
 (use-package evil-collection
   :after (evil)
-  :init
-  (setq evil-want-keybinding nil)
   :config
+  (with-eval-after-load 'evil-maps
+    (define-key evil-motion-state-map (kbd "SPC") nil)
+    (define-key evil-motion-state-map (kbd "RET") nil)
+    (define-key evil-motion-state-map (kbd "TAB") nil))
   (evil-collection-init))
-(with-eval-after-load 'evil-maps
-(define-key evil-motion-state-map (kbd "SPC") nil)
-(define-key evil-motion-state-map (kbd "RET") nil)
-(define-key evil-motion-state-map (kbd "TAB") nil))
+
 
 (use-package evil-commentary
   :after (evil)
@@ -210,7 +211,7 @@
   (evil-commentary-mode))
 
 (use-package evil-org
-  :after (evil org) 
+  :after (evil org)
   :hook (org-mode . (lambda () evil-org-mode))
   :config
   (require 'evil-org-agenda)
@@ -223,26 +224,24 @@
 (use-package page-break-lines
   :init
   (page-break-lines-mode))
-(evil-set-initial-state 'pdf-view-mode 'normal)
 
 (use-package org-journal
   :after (org)
+  :custom
+  (org-journal-dir "~/monorepo/journal/" "Set journal directory")
+  (org-journal-date-format "%A, %d %B %Y" "Date format")
+  (org-journal-file-format "%Y%m%d.org" "Automatic file creation format based on date")
+  (org-journal-enable-agenda-integration t "All org-journal entries are org-agenda entries")
   :init
-    (setq org-journal-dir "~/monorepo/journal/")
-    (setq org-journal-date-format "%A, %d %B %Y")
-
-    (defun org-journal-file-header-func (time)
+  (defun org-journal-file-header-func (time)
     "Custom function to create journal header."
     (concat
-	(pcase org-journal-file-type
-	  (`daily "#+TITLE: Daily Journal\n#+STARTUP: showeverything\n#+DESCRIPTION: My daily journal entry\n#+AUTHOR: Preston Pan\n#+HTML_HEAD: <link rel=\"stylesheet\" type=\"text/css\" href=\"../style.css\" />\n#+html_head: <script src=\"https://polyfill.io/v3/polyfill.min.js?features=es6\"></script>\n#+html_head: <script id=\"MathJax-script\" async src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js\"></script>\n#+options: broken-links:t")
-	  (`weekly "#+TITLE: Weekly Journal\n#+STARTUP: folded")
-	  (`monthly "#+TITLE: Monthly Journal\n#+STARTUP: folded")
-	  (`yearly "#+TITLE: Yearly Journal\n#+STARTUP: folded"))))
-
-  (setq org-journal-file-header 'org-journal-file-header-func)
-  (setq org-journal-file-format "%Y%m%d.org")
-  (setq org-journal-enable-agenda-integration t))
+     (pcase org-journal-file-type
+       (`daily "#+TITLE: Daily Journal\n#+STARTUP: showeverything\n#+DESCRIPTION: My daily journal entry\n#+AUTHOR: Preston Pan\n#+HTML_HEAD: <link rel=\"stylesheet\" type=\"text/css\" href=\"../style.css\" />\n#+html_head: <script src=\"https://polyfill.io/v3/polyfill.min.js?features=es6\"></script>\n#+html_head: <script id=\"MathJax-script\" async src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js\"></script>\n#+options: broken-links:t")
+       (`weekly "#+TITLE: Weekly Journal\n#+STARTUP: folded")
+       (`monthly "#+TITLE: Monthly Journal\n#+STARTUP: folded")
+       (`yearly "#+TITLE: Yearly Journal\n#+STARTUP: folded"))))
+  (setq org-journal-file-header 'org-journal-file-header-func))
 
 (use-package doom-modeline
   :config
@@ -256,14 +255,19 @@
   :hook (org-mode . (lambda () (org-superstar-mode 1))))
 
 (use-package eglot
-  :config
-  (add-to-list 'eglot-server-programs '(nix-mode . ("nil")))
   :hook
   (prog-mode . eglot-ensure)
-  (nix-mode . eglot-ensure))
+  (nix-mode . eglot-ensure)
+  :config
+  (add-to-list 'eglot-server-programs '(nix-mode . ("nil"))))
+
 (use-package lsp
   :hook
   (prog-mode . lsp))
+
+(use-package flycheck
+  :config (global-flycheck-mode))
+
 (use-package platformio-mode
   :hook (prog-mode . platformio-conditionally-enable))
 
@@ -280,42 +284,37 @@
 (use-package solidity-mode)
 (use-package company-solidity)
 (use-package solidity-flycheck
-  :init
-  (setq solidity-flycheck-solc-checker-active t))
-
-(use-package flycheck
-  :config (global-flycheck-mode))
+  :custom
+  (solidity-flycheck-solc-checker-active t))
 
 (use-package projectile
-  :init
-  (setq projectile-project-search-path '("~/org" "~/src"))
+  :custom
+  (projectile-project-search-path '("~/org" "~/src" "~/monorepo" "~/projects") "search path for projects")
   :config
   (projectile-mode +1))
 
 (use-package dashboard
   :after (projectile)
-  :init
-  (setq dashboard-banner-logo-title "Welcome, Commander!")
-  (setq dashboard-icon-type 'nerd-icons)
-  (setq dashboard-vertically-center-content t)
-  (setq dashboard-set-init-info t)
-  (setq dashboard-week-agenda t)
-  (setq dashboard-items '((recents   . 5)
+  :custom
+  (dashboard-banner-logo-title "Welcome, Commander!" "Set title for dashboard")
+  (dashboard-icon-type 'nerd-icons "Use nerd icons")
+  (dashboard-vertically-center-content t "Center content")
+  (dashboard-set-init-info t)
+  (dashboard-week-agenda t "Agenda in dashboard")
+  (dashboard-items '((recents   . 5)
 			(bookmarks . 5)
 			(projects  . 5)
 			(agenda    . 5)
-			(registers . 5)))
+			(registers . 5)) "Look at some items")
   :config
   (dashboard-setup-startup-hook))
 
 (use-package counsel)
 (use-package ivy
-  :init
-  (setq ivy-use-virtual-buffers t)
-  (setq enable-recursive-minibuffers t)
+  :custom
+  (ivy-use-virtual-buffers t "Make searching more efficient")
+  (enable-recursive-minibuffers t "Don't get soft locked when in a minibuffer")
   :bind
-  ;; enable this if you want `swiper' to use it
-  ;; (setq search-default-mode #'char-fold-to-regexp)
   ("C-s" . swiper)
   ("C-c C-r" . ivy-resume)
   ("M-x" . counsel-M-x)
@@ -337,10 +336,9 @@
 (use-package magit)
 
 (use-package erc
-  :init
-  (setq
-   erc-nick system-username
-   erc-user-full-name system-fullname))
+  :custom
+  (erc-nick system-username "Set erc nick to username")
+  (erc-user-full-name system-fullname "Use real name for full name"))
 
 (use-package general
   :init
@@ -360,11 +358,11 @@
     (interactive)
     (ement-connect :uri-prefix "http://localhost:8009"))
   :config
-  (general-create-definer leader-key
-    :prefix "SPC")
+  (general-create-definer leader-key :prefix "SPC")
   (leader-key 'normal
     "o a" '(org-agenda :wk "Open agenda")
     "o c" '(org-capture :wk "Capture")
+    "n" '(:ignore t :wk "Org mode plugins")
     "n j j" '(org-journal-new-entry :wk "Make new journal entry")
     "n r f" '(org-roam-node-find :wk "Find roam node")
     "n r i" '(org-roam-node-insert :wk "Insert roam node")
@@ -372,14 +370,17 @@
     "n r g" '(org-roam-graph :wk "Graph roam database")
     "r s s" '(elfeed :wk "rss feed")
     "." '(counsel-find-file :wk "find file")
+    "g" '(:ignore t :wk "Magit")
     "g /" '(magit-dispatch :wk "git commands")
     "g P" '(magit-push :wk "git push")
     "g c" '(magit-commit :wk "git commit")
     "g p" '(magit-pull :wk "Pull from git")
     "g s" '(magit-status :wk "Change status of files")
+    "o" '(:ignore t :wk "Open application")
     "o t" '(vterm :wk "Terminal")
     "o e" '(eshell :wk "Elisp Interpreter")
     "o m" '(mu4e :wk "Email")
+
     "e w w" '(eww :wk "web browser")
     "e c c" '(ellama-chat :wk "Chat with Ollama")
     "e a b" '(ellama-ask-about :wk "Ask Ollama")
@@ -390,9 +391,13 @@
     "e c e" '(ellama-code-edit :wk "Edit code with Ollama")
     "e w i" '(ellama-improve-wording :wk "Improve wording with Ollama")
     "e g i" '(ellama-improve-grammar :wk "Improve grammar with Ollama")
+
+    "c" '(:ignore t :wk "Counsel commands")
+    "c g" '(counsel-git :wk "Search file in git project")
+    "c f" '(counsel-git-grep :wk "Find string in git project")
+
     "g s" '(gptel-send :wk "Send to Ollama")
     "g e" '(gptel :wk "Ollama interface")
-    "p w" '(ivy-pass :wk "Password manager interface")
     "m P p" '(org-publish :wk "Publish website components")
     "s e" '(sudo-edit :wk "Edit file with sudo")
     "m m" '(emms :wk "Music player")
@@ -403,6 +408,10 @@
     "i p c" '(prestonpan :wk "Connect to my IRC server")
     "i l c" '(liberachat :wk "Connect to libera chat server")
     "i e c" '(efnet :wk "Connect to efnet chat server")
+    "h" '(:ignore t :wk "Documentation")
+    "h v" '(counsel-describe-variable :wk "Describe variable")
+    "h f" '(counsel-describe-function :wk "Describe function")
+    "h h" '(help :wk "Help")
     "h m" '(woman :wk "Manual")
     "h i" '(info :wk "Info")
     "s m" '(proced :wk "System Manager")
@@ -414,22 +423,22 @@
     "h r r" '(lambda () (interactive) (org-babel-load-file (expand-file-name "~/monorepo/config/emacs.org")))))
 
 (use-package ellama
+  :custom
+  (ellama-sessions-directory "~/org/ellama/" "Set org directory")
   :init
-  (setopt ellama-sessions-directory "~/org/ellama/")
   (require 'llm-ollama)
-  (with-eval-after-load 'llm-ollama)
   (setopt ellama-provider (make-llm-ollama
 	     :host "localhost"
 	     :chat-model "gemma:7b")))
 
 (use-package elfeed
-  :hook ((elfeed-search-mode . elfeed-update))
-  :init
-  (setq elfeed-search-filter "@1-month-ago +unread"))
+  :custom
+  (elfeed-search-filter "@1-month-ago +unread" "Only display unread articles from a month ago")
+  :hook ((elfeed-search-mode . elfeed-update)))
 
 (use-package elfeed-org
-  :init
-  (setq rmh-elfeed-org-files '("~/monorepo/config/elfeed.org"))
+  :custom
+  (rmh-elfeed-org-files '("~/monorepo/config/elfeed.org") "Use elfeed config in repo as default")
   :config
   (elfeed-org))
 
@@ -437,10 +446,7 @@
   :after elfeed
   :demand t
   :config
-  ;; (setq elfeed-tube-auto-save-p nil) ; default value
-  ;; (setq elfeed-tube-auto-fetch-p t)  ; default value
   (elfeed-tube-setup)
-
   :bind (:map elfeed-show-mode-map
          ("F" . elfeed-tube-fetch)
          ([remap save-buffer] . elfeed-tube-save)
@@ -465,92 +471,87 @@
   :after (treemacs magit))
 
 (use-package eww
-  :init
-  (setq search-engines
+  :custom
+  (search-engines
 	'((("google" "g") "https://google.com/search?q=%s")
           (("duckduckgo" "d" "ddg") "https://duckduckgo.com/?q=%s")
           (("rfc" "r") "https://www.rfc-editor.org/rfc/rfc%s.txt")
-          (("rfc-kw" "rk") "https://www.rfc-editor.org/search/rfc_search_detail.php?title=%s")))
+          (("rfc-kw" "rk") "https://www.rfc-editor.org/search/rfc_search_detail.php?title=%s"))
+	"use this set of search engines")
 
-  (setq search-engine-default "google")
-  (setq eww-search-prefix "https://google.com/search?q=")
-  (setq browse-url-secondary-browser-function 'browse-url-generic browse-url-generic-program "firefox")
+  (search-engine-default "google" "Use google as default")
+  (eww-search-prefix "https://google.com/search?q=" "Google prefix")
+  (browse-url-secondary-browser-function 'browse-url-generic browse-url-generic-program "firefox" "Use firefox as secondary browser")
   :hook ((eww-mode . (lambda () (local-set-key (kbd "y Y") #'eww-copy-page-url)))))
 
 (use-package org-roam
-    :after (org)
-    :init
-    (setq org-roam-db-update-on-save t)
-    (setq org-roam-graph-viewer "chromium")
-    (setq org-roam-directory (file-truename "~/monorepo/mindmap"))
-    (setq org-roam-capture-templates '(("d" "default" plain "%?"
-    :target (file+head "${title}.org"
-	   "#+title: ${title}\n#+author: Preston Pan\n#+html_head: <link rel=\"stylesheet\" type=\"text/css\" href=\"../style.css\" />\n#+html_head: <script src=\"https://polyfill.io/v3/polyfill.min.js?features=es6\"></script>\n#+html_head: <script id=\"MathJax-script\" async src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js\"></script>\n#+options: broken-links:t")
-	:unnarrowed t)))
-    :config
-    (org-roam-db-autosync-mode))
+  :after (org)
+  :custom
+  (org-roam-db-update-on-save t "Update org-roam db")
+  (org-roam-graph-viewer "firefox" "Use firefox to view org-roam graph")
+  (org-roam-directory (file-truename "~/monorepo/mindmap") "Set org-roam directory inside monorepo")
+  (org-roam-capture-templates '(("d" "default" plain "%?"
+				 :target (file+head "${title}.org"
+						    "#+title: ${title}\n#+author: Preston Pan\n#+html_head: <link rel=\"stylesheet\" type=\"text/css\" href=\"../style.css\" />\n#+html_head: <script src=\"https://polyfill.io/v3/polyfill.min.js?features=es6\"></script>\n#+html_head: <script id=\"MathJax-script\" async src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js\"></script>\n#+options: broken-links:t")
+				 :unnarrowed t)) "org-roam files start with this snippet by default")
+  :config
+  (org-roam-db-autosync-mode)
+  ;; Otherwise links are broken when publishing
+  (org-roam-update-org-id-locations))
 
 (use-package org-roam-ui
-    :after org-roam
-    :hook (after-init . org-roam-ui-mode)
-    :config
-    (setq org-roam-ui-sync-theme t
-	    org-roam-ui-follow t
-	    org-roam-ui-update-on-save t
-	    org-roam-ui-open-on-start t))
+  :after org-roam
+  :hook (after-init . org-roam-ui-mode)
+  :custom
+  (org-roam-ui-sync-theme t "Use emacs theme for org-roam-ui")
+  (org-roam-ui-follow t "Have cool visual while editing org-roam")
+  (org-roam-ui-update-on-save t "This option is obvious")
+  (org-roam-ui-open-on-start t "Have cool visual open in firefox when emacs loads"))
 
 (use-package pinentry
-  :init (setq epa-pinentry-mode `loopback)
+  :custom (epa-pinentry-mode `loopback "Set this option to match gpg-agent.conf")
   :config (pinentry-start))
 
-;; (use-package latex-preview-pane
-;;   :config
-;;   (latex-preview-pane-enable))
-
-;; SMTP settings:
 (use-package smtpmail
-  :config
-  (setq user-mail-address system-email)
-  (setq user-full-name system-fullname)
-  (setq sendmail-program "msmtp"
-	send-mail-function 'smtpmail-send-it
-	message-sendmail-f-is-evil t
-	message-sendmail-extra-arguments '("--read-envelope-from")
-	message-send-mail-function 'message-send-mail-with-sendmail))
+  :custom
+  (user-mail-address system-email "Use our email")
+  (user-full-name system-fullname "Use our full name")
+  (sendmail-program "msmtp" "Use msmtp in order to send emails")
+  (send-mail-function 'smtpmail-send-it "This is required for this to work")
+  (message-sendmail-f-is-evil t "Use evil-mode for sendmail")
+  (message-sendmail-extra-arguments '("--read-envelope-from") "idk what this does")
+  (message-send-mail-function 'message-send-mail-with-sendmail "Use sendmail"))
 
 (use-package mu4e
   :after smtpmail
-  :init
-  (setq mu4e-drafts-folder "/Drafts")
-  (setq mu4e-sent-folder   "/Sent")
-  (setq mu4e-trash-folder  "/Trash")
-  (setq mu4e-attachment-dir  "~/Downloads")
-  (setq mu4e-view-show-addresses 't)
-  (setq mu4e-confirm-quit nil)
-
-
-  (setq message-kill-buffer-on-exit t)
-  (setq mu4e-compose-dont-reply-to-self t)
-  (setq mu4e-change-filenames-when-moving t)
-  (setq mu4e-get-mail-command "mbsync ret2pop")
-  (setq mu4e-compose-reply-ignore-address (list "no-?reply" system-email))
-  (setq mu4e-html2text-command "w3m -T text/html" ; how to hanfle html-formatted emails
-	    mu4e-update-interval 300                  ; seconds between each mail retrieval
-	    mu4e-headers-auto-update t                ; avoid to type `g' to update
-	    mu4e-view-show-images t                   ; show images in the view buffer
-	    mu4e-compose-signature-auto-include nil   ; I don't want a message signature
-	    mu4e-use-fancy-chars t))
-
-(use-package ivy-pass)
+  :custom
+  (mu4e-drafts-folder "/Drafts" "Set drafts folder mu db")
+  (mu4e-sent-folder   "/Sent" "Set sent folder in mu db")
+  (mu4e-trash-folder  "/Trash" "Set trash folder in mu db")
+  (mu4e-attachment-dir  "~/Downloads" "Set downloads folder for attachments")
+  (mu4e-view-show-addresses 't "Show email addresses in main view")
+  (mu4e-confirm-quit nil "Don't ask to quit")
+  (message-kill-buffer-on-exit t "Kill buffer when I exit mu4e")
+  (mu4e-compose-dont-reply-to-self t "Don't include self in replies")
+  (mu4e-change-filenames-when-moving t)
+  (mu4e-get-mail-command "mbsync ret2pop" "Use mbsync for imap")
+  (mu4e-compose-reply-ignore-address (list "no-?reply" system-email) "ignore my own address and noreply")
+  (mu4e-html2text-command "w3m -T text/html" "Use w3m to convert html to text")
+  (mu4e-update-interval 300 "Update duration")
+  (mu4e-headers-auto-update t "Auto-updates feed")
+  (mu4e-view-show-images t "Shows images")
+  (mu4e-compose-signature-auto-include nil)
+  (mu4e-use-fancy-chars t "Random option to make mu4e look nicer"))
 
 (use-package emms
+  :custom
+  (emms-source-file-default-directory (expand-file-name "~/music/") "Use directory specified in Nix")
+  (emms-player-mpd-music-directory (expand-file-name "~/music/") "Use directory specified in Nix")
+  (emms-player-mpd-server-name "localhost" "Connect to localhost")
+  (emms-player-mpd-server-port "6600" "Connect to port 6600")
+  (emms-player-list '(emms-player-mpd) "Use mpd")
   :init
   (emms-all)
-  (setq emms-source-file-default-directory (expand-file-name "~/music/"))
-  (setq emms-player-mpd-music-directory (expand-file-name "~/music/"))
-  (setq emms-player-mpd-server-name "localhost")
-  (setq emms-player-mpd-server-port "6600")
-  (setq emms-player-list '(emms-player-mpd))
   (add-to-list 'emms-info-functions 'emms-info-mpd)
   (add-to-list 'emms-player-list 'emms-player-mpd)
-:config (emms-player-mpd-connect))
+  :config (emms-player-mpd-connect))

@@ -971,6 +971,7 @@ I have many imports that we'll go through next.
 	art.enable = lib.mkEnableOption "Enables various art programs";
 	music.enable = lib.mkEnableOption "Enables mpd";
 	workstation.enable = lib.mkEnableOption "Enables workstation packages (music production and others)";
+	cuda.enable = lib.mkEnableOption "Enables CUDA user package builds";
 
 	hyprland = {
 		enable = lib.mkEnableOption "Enables hyprland";
@@ -2558,7 +2559,7 @@ This is pretty understandable, if you understand all the above.
 #+end_src
 ** Affinity
 #+begin_src nix :tangle ../nix/systems/affinity/default.nix
-  { config, lib, ... }:
+  { config, lib, home-manager, ... }:
   {
     imports = [
       ../../modules/default.nix
@@ -2570,6 +2571,7 @@ This is pretty understandable, if you understand all the above.
       };
       vars.hostName = "affinity";
     };
+    config.home-manager.users."${config.monorepo.vars.userName}".monorepo.profiles.cuda.enable = true;
   }
 #+end_src
 ** Installer

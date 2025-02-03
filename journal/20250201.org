@@ -1,0 +1,15 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+options: broken-links:t
+* Saturday, 01 February 2025
+** 19:30 
+I've set up various LLMs on my desktop PC. It's pretty cool that we
+consumers can just run this stuff on consumer hardware, and I'm really
+looking forward to using these tools more. Deepseek r1 is the model
+that everyone is talking about, but I think that phi4 is another great
+model right now and seems to be extremely competitive per the weight count.

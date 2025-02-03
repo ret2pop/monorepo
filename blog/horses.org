@@ -67,7 +67,7 @@ you will be paying $520x$ on average. Now to set up the expected value equation
 (which, using our simplified model, our expected value should be 0):
 \begin{align}
 \frac{99 - 260x}{100} - \frac{99 \cdot 520x}{100} = 0 \\
-\frac{99}{100} - 2.6x - \frac{514.8x} = 0 \\
+\frac{99}{100} - 2.6x - 514.8x = 0 \\
 2.6x + 514.8x = .99 \\
 517.4x = .99 \\
 x = \frac{.99}{517.4} \\

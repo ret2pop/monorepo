@@ -533,12 +533,12 @@ competitive LLM that doesn't cost money.
 #+begin_src emacs-lisp
   (use-package ellama
     :custom
-    (ellama-sessions-directory "~/org/ellama/" "Set org directory")
+    (ellama-sessions-directory "~/org/ellama/" "Set org directory for LLM sessions")
     :init
     (require 'llm-ollama)
     (setopt ellama-provider (make-llm-ollama
   	     :host "localhost"
-  	     :chat-model "gemma:7b")))
+  	     :chat-model "deepseek-r1:14b")))
 #+end_src
 ** RSS Feed
 I use really simple syndication (RSS) in order to read news. As a result, I use

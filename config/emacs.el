@@ -424,12 +424,12 @@
 
 (use-package ellama
   :custom
-  (ellama-sessions-directory "~/org/ellama/" "Set org directory")
+  (ellama-sessions-directory "~/org/ellama/" "Set org directory for LLM sessions")
   :init
   (require 'llm-ollama)
   (setopt ellama-provider (make-llm-ollama
 	     :host "localhost"
-	     :chat-model "gemma:7b")))
+	     :chat-model "deepseek-r1:14b")))
 
 (use-package elfeed
   :custom

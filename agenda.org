@@ -23,20 +23,24 @@ These are general life tasks that I need to do, which don't depend on a specific
 I need to work on my monorepo flake which builds all my systems, and should accommodate future
 systems and also should be relatively abstractable (i.e. identifiers tied to me should be easily
 removed from the flake).
+*** TODO [#B] VPS
+My VPS needs to be a NixOS configuration.
 *** DONE [#A] NixOS Modules
 :LOGBOOK:
 CLOCK: [2025-01-11 Sat 17:03]--[2025-01-11 Sat 19:35] =>  2:32
 :END:
 I need to fix my NixOS configuration to not be as monolithic and to be more modular.
-*** TODO [#B] VPS
-My VPS needs to be a NixOS configuration.
-*** TODO [#B] Workstation
+*** DONE [#B] Workstation
 My NixOS Monorepo needs to incorporate my workstation, and I need to install this config.
 *** DONE [#C] Gammastep
 Fix gammastep in my config so that it actually works on my dell machine.
+*** DONE [#C] monorepo
+Merge website and toughnix into monorepo
 ** TODO [#B] Resume
 I need to update my resume with my work experience. Additionally, I want to re-write my resume
 in org mode.
+** TODO [#B] CSS
+I need to update my CSS for my website to look better.
 ** TODO [#B] Nullring
 Update the nullring to be in org mode, and also include a couple more sites.
 ** TODO [#B] Umami
@@ -49,9 +53,11 @@ I want to write another song.
 I want to start making YouTube videos.
 ** TODO [#C] Analogue Computer
 I want to make an analogue computer.
-** TODO [#A] Dishes
+
+* Chores
+** DONE [#A] Dishes
 There will be a TODO when I need to do the dishes.
-** TODO Groceries
+** DONE Groceries
 There will be a TODO when I need to get groceries.
 
 * Scheduled tasks
@@ -63,7 +69,6 @@ something.
 *** DONE Travis and Friends Meetup
 SCHEDULED: <2025-01-12 Sun 17:00>
 Eating dinner with them.
-
 * Habits
 These are some habits I want to track. They are repeated according to a calendar schedule in
 general.
@@ -75,10 +80,12 @@ SCHEDULED: <2025-01-12 Sun .+1d>
 - State "DONE"       from "TODO"       [2025-01-11 Sat 02:26]
 I want to stretch every day so that I can become more flexible.
 ** TODO Journal
-SCHEDULED: <2025-01-20 Mon .+1d>
+SCHEDULED: <2025-02-04 Tue .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-01-19 Sun 11:53]
+:LAST_REPEAT: [2025-02-03 Mon 13:57]
 :END:
+- State "DONE"       from "TODO"       [2025-02-03 Mon 13:57]
+- State "DONE"       from "TODO"       [2025-02-03 Mon 03:01]
 - State "DONE"       from "TODO"       [2025-01-19 Sun 11:53]
 - State "DONE"       from "TODO"       [2025-01-16 Thu 19:19]
 - State "DONE"       from "TODO"       [2025-01-11 Sat 02:25]

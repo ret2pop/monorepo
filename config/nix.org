@@ -95,7 +95,16 @@ so that adding new configurations that add modifications is made simple.
   	    spontaneity = nixpkgs.lib.nixosSystem {
   	      system = "x86_64-linux";
   	      specialArgs = attrs;
-  	      modules = [];
+  	      modules = [
+  	        lanzaboote.nixosModules.lanzaboote
+  	        disko.nixosModules.disko
+  	        home-manager.nixosModules.home-manager
+  	        sops-nix.nixosModules.sops
+  	        { nixpkgs.overlays = [ nur.overlays.default ]; }
+  	        { home-manager.extraSpecialArgs = attrs; }
+            ./modules/vda-simple.nix
+            ./systems/spontaneity/default.nix
+          ];
   	    };
       };
     };
@@ -692,7 +701,7 @@ because they enhance security.
   	# wifi.macAddress = "";
       };
       firewall = {
-  	allowedTCPPorts = [ 11434 ];
+  	allowedTCPPorts = [ 22 11434 ];
   	allowedUDPPorts = [ ];
       };
     };
@@ -803,7 +812,7 @@ because they enhance security.
 
     users.users = {
       root.openssh.authorizedKeys.keys = [
-  	"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINSshvS1N/42pH9Unp3Zj4gjqs9BXoin99oaFWYHXZDJ preston@preston-arch"
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICts6+MQiMwpA+DfFQxjIN214Jn0pCw/2BDvOzPhR/H2 preston@continuity-dell"
       ];
 
       git = {
@@ -876,6 +885,45 @@ For my nvme drives.
     disk = {
       my-disk = {
         device = "/dev/nvme0n1";
+        type = "disk";
+        content = {
+          type = "gpt";
+          partitions = {
+            ESP = {
+              type = "EF00";
+              size = "500M";
+              priority = 1;
+              content = {
+                type = "filesystem";
+                format = "vfat";
+                mountpoint = "/boot";
+                mountOptions = [ "umask=0077" ];
+              };
+            };
+            root = {
+              size = "100%";
+              priority = 2;
+              content = {
+                type = "filesystem";
+                format = "ext4";
+                mountpoint = "/";
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+}
+#+end_src
+*** VDA
+For my virtual machines.
+#+begin_src nix :tangle ../nix/modules/vda-simple.nix
+{
+  disko.devices = {
+    disk = {
+      my-disk = {
+        device = "/dev/vda";
         type = "disk";
         content = {
           type = "gpt";
@@ -2573,6 +2621,8 @@ This is pretty understandable, if you understand all the above.
 }
 #+end_src
 ** Affinity
+This is my configuration for my workstation. It runs ollama, as well
+as several other useful services.
 #+begin_src nix :tangle ../nix/systems/affinity/default.nix
   { config, lib, home-manager, ... }:
   {
@@ -2581,12 +2631,29 @@ This is pretty understandable, if you understand all the above.
     ];
     config.monorepo = {
       profiles = {
-	server.enable = true;
-	cuda.enable = true;
+  	server.enable = true;
+  	cuda.enable = true;
       };
       vars.hostName = "affinity";
     };
     config.home-manager.users."${config.monorepo.vars.userName}".monorepo.profiles.cuda.enable = true;
+  }
+#+end_src
+** Spontaneity
+Spontaneity is my VPS instance.
+#+begin_src nix :tangle ../nix/systems/spontaneity/default.nix
+  { config, lib, ... }:
+  {
+    imports = [
+      ../../modules/default.nix
+    ];
+    config.monorepo = {
+      profiles = {
+        home.enable = false;
+        server.enable = true;
+      };
+      vars.hostName = "spontaneity";
+    };
   }
 #+end_src
 ** Installer

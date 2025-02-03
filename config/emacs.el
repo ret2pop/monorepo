@@ -18,7 +18,7 @@
   (display-line-numbers-type 'relative "Relative line numbers for easy vim jumping")
   (use-short-answers t "Use y instead of yes")
   (make-backup-files nil "Don't make backups")
-  (display-fill-column-indicator-column 100 "Draw a line at 100 characters")
+  (display-fill-column-indicator-column 150 "Draw a line at 100 characters")
   (line-spacing 2 "Default line spacing")
 
   ;; Editor comments

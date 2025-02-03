@@ -1,0 +1,22 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+options: broken-links:t
+* Monday, 03 February 2025
+** 03:00 
+It's 3 am and I'm just up with Marissa and doing some small automation
+and cleanup tasks. I'm doing these so that I don't really have to
+think about them again. I also just saw my friend Erfan at his house,
+and we talked a lot about his work and life.
+** 13:54 
+It's the next day for me practically, and I'm just about to get to
+work. Reading my agenda and then I'm going to work on some of these
+agenda items today. I might try to get a VPS working with NixOS and
+then integrate my server with my DNS domain. I will need to get my
+IPFS keys from my server onto my local machine, and then probably set
+up the NixOS machine, change the registrar entries and then destroy
+the old server.

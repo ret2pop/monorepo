@@ -71,7 +71,6 @@ so that adding new configurations that add modifications is made simple.
   	        sops-nix.nixosModules.sops
   	        { nixpkgs.overlays = [ nur.overlays.default ]; }
   	        { home-manager.extraSpecialArgs = attrs; }
-
   	        ./systems/continuity/default.nix
   	      ];
   	    };
@@ -86,7 +85,6 @@ so that adding new configurations that add modifications is made simple.
   	        sops-nix.nixosModules.sops
   	        { nixpkgs.overlays = [ nur.overlays.default ]; }
   	        { home-manager.extraSpecialArgs = attrs; }
-
   	        ./systems/affinity/default.nix
   	      ];
   	    };
@@ -216,10 +214,6 @@ under ~default.nix~ in the ~systems~ folder.
     };
 
     config = {
-      home-manager.users."${config.monorepo.vars.userName}" = {
-  	    programs.home-manager.enable = config.monorepo.profiles.home.enable;
-      };
-
       environment.systemPackages = lib.mkIf config.monorepo.profiles.documentation.enable (with pkgs; [
   	    linux-manual
   	    man-pages
@@ -954,24 +948,6 @@ For my virtual machines.
 }
 #+end_src
 ** Home
-Time for my home user configuration, which is managed by home-manager. First we start off with
-this module to enter us into the home-manager namespace:
-#+begin_src nix :tangle ../nix/modules/home/home.nix
-{ config, sops-nix, ... }:
-{
-  home-manager = {
-    sharedModules = [
-      sops-nix.homeManagerModules.sops
-    ];
-    useGlobalPkgs = true;
-    useUserPackages = true;
-    users."${config.monorepo.vars.userName}" = import ./default.nix;
-  };
-}
-#+end_src
-as you can see, we import default.nix which puts us in the home-manager namespace. Everything
-in the top level from now on will implicitly be located at
-~users."${config.monorepo.vars.userName}".xxxxx~, and we will look at default.nix next.
 *** Default Home Profile
 As you can see, I have my installed home packages installed based on the profiles enabled. Also,
 I have many imports that we'll go through next.
@@ -2610,6 +2586,22 @@ for these configurations.
   }
 #+end_src
 * Systems
+** Home
+This module dynamically imports the correct corresponding home.nix at
+the path.
+#+begin_src nix :tangle ../nix/systems/home.nix
+  { config, sops-nix, ... }:
+  {
+    home-manager = {
+      sharedModules = [
+        sops-nix.homeManagerModules.sops
+      ];
+      useGlobalPkgs = true;
+      useUserPackages = true;
+      users."${config.monorepo.vars.userName}" = import (./. + "/${config.monorepo.vars.hostName}/home.nix");
+    };
+  }
+#+end_src
 ** Continuity
 This is pretty understandable, if you understand all the above.
 #+begin_src nix :tangle ../nix/systems/continuity/default.nix
@@ -2617,8 +2609,19 @@ This is pretty understandable, if you understand all the above.
   {
     imports = [
       ../../modules/default.nix
-      ../../modules/home/home.nix
       ../../modules/sda-simple.nix
+      ../home.nix
+    ];
+  }
+#+end_src
+*** Home
+Each system has a corresponding home configuration in order to set
+monorepo home options.
+#+begin_src nix :tangle ../nix/systems/continuity/home.nix
+  { lib, config, pkgs, ... }:
+  {
+    imports = [
+      ../../modules/home/default.nix
     ];
   }
 #+end_src
@@ -2630,17 +2633,30 @@ as several other useful services.
   {
     imports = [
       ../../modules/default.nix
-      ../../modules/home/home.nix
       ../../modules/nvme-simple.nix
+      ../home.nix
+    ];
+    config = {
+      monorepo = {
+        profiles = {
+          server.enable = true;
+          cuda.enable = true;
+        };
+        vars.hostName = "affinity";
+      };
+    };
+  }
+#+end_src
+*** Home
+#+begin_src nix :tangle ../nix/systems/affinity/home.nix
+  { lib, config, pkgs, ... }:
+  {
+    imports = [
+      ../../modules/home/default.nix
     ];
     config.monorepo = {
-      profiles = {
-  	server.enable = true;
-  	cuda.enable = true;
-      };
-      vars.hostName = "affinity";
+      profiles.cuda.enable = true;
     };
-    config.home-manager.users."${config.monorepo.vars.userName}".monorepo.profiles.cuda.enable = true;
   }
 #+end_src
 ** Spontaneity
@@ -2651,15 +2667,25 @@ Spontaneity is my VPS instance.
     imports = [
       ../../modules/default.nix
       ../../modules/vda-simple.nix
+      ../home.nix
     ];
+
     config.monorepo = {
       profiles = {
         server.enable = true;
         ttyonly.enable = true;
-        home.enable = false;
       };
       vars.hostName = "spontaneity";
     };
+  }
+#+end_src
+*** Home
+#+begin_src nix :tangle ../nix/systems/spontaneity/home.nix
+  { lib, config, pkgs, ... }:
+  {
+    imports = [
+      ../../modules/home/default.nix
+    ];
   }
 #+end_src
 ** Installer

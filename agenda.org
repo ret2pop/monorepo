@@ -53,7 +53,10 @@ I want to write another song.
 I want to start making YouTube videos.
 ** TODO [#C] Analogue Computer
 I want to make an analogue computer.
-
+* Academic
+** TODO Statistics
+** TODO QFT
+** TODO GM
 * Chores
 ** DONE [#A] Dishes
 There will be a TODO when I need to do the dishes.

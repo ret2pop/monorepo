@@ -72,7 +72,6 @@ so that adding new configurations that add modifications is made simple.
   	        { nixpkgs.overlays = [ nur.overlays.default ]; }
   	        { home-manager.extraSpecialArgs = attrs; }
 
-  	        ./modules/sda-simple.nix
   	        ./systems/continuity/default.nix
   	      ];
   	    };
@@ -87,7 +86,7 @@ so that adding new configurations that add modifications is made simple.
   	        sops-nix.nixosModules.sops
   	        { nixpkgs.overlays = [ nur.overlays.default ]; }
   	        { home-manager.extraSpecialArgs = attrs; }
-  	        ./modules/nvme-simple.nix
+
   	        ./systems/affinity/default.nix
   	      ];
   	    };
@@ -102,7 +101,6 @@ so that adding new configurations that add modifications is made simple.
   	        sops-nix.nixosModules.sops
   	        { nixpkgs.overlays = [ nur.overlays.default ]; }
   	        { home-manager.extraSpecialArgs = attrs; }
-            ./modules/vda-simple.nix
             ./systems/spontaneity/default.nix
           ];
   	    };
@@ -199,7 +197,6 @@ under ~default.nix~ in the ~systems~ folder.
   {
     imports = [
       ./configuration.nix
-      ./home/home.nix
       ./vars.nix
     ];
 
@@ -2613,12 +2610,14 @@ for these configurations.
 ** Continuity
 This is pretty understandable, if you understand all the above.
 #+begin_src nix :tangle ../nix/systems/continuity/default.nix
-{ ... }:
-{
-  imports = [
-    ../../modules/default.nix
-  ];
-}
+  { ... }:
+  {
+    imports = [
+      ../../modules/default.nix
+      ../../modules/home/home.nix
+      ../../modules/sda-simple.nix
+    ];
+  }
 #+end_src
 ** Affinity
 This is my configuration for my workstation. It runs ollama, as well
@@ -2628,6 +2627,8 @@ as several other useful services.
   {
     imports = [
       ../../modules/default.nix
+      ../../modules/home/home.nix
+      ../../modules/nvme-simple.nix
     ];
     config.monorepo = {
       profiles = {
@@ -2646,11 +2647,12 @@ Spontaneity is my VPS instance.
   {
     imports = [
       ../../modules/default.nix
+      ../../modules/vda-simple.nix
     ];
     config.monorepo = {
       profiles = {
-        home.enable = false;
         server.enable = true;
+        home.enable = false;
       };
       vars.hostName = "spontaneity";
     };

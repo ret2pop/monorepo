@@ -219,29 +219,34 @@ pre.src-stem:before {
     -webkit-columns: 2;
     -moz-columns: 2;
 }
+
 .theorem {
     display:block;
     margin-left:10px;
     margin-bottom:20px;
     font-style:normal;
 }
-.theorem:before{
+
+.theorem:before {
     content:"Theorem.\00a0\00a0";
     float:left;
     font-weight:bold;
 }
-.proof{
+
+.proof {
     display:block;
     margin-left:10px;
     margin-bottom:30px;
     font-style:normal;
 }
-.proof:before{
+
+.proof:before {
     content:'Proof.\00a0\00a0';
     float:left;
     font-weight:bold;
 }
-.proof:after{
+
+.proof:after {
     content:"\25FC";
     float:right;
 }
@@ -256,18 +261,18 @@ blockquote {
     position: relative;
     background:#EDEDED;
 }
-blockquote::before{
-  font-family:Arial;
-  content: "\201C";
-  color:#78C0A8;
-  font-size:4em;
-  position: absolute;
-  left: 10px;
-  top:-10px;
+blockquote::before {
+    font-family:Arial;
+    content: "\201C";
+    color:#78C0A8;
+    font-size:4em;
+    position: absolute;
+    left: 10px;
+    top:-10px;
 }
 
 blockquote::after{
-  content: '';
+    content: '';
 }
 /* On smaller screens, where height is less than 450px, change the style of the sidebar (less padding and a smaller font size) */
 @media screen and (max-height: 450px) {

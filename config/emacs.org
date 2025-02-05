@@ -27,6 +27,7 @@ Emacs is self documenting, after all!
     :custom
     ;; Startup errors
     (warning-minimum-level :emergency "Supress emacs warnings")
+    (confirm-kill-processes nil "Don't ask to quit")
     (debug-ignored-errors (cons 'remote-file-error debug-ignored-errors) "Remove annoying error from debug errors")
 
     ;; Mouse wheel
@@ -537,7 +538,7 @@ competitive LLM that doesn't cost money.
     (require 'llm-ollama)
     (setopt ellama-provider (make-llm-ollama
   	     :host "localhost"
-  	     :chat-model "deepseek-r1:14b")))
+  	     :chat-model "phi4:latest")))
 #+end_src
 ** RSS Feed
 I use really simple syndication (RSS) in order to read news. As a result, I use

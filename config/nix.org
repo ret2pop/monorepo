@@ -99,6 +99,7 @@ so that adding new configurations that add modifications is made simple.
   	        sops-nix.nixosModules.sops
   	        { nixpkgs.overlays = [ nur.overlays.default ]; }
   	        { home-manager.extraSpecialArgs = attrs; }
+            ./systems/spontaneity/hardware-configuration.nix
             ./systems/spontaneity/default.nix
           ];
   	    };
@@ -209,6 +210,7 @@ under ~default.nix~ in the ~systems~ folder.
   		    home.enable = lib.mkEnableOption "Enables home user";
   		    server.enable = lib.mkEnableOption "Enables server services";
           ttyonly.enable = lib.mkEnableOption "TTY only, no xserver";
+          grub.enable = lib.mkEnableOption "Enables grub instead of systemd-boot";
   	    };
       };
     };
@@ -219,6 +221,9 @@ under ~default.nix~ in the ~systems~ folder.
   	    man-pages
   	    man-pages-posix
       ]);
+      boot.loader.grub = lib.mkIf config.monorepo.profiles.grub.enable {
+        enable = true;
+      };
 
       monorepo = {
   	    profiles = {
@@ -584,8 +589,8 @@ because they enhance security.
       };
 
       loader = {
-  	    systemd-boot.enable = lib.mkForce (! config.monorepo.profiles.secureBoot.enable);
-  	    efi.canTouchEfiVariables = true;
+  	    systemd-boot.enable = lib.mkForce (! config.monorepo.profiles.grub.enable);
+  	    efi.canTouchEfiVariables = lib.mkDefault (! config.monorepo.profiles.grub.enable);
       };
 
       kernelModules = [
@@ -911,41 +916,33 @@ For my nvme drives.
 *** VDA
 For my virtual machines.
 #+begin_src nix :tangle ../nix/modules/vda-simple.nix
-{
-  disko.devices = {
-    disk = {
-      my-disk = {
-        device = "/dev/vda";
-        type = "disk";
-        content = {
-          type = "gpt";
-          partitions = {
-            ESP = {
-              type = "EF00";
-              size = "500M";
-              priority = 1;
-              content = {
-                type = "filesystem";
-                format = "vfat";
-                mountpoint = "/boot";
-                mountOptions = [ "umask=0077" ];
+  {
+    disko.devices = {
+      disk = {
+        main = {
+          device = "/dev/vda";
+          type = "disk";
+          content = {
+            type = "gpt";
+            partitions = {
+              boot = {
+                size = "1M";
+                type = "EF02";
               };
-            };
-            root = {
-              size = "100%";
-              priority = 2;
-              content = {
-                type = "filesystem";
-                format = "ext4";
-                mountpoint = "/";
+              root = {
+                size = "100%";
+                content = {
+                  type = "filesystem";
+                  format = "ext4";
+                  mountpoint = "/";
+                };
               };
             };
           };
         };
       };
     };
-  };
-}
+  }
 #+end_src
 ** Home
 *** Default Home Profile
@@ -978,172 +975,174 @@ I have many imports that we'll go through next.
 
     options = {
       monorepo.profiles = {
-  	enable = lib.mkEnableOption "Enables home manager desktop configuration";
-  	# Programs
-  	lang-c.enable = lib.mkEnableOption "Enables C language support";
-  	lang-sh.enable = lib.mkEnableOption "Enables sh language support";
-  	lang-rust.enable = lib.mkEnableOption "Enables Rust language support";
-  	lang-python.enable = lib.mkEnableOption "Enables python language support";
-  	lang-sol.enable = lib.mkEnableOption "Enables solidity language support";
-  	lang-openscad.enable = lib.mkEnableOption "Enables openscad language support";
-  	lang-js.enable = lib.mkEnableOption "Enables javascript language support";
-  	lang-nix.enable = lib.mkEnableOption "Enables nix language support";
-  	lang-coq.enable = lib.mkEnableOption "Enables coq language support";
+  	    enable = lib.mkEnableOption "Enables home manager desktop configuration";
+  	    # Programs
+        graphics.enable = lib.mkEnableOption "Enables graphical programs for user";
+  	    lang-c.enable = lib.mkEnableOption "Enables C language support";
+  	    lang-sh.enable = lib.mkEnableOption "Enables sh language support";
+  	    lang-rust.enable = lib.mkEnableOption "Enables Rust language support";
+  	    lang-python.enable = lib.mkEnableOption "Enables python language support";
+  	    lang-sol.enable = lib.mkEnableOption "Enables solidity language support";
+  	    lang-openscad.enable = lib.mkEnableOption "Enables openscad language support";
+  	    lang-js.enable = lib.mkEnableOption "Enables javascript language support";
+  	    lang-nix.enable = lib.mkEnableOption "Enables nix language support";
+  	    lang-coq.enable = lib.mkEnableOption "Enables coq language support";
 
-  	crypto.enable = lib.mkEnableOption "Enables various cryptocurrency wallets";
-  	art.enable = lib.mkEnableOption "Enables various art programs";
-  	music.enable = lib.mkEnableOption "Enables mpd";
-  	workstation.enable = lib.mkEnableOption "Enables workstation packages (music production and others)";
-  	cuda.enable = lib.mkEnableOption "Enables CUDA user package builds";
+  	    crypto.enable = lib.mkEnableOption "Enables various cryptocurrency wallets";
+  	    art.enable = lib.mkEnableOption "Enables various art programs";
+  	    music.enable = lib.mkEnableOption "Enables mpd";
+  	    workstation.enable = lib.mkEnableOption "Enables workstation packages (music production and others)";
+  	    cuda.enable = lib.mkEnableOption "Enables CUDA user package builds";
 
-  	hyprland = {
-  		enable = lib.mkEnableOption "Enables hyprland";
-  		monitors = lib.mkOption {
-  			type = lib.types.listOf lib.types.str;
-  			default = [
-  			  "HDMI-A-1"
-  			  "eDP-1"
-  			  "DP-2"
-  			  "DP-3"
-  			  "LVDS-1"
-          "DP-4"
-  			];
-  			example = [];
-  			description = "Hyprland monitors";
-  		};
-  	};
-  	email = {
-  		email = lib.mkOption {
-  			type = lib.types.str;
-  			default = "ret2pop@gmail.com";
-  			example = "john@example.com";
-  			description = "Email address and imaps/smtps account";
-  		};
-  		imapsServer = lib.mkOption {
-  			type = lib.types.str;
-  			default = "imap.gmail.com";
-  			example = "imap.example.com";
-  			description = "imaps server address";
-  		};
-  		smtpsServer = lib.mkOption {
-  			type = lib.types.str;
-  			default = "smtp.gmail.com";
-  			example = "smtp.example.com";
-  			description = "smtp server address";
-  		};
-  		enable = lib.mkEnableOption "Enables email";
-  	};
+  	    hyprland = {
+  		    enable = lib.mkEnableOption "Enables hyprland";
+  		    monitors = lib.mkOption {
+  			    type = lib.types.listOf lib.types.str;
+  			    default = [
+  			      "HDMI-A-1"
+  			      "eDP-1"
+  			      "DP-2"
+  			      "DP-3"
+  			      "LVDS-1"
+              "DP-4"
+  			    ];
+  			    example = [];
+  			    description = "Hyprland monitors";
+  		    };
+  	    };
+  	    email = {
+  		    email = lib.mkOption {
+  			    type = lib.types.str;
+  			    default = "ret2pop@gmail.com";
+  			    example = "john@example.com";
+  			    description = "Email address and imaps/smtps account";
+  		    };
+  		    imapsServer = lib.mkOption {
+  			    type = lib.types.str;
+  			    default = "imap.gmail.com";
+  			    example = "imap.example.com";
+  			    description = "imaps server address";
+  		    };
+  		    smtpsServer = lib.mkOption {
+  			    type = lib.types.str;
+  			    default = "smtp.gmail.com";
+  			    example = "smtp.example.com";
+  			    description = "smtp server address";
+  		    };
+  		    enable = lib.mkEnableOption "Enables email";
+  	    };
       };
     };
 
     config = {
       home.packages = (if config.monorepo.profiles.email.enable then [ pkgs.mu ] else [])
-  					      ++
-  					      (if config.monorepo.profiles.lang-c.enable then (with pkgs; [
-  						autobuild
-  						clang
-  						gdb
-  						gnumake
-  						bear
-  						clang-tools
-  					      ]) else [])
-  					      ++
-  					      (if config.monorepo.profiles.lang-js.enable then (with pkgs; [
-  						nodejs
-  						bun
-  						yarn
-  						typescript
-  						vscode-langservers-extracted
-  					      ]) else [])
-  					      ++
-  					      (if config.monorepo.profiles.lang-rust.enable then (with pkgs; [
-  						cargo
-  						rust-analyzer
-  						rustfmt
-  					      ]) else [])
-  					      ++
-  					      (if config.monorepo.profiles.lang-python.enable then (with pkgs; [
-  						poetry
-  						python3
-  						python312Packages.jedi
-  					      ]) else [])
-  					      ++
-  					      (if config.monorepo.profiles.lang-sol.enable then (with pkgs; [
-  						solc
-  					      ]) else [])
-  					      ++
-  					      (if config.monorepo.profiles.lang-openscad.enable then (with pkgs; [
-  						openscad
-  						openscad-lsp
-  					      ]) else [])
-  					      ++
-  					      (if config.monorepo.profiles.lang-sh.enable then (with pkgs; [
-  						bash-language-server
-  					      ]) else [])
-  					      ++
-  					      (if config.monorepo.profiles.lang-coq.enable then (with pkgs; [
-  						coq
-  					      ]) else [])
-  					      ++
-  					      (if config.monorepo.profiles.lang-nix.enable then (with pkgs; [
-  						nil
-  						nixd
-  						nixfmt-rfc-style
-  					      ]) else [])
-  					      ++
-  					      (if config.monorepo.profiles.crypto.enable then (with pkgs; [
-  						bitcoin
-  						electrum
-  						monero-cli
-  						monero-gui
-  					      ]) else [])
-  					      ++
-  					      (if config.monorepo.profiles.art.enable then (with pkgs; [
-  						inkscape
-  						krita
-  					      ]) else [])
-  					      ++
-  					      (if config.monorepo.profiles.music.enable then (with pkgs; [
-  						mpc-cli
-  						sox
-  					      ]) else [])
-  					      ++
-  					      (if config.monorepo.profiles.workstation.enable then (with pkgs; [
-  			alsa-utils
-  			alsa-scarlett-gui
-  				    ardour
-  				    audacity
-  					  blender
-  			fluidsynth
-  			qjackctl
-  			qsynth
-  			qpwgraph
-  			imagemagick
-  			inkscape
-  			kdenlive
-  			kicad
-  					      ]) else []);
+  					          ++
+  					          (if config.monorepo.profiles.lang-c.enable then (with pkgs; [
+  						          autobuild
+  						          clang
+  						          gdb
+  						          gnumake
+  						          bear
+  						          clang-tools
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-js.enable then (with pkgs; [
+  						          nodejs
+  						          bun
+  						          yarn
+  						          typescript
+  						          vscode-langservers-extracted
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-rust.enable then (with pkgs; [
+  						          cargo
+  						          rust-analyzer
+  						          rustfmt
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-python.enable then (with pkgs; [
+  						          poetry
+  						          python3
+  						          python312Packages.jedi
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-sol.enable then (with pkgs; [
+  						          solc
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-openscad.enable then (with pkgs; [
+  						          openscad
+  						          openscad-lsp
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-sh.enable then (with pkgs; [
+  						          bash-language-server
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-coq.enable then (with pkgs; [
+  						          coq
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-nix.enable then (with pkgs; [
+  						          nil
+  						          nixd
+  						          nixfmt-rfc-style
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.crypto.enable then (with pkgs; [
+  						          bitcoin
+  						          electrum
+  						          monero-cli
+  						          monero-gui
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.art.enable then (with pkgs; [
+  						          inkscape
+  						          krita
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.music.enable then (with pkgs; [
+  						          mpc-cli
+  						          sox
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.workstation.enable then (with pkgs; [
+  			                alsa-utils
+  			                alsa-scarlett-gui
+  				              ardour
+  				              audacity
+  					            blender
+  			                fluidsynth
+  			                qjackctl
+  			                qsynth
+  			                qpwgraph
+  			                imagemagick
+  			                inkscape
+  			                kdenlive
+  			                kicad
+  					          ]) else []);
 
       monorepo.profiles = {
-  	enable = lib.mkDefault true;
-  	music.enable = lib.mkDefault true;
-  	hyprland.enable = lib.mkDefault true;
-  	email.enable = lib.mkDefault true;
+  	    enable = lib.mkDefault true;
+  	    music.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    hyprland.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    email.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
 
-  	# Programming
-  	lang-c.enable = lib.mkDefault true;
-  	lang-rust.enable = lib.mkDefault true;
-  	lang-python.enable = lib.mkDefault true;
-  	lang-sol.enable = lib.mkDefault true;
-  	lang-sh.enable = lib.mkDefault true;
-  	lang-openscad.enable = lib.mkDefault true;
-  	lang-js.enable = lib.mkDefault true;
-  	lang-nix.enable = lib.mkDefault true;
-  	lang-coq.enable = lib.mkDefault true;
+  	    # Programming
+        graphics.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-c.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-rust.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-python.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-sol.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-sh.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-openscad.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-js.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-nix.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-coq.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
 
-  	crypto.enable = lib.mkDefault true;
-  	art.enable = lib.mkDefault true;
-  	workstation.enable = lib.mkDefault true;
+  	    crypto.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    art.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    workstation.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
       };
     };
   }
@@ -1155,7 +1154,7 @@ be straightforward.
   { lib, config, pkgs, ... }:
   {
     programs.firefox = {
-      enable = true;
+      enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
       policies = {
         EnableTrackingProtection = true;
         OfferToSaveLogins = false;
@@ -1448,7 +1447,7 @@ as an org file which gets automatically tangled to an emacs-lisp file.
   {
     programs.emacs = 
       {
-        enable = true;
+        enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
         package = pkgs.emacs29-pgtk;
         extraConfig = ''
         (setq debug-on-error t)
@@ -1542,7 +1541,7 @@ the timezone.
 { lib, config, ... }:
 {
   services.gammastep = {
-    enable = true;
+    enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
     provider = "manual";
     latitude = 49.282730;
     longitude = -123.120735;
@@ -1567,7 +1566,7 @@ Make sure those are set correctly. I've set it to sign by default.
 { lib, config, ... }:
 {
   programs.git = {
-    enable = true;
+    enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
     userName = config.monorepo.vars.fullName;
     userEmail = config.monorepo.profiles.email.email;
     signing = {
@@ -1734,7 +1733,7 @@ I've set my terminal, kitty, to use catppuccin colors.
 { lib, config, ... }:
 {
   programs.kitty = {
-    enable = lib.mkDefault config.monorepo.profiles.hyprland.enable;
+    enable = lib.mkDefault (config.monorepo.profiles.hyprland.enable && config.monorepo.profiles.graphics.enable);
     settings = {
       enable_audio_bell = false;
       font_family = "Iosevka Nerd Font";
@@ -1792,7 +1791,7 @@ are all set from the get-go!
 { lib, config, sounds, ... }:
 {
   services.mako = {
-    enable = true;
+    enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
     backgroundColor = "#11111bf8";
     textColor = "#cdd6f4";
     borderColor = "#89b4faff";
@@ -1916,7 +1915,7 @@ here:
 { lib, config, ... }:
 {
   programs.mpv = {
-    enable = true;
+    enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
     config = {
       profile = "gpu-hq";
       force-window = true;
@@ -2236,7 +2235,7 @@ This is a run launcher for wayland. I also use it for my powermenu.
 { lib, config, ... }:
 {
   programs.wofi = {
-    enable = true; 
+    enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
     settings = {
       location = "bottom-right";
       allow_markup = true;
@@ -2428,7 +2427,7 @@ A classic program that allows you to download from youtube. Also has integration
 { lib, config, ... }:
 {
   programs.yt-dlp = {
-    enable = true;
+    enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
     settings = {
       embed-thumbnail = true;
       embed-subs = true;
@@ -2516,7 +2515,7 @@ for these configurations.
       homeDirectory = "/home/${config.monorepo.vars.userName}";
       stateVersion = "24.11";
 
-      packages = with pkgs; [
+      packages = with pkgs; (if config.monorepo.profiles.graphics.enable then [
         # wikipedia
         kiwix kiwix-tools
 
@@ -2542,11 +2541,7 @@ for these configurations.
         torsocks tor-browser
 
         # fonts
-        noto-fonts
-        noto-fonts-cjk-sans
-        noto-fonts-emoji
-        fira-code
-        font-awesome_6
+        noto-fonts noto-fonts-cjk-sans noto-fonts-emoji fira-code font-awesome_6
         (aspellWithDicts
           (dicts: with dicts; [ en en-computers en-science ]))
         (nerdfonts.override { fonts = [ "Iosevka" ]; })
@@ -2559,7 +2554,25 @@ for these configurations.
         pfetch
         libnotify
         htop
-      ];
+        (writeShellScriptBin "remote-build"
+          ''
+  #!/bin/bash
+  nixos-rebuild --target-host "$1" switch --flake .#spontaneity
+  ''
+        )
+        (writeShellScriptBin "install-vps"
+          ''
+  #!/bin/bash
+  nix run github:nix-community/nixos-anywhere -- --generate-hardware-config nixos-generate-config ./systems/spontaneity/hardware-configuration.nix --flake .#spontaneity --target-host "$1"
+          '')
+      ] else [
+        pfetch
+
+        # net
+        curl
+        torsocks
+        rsync
+      ]);
     };
 
     services = {
@@ -2576,7 +2589,7 @@ for these configurations.
     programs.bash.enable = true;
 
     gtk = {
-      enable = true;
+      enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
       theme = null;
       iconTheme = null;
     };
@@ -2674,6 +2687,7 @@ Spontaneity is my VPS instance.
       profiles = {
         server.enable = true;
         ttyonly.enable = true;
+        grub.enable = true;
       };
       vars.hostName = "spontaneity";
     };
@@ -2686,6 +2700,7 @@ Spontaneity is my VPS instance.
     imports = [
       ../../modules/home/default.nix
     ];
+    config.monorepo.profiles.enable = false;
   }
 #+end_src
 ** Installer

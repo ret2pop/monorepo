@@ -25,6 +25,10 @@ systems and also should be relatively abstractable (i.e. identifiers tied to me 
 removed from the flake).
 *** TODO [#B] VPS
 My VPS needs to be a NixOS configuration.
+**** DONE Automation
+I need to automate deployment of my NixOS VPS.
+**** TODO Migration
+Migrate all my services to NixOS.
 *** DONE [#A] NixOS Modules
 :LOGBOOK:
 CLOCK: [2025-01-11 Sat 17:03]--[2025-01-11 Sat 19:35] =>  2:32

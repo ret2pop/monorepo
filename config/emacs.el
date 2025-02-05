@@ -6,6 +6,7 @@
   :custom
   ;; Startup errors
   (warning-minimum-level :emergency "Supress emacs warnings")
+  (confirm-kill-processes nil "Don't ask to quit")
   (debug-ignored-errors (cons 'remote-file-error debug-ignored-errors) "Remove annoying error from debug errors")
 
   ;; Mouse wheel
@@ -20,10 +21,9 @@
   (make-backup-files nil "Don't make backups")
   (display-fill-column-indicator-column 150 "Draw a line at 100 characters")
   (line-spacing 2 "Default line spacing")
-
-  ;; Editor comments
   (c-doc-comment-style '((c-mode . doxygen)
 			 (c++-mode . doxygen)))
+
   :hook ((text-mode . auto-fill-mode)
 	 (text-mode . visual-line-mode)
 	 (prog-mode . auto-fill-mode)
@@ -429,7 +429,7 @@
   (require 'llm-ollama)
   (setopt ellama-provider (make-llm-ollama
 	     :host "localhost"
-	     :chat-model "deepseek-r1:14b")))
+	     :chat-model "phi4:latest")))
 
 (use-package elfeed
   :custom

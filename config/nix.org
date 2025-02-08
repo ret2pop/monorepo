@@ -113,7 +113,8 @@ creation_rules:
 also note that you will have to write your own secrets.yaml file, with an entry called ~mail~,
 which is used for the imaps and smtps password.
 * Nix Topology
-Nix Topology generates a nice graph of all my hosts.
+Nix Topology generates a nice graph of all my hosts. You can view this
+graph by running ~nix build .#topology.x86_64-linux.config.output~.
 #+begin_src nix :tangle ../nix/topology/default.nix
   { config, ... }:
   let
@@ -488,7 +489,7 @@ Use postfix as an smtps server.
     # Add HSTS header with preloading to HTTPS requests.
     # Adding this header to HTTP requests is discouraged
     map $scheme $hsts_header {
-	https   "max-age=31536000; includeSubdomains; preload";
+  	https   "max-age=31536000; includeSubdomains; preload";
     }
     add_header Strict-Transport-Security $hsts_header;
 
@@ -509,11 +510,11 @@ Use postfix as an smtps server.
   '';
 
       virtualHosts = {
-	"ret2pop.net" = {
-	  # addSSL = true;
-	  # enableACME = true;
-	  root = "/home/preston/ret2pop-website/";
-	};
+  	    "ret2pop.nullring.xyz" = {
+  	      # addSSL = true;
+  	      # enableACME = true;
+  	      root = "/home/preston/ret2pop-website/";
+  	    };
       };
     };
   }

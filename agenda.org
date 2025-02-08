@@ -39,7 +39,7 @@ My NixOS Monorepo needs to incorporate my workstation, and I need to install thi
 *** DONE [#C] Gammastep
 Fix gammastep in my config so that it actually works on my dell machine.
 *** DONE [#C] monorepo
-Merge website and toughnix into monorepo
+Merge website and toughnix into monorepo.
 ** TODO [#B] Resume
 I need to update my resume with my work experience. Additionally, I want to re-write my resume
 in org mode.
@@ -61,11 +61,6 @@ I want to make an analogue computer.
 ** TODO Statistics
 ** TODO QFT
 ** TODO GM
-* Chores
-** DONE [#A] Dishes
-There will be a TODO when I need to do the dishes.
-** DONE Groceries
-There will be a TODO when I need to get groceries.
 
 * Scheduled tasks
 These are one-time tasks that are scheduled at a particular date, and that don't require regular

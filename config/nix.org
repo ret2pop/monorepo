@@ -15,7 +15,7 @@ often data files used in my configuration (i.e. emacs, elfeed, org-roam, agenda,
 and they are webpages as well. This page is one such example of this concept.
 * Flake.nix
 The flake is the entry point of the NixOS configuration. Here, I have a list of all the systems
-that I use with all the modules that they use. My NixOS configuration  is heavily modularized,
+that I use with all the modules that they use. My NixOS configuration is heavily modularized,
 so that adding new configurations that add modifications is made simple.
 #+begin_src nix :tangle ../nix/flake.nix
   {
@@ -23,91 +23,81 @@ so that adding new configurations that add modifications is made simple.
 
     inputs = {
       nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
-
-      home-manager = {
-  	    url = "github:nix-community/home-manager/release-24.11";
-  	    inputs.nixpkgs.follows = "nixpkgs";
-      };
-
-      disko = {
-  	    url = "github:nix-community/disko";
-  	    inputs.nixpkgs.follows = "nixpkgs";
-      };
-
-      lanzaboote = {
-  	    url = "github:nix-community/lanzaboote/v0.4.1";
-  	    inputs.nixpkgs.follows = "nixpkgs";
-      };
-
       nur.url = "github:nix-community/NUR";
       sops-nix.url = "github:Mic92/sops-nix";
       scripts.url = "github:ret2pop/scripts";
       wallpapers.url = "github:ret2pop/wallpapers";
       sounds.url = "github:ret2pop/sounds";
-    };
-
-    outputs = { nixpkgs, home-manager, nur, disko, lanzaboote, sops-nix, ... }@attrs: {
-      nixosConfigurations = {
-  	    installer = nixpkgs.lib.nixosSystem {
-  	      system = "x86_64-linux";
-  	      modules = [
-  	        (
-  	          { pkgs, modulesPath, ... }:
-  	          {
-  		          imports = [ (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix") ];
-  	          }
-  	        )
-  	        ./systems/installer/default.nix
-  	      ];
-  	    };
-
-  	    continuity = nixpkgs.lib.nixosSystem {
-  	      system = "x86_64-linux";
-  	      specialArgs = attrs;
-  	      modules = [
-  	        lanzaboote.nixosModules.lanzaboote
-  	        disko.nixosModules.disko
-  	        home-manager.nixosModules.home-manager
-  	        sops-nix.nixosModules.sops
-  	        { nixpkgs.overlays = [ nur.overlays.default ]; }
-  	        { home-manager.extraSpecialArgs = attrs; }
-  	        ./systems/continuity/default.nix
-  	      ];
-  	    };
-
-  	    affinity = nixpkgs.lib.nixosSystem {
-  	      system = "x86_64-linux";
-  	      specialArgs = attrs;
-  	      modules = [
-  	        lanzaboote.nixosModules.lanzaboote
-  	        disko.nixosModules.disko
-  	        home-manager.nixosModules.home-manager
-  	        sops-nix.nixosModules.sops
-  	        { nixpkgs.overlays = [ nur.overlays.default ]; }
-  	        { home-manager.extraSpecialArgs = attrs; }
-  	        ./systems/affinity/default.nix
-  	      ];
-  	    };
-
-  	    spontaneity = nixpkgs.lib.nixosSystem {
-  	      system = "x86_64-linux";
-  	      specialArgs = attrs;
-  	      modules = [
-  	        lanzaboote.nixosModules.lanzaboote
-  	        disko.nixosModules.disko
-  	        home-manager.nixosModules.home-manager
-  	        sops-nix.nixosModules.sops
-  	        { nixpkgs.overlays = [ nur.overlays.default ]; }
-  	        { home-manager.extraSpecialArgs = attrs; }
-            ./systems/spontaneity/hardware-configuration.nix
-            ./systems/spontaneity/default.nix
-          ];
-  	    };
+      nix-topology = {
+        url = "github:oddlama/nix-topology";
+        inputs.nixpkgs.follows = "nixpkgs";
+      };
+      home-manager = {
+  	    url = "github:nix-community/home-manager/release-24.11";
+  	    inputs.nixpkgs.follows = "nixpkgs";
+      };
+      disko = {
+  	    url = "github:nix-community/disko";
+  	    inputs.nixpkgs.follows = "nixpkgs";
+      };
+      lanzaboote = {
+  	    url = "github:nix-community/lanzaboote/v0.4.1";
+  	    inputs.nixpkgs.follows = "nixpkgs";
       };
     };
+
+    outputs = { self, nixpkgs, home-manager, nur, disko, lanzaboote, sops-nix, nix-topology, ... }@attrs:
+      let
+        system = "x86_64-linux";
+        mkConfigs = map (hostname: {
+          name = "${hostname}";
+          value = nixpkgs.lib.nixosSystem {
+            system = system;
+            specialArgs = attrs;
+            modules = if (hostname == "installer") then [
+              (./. + "/systems/${hostname}/default.nix")
+              { networking.hostName = "${hostname}"; }
+              nix-topology.nixosModules.default
+            ] else [
+              nix-topology.nixosModules.default
+              lanzaboote.nixosModules.lanzaboote
+              disko.nixosModules.disko
+              home-manager.nixosModules.home-manager
+              sops-nix.nixosModules.sops
+              {
+                nixpkgs.overlays = [ nur.overlays.default ];
+                home-manager.extraSpecialArgs = attrs;
+                networking.hostName = "${hostname}";
+              }
+              (./. + "/systems/${hostname}/default.nix")
+            ];
+          };
+        });
+
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ nix-topology.overlays.default ];
+        };
+      in {
+        nixosConfigurations = builtins.listToAttrs (mkConfigs [
+          "affinity"
+          "continuity"
+          "installer"
+          "spontaneity"
+        ]);
+
+        topology."${system}" = import nix-topology {
+          inherit pkgs;
+          modules = [
+            ./topology/default.nix
+            { nixosConfigurations = self.nixosConfigurations; }
+          ];
+        };
+      };
   }
 #+end_src
-Listed here is my installer as well, which is used to install the systems in my configuration.
+Note that the configurations are automatically generated with he
+mkConfigs function.
 * Sops Configuration
 In order to use the sops configuration, you must change the age public key to the one that
 you own:
@@ -122,6 +112,65 @@ creation_rules:
 #+end_src
 also note that you will have to write your own secrets.yaml file, with an entry called ~mail~,
 which is used for the imaps and smtps password.
+* Nix Topology
+Nix Topology generates a nice graph of all my hosts.
+#+begin_src nix :tangle ../nix/topology/default.nix
+  { config, ... }:
+  let
+    inherit
+      (config.lib.topology);
+  in
+  {
+    nodes = {
+      spontaneity = {
+        interfaces.wan.network = "remote";
+      };
+      installer = {
+        interfaces.lan.network = "home";
+      };
+      affinity = {
+        interfaces.lan = {
+          network = "home";
+          physicalConnections = [
+            {
+              node = "spontaneity";
+              interface = "wan";
+            }
+            {
+              node = "installer";
+              interface = "lan";
+            }
+          ];
+        };
+      };
+      continuity = {
+        interfaces.lan = {
+          network = "home";
+          physicalConnections = [
+            {
+              node = "spontaneity";
+              interface = "wan";
+            }
+            {
+              node = "affinity";
+              interface = "lan";
+            }
+          ];
+        };
+      };
+    };
+    networks = {
+      home = {
+        name = "Home Network";
+        cidrv4 = "192.168.1.1/24";
+      };
+      remote = {
+        name = "Remote Network";
+        cidrv4 = "144.202.27.169/32";
+      };
+    };
+  }
+#+end_src
 * Modules
 ** Vars
 Variables used for regular configuration in your system ~defafult.nix~ file. The options are
@@ -130,13 +179,6 @@ largely self-documenting.
   { lib, ... }:
   {
     options.monorepo.vars = {
-      hostName = lib.mkOption {
-        type = lib.types.str;
-        default = "continuity";
-        example = "hostname";
-        description = "system hostname";
-      };
-
       userName = lib.mkOption {
         type = lib.types.str;
         default = "preston";
@@ -211,6 +253,7 @@ under ~default.nix~ in the ~systems~ folder.
   		    server.enable = lib.mkEnableOption "Enables server services";
           ttyonly.enable = lib.mkEnableOption "TTY only, no xserver";
           grub.enable = lib.mkEnableOption "Enables grub instead of systemd-boot";
+          workstation.enable = lib.mkEnableOption "Enables workstation services";
   	    };
       };
     };
@@ -383,7 +426,7 @@ Use ollama for serving large language models to my other computers.
   { config, lib, ... }:
   {
     services.ollama = {
-      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      enable = lib.mkDefault config.monorepo.profiles.workstation.enable;
       acceleration = "cuda";
       host = "0.0.0.0";
     };
@@ -427,10 +470,10 @@ Use postfix as an smtps server.
 #+end_src
 ** Nginx
 #+begin_src nix :tangle ../nix/modules/nginx.nix
-  { config, services, ... }:
+  { config, lib, services, ... }:
   {
     services.nginx = {
-      enable = true;
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
 
       # Use recommended settings
       recommendedGzipSettings = true;
@@ -542,10 +585,10 @@ because they enhance security.
 
     environment = {
       etc = {
-  	    securetty.text = ''
-  	    # /etc/securetty: list of terminals on which root is allowed to login.
-  	    # See securetty(5) and login(1).
-  	    '';
+    	  securetty.text = ''
+    	    # /etc/securetty: list of terminals on which root is allowed to login.
+    	    # See securetty(5) and login(1).
+    	    '';
       };
     };
 
@@ -553,13 +596,13 @@ because they enhance security.
       coredump.enable = false;
       network.config.networkConfig.IPv6PrivacyExtensions = "kernel";
       tmpfiles.settings = {
-  	    "restricthome"."/home/*".Z.mode = "~0700";
+    	  "restricthome"."/home/*".Z.mode = "~0700";
 
-  	    "restrictetcnixos"."/etc/nixos/*".Z = {
-  	      mode = "0000";
-  	      user = "root";
-  	      group = "root";
-  	    };
+    	  "restrictetcnixos"."/etc/nixos/*".Z = {
+    	    mode = "0000";
+    	    user = "root";
+    	    group = "root";
+    	  };
       };
     };
 
@@ -568,138 +611,137 @@ because they enhance security.
       extraModulePackages = [ ];
 
       initrd = {
-  	    availableKernelModules = [
-  	      "xhci_pci"
-  	      "ahci"
-  	      "usb_storage"
-  	      "sd_mod"
-  	      "nvme"
-  	      "sd_mod"
-  	      "ehci_pci"
-  	      "rtsx_pci_sdmmc"
-  	      "usbhid"
-  	    ];
+    	  availableKernelModules = [
+    	    "xhci_pci"
+    	    "ahci"
+    	    "usb_storage"
+    	    "sd_mod"
+    	    "nvme"
+    	    "sd_mod"
+    	    "ehci_pci"
+    	    "rtsx_pci_sdmmc"
+    	    "usbhid"
+    	  ];
 
-  	    kernelModules = [ ];
+    	  kernelModules = [ ];
       };
 
       lanzaboote = {
-  	    enable = config.monorepo.profiles.secureBoot.enable;
-  	    pkiBundle = "/etc/secureboot";
+    	  enable = config.monorepo.profiles.secureBoot.enable;
+    	  pkiBundle = "/etc/secureboot";
       };
 
       loader = {
-  	    systemd-boot.enable = lib.mkForce (! config.monorepo.profiles.grub.enable);
-  	    efi.canTouchEfiVariables = lib.mkDefault (! config.monorepo.profiles.grub.enable);
+    	  systemd-boot.enable = lib.mkForce (! config.monorepo.profiles.grub.enable);
+    	  efi.canTouchEfiVariables = lib.mkDefault (! config.monorepo.profiles.grub.enable);
       };
 
       kernelModules = [
-  	    "snd-seq"
-  	    "snd-rawmidi"
-  	    "xhci_hcd"
-  	    "kvm_intel"
+    	  "snd-seq"
+    	  "snd-rawmidi"
+    	  "xhci_hcd"
+    	  "kvm_intel"
       ];
 
       kernelParams = [
-  	    "debugfs=off"
-  	    "page_alloc.shuffle=1"
-  	    "slab_nomerge"
-  	    "page_poison=1"
+    	  "debugfs=off"
+    	  "page_alloc.shuffle=1"
+    	  "slab_nomerge"
+    	  "page_poison=1"
 
-  	    # madaidan
-  	    "pti=on"
-  	    "randomize_kstack_offset=on"
-  	    "vsyscall=none"
-  	    "module.sig_enforce=1"
-  	    "lockdown=confidentiality"
+    	  # madaidan
+    	  "pti=on"
+    	  "randomize_kstack_offset=on"
+    	  "vsyscall=none"
+    	  "module.sig_enforce=1"
+    	  "lockdown=confidentiality"
 
-  	    # cpu
-  	    "spectre_v2=on"
-  	    "spec_store_bypass_disable=on"
-  	    "tsx=off"
-  	    "tsx_async_abort=full,nosmt"
-  	    "mds=full,nosmt"
-  	    "l1tf=full,force"
-  	    "nosmt=force"
-  	    "kvm.nx_huge_pages=force"
+    	  # cpu
+    	  "spectre_v2=on"
+    	  "spec_store_bypass_disable=on"
+    	  "tsx=off"
+    	  "tsx_async_abort=full,nosmt"
+    	  "mds=full,nosmt"
+    	  "l1tf=full,force"
+    	  "nosmt=force"
+    	  "kvm.nx_huge_pages=force"
 
-  	    # hardened
-  	    "extra_latent_entropy"
+    	  # hardened
+    	  "extra_latent_entropy"
 
-  	    # mineral
-  	    "init_on_alloc=1"
-  	    "random.trust_cpu=off"
-  	    "random.trust_bootloader=off"
-  	    "intel_iommu=on"
-  	    "amd_iommu=force_isolation"
-  	    "iommu=force"
-  	    "iommu.strict=1"
-  	    "init_on_free=1"
-  	    "quiet"
-  	    "loglevel=0"
+    	  # mineral
+    	  "init_on_alloc=1"
+    	  "random.trust_cpu=off"
+    	  "random.trust_bootloader=off"
+    	  "intel_iommu=on"
+    	  "amd_iommu=force_isolation"
+    	  "iommu=force"
+    	  "iommu.strict=1"
+    	  "init_on_free=1"
+    	  "quiet"
+    	  "loglevel=0"
       ];
 
       blacklistedKernelModules = [
-  	    "netrom"
-  	    "rose"
+    	  "netrom"
+    	  "rose"
 
-  	    "adfs"
-  	    "affs"
-  	    "bfs"
-  	    "befs"
-  	    "cramfs"
-  	    "efs"
-  	    "erofs"
-  	    "exofs"
-  	    "freevxfs"
-  	    "f2fs"
-  	    "hfs"
-  	    "hpfs"
-  	    "jfs"
-  	    "minix"
-  	    "nilfs2"
-  	    "ntfs"
-  	    "omfs"
-  	    "qnx4"
-  	    "qnx6"
-  	    "sysv"
-  	    "ufs"
+    	  "adfs"
+    	  "affs"
+    	  "bfs"
+    	  "befs"
+    	  "cramfs"
+    	  "efs"
+    	  "erofs"
+    	  "exofs"
+    	  "freevxfs"
+    	  "f2fs"
+    	  "hfs"
+    	  "hpfs"
+    	  "jfs"
+    	  "minix"
+    	  "nilfs2"
+    	  "ntfs"
+    	  "omfs"
+    	  "qnx4"
+    	  "qnx6"
+    	  "sysv"
+    	  "ufs"
       ];
 
       kernel.sysctl = {
-  	    "kernel.ftrace_enabled" = false;
-  	    "net.core.bpf_jit_enable" = false;
-  	    "kernel.kptr_restrict" = 2;
+    	  "kernel.ftrace_enabled" = false;
+    	  "net.core.bpf_jit_enable" = false;
+    	  "kernel.kptr_restrict" = 2;
 
-  	    # madaidan
-  	    "vm.swappiness" = 1;
-  	    "vm.unprivileged_userfaultfd" = 0;
-  	    "dev.tty.ldisc_autoload" = 0;
-  	    "kernel.kexec_load_disabled" = 1;
-  	    "kernel.sysrq" = 4;
-  	    "kernel.perf_event_paranoid" = 3;
+    	  # madaidan
+    	  "vm.swappiness" = 1;
+    	  "vm.unprivileged_userfaultfd" = 0;
+    	  "dev.tty.ldisc_autoload" = 0;
+    	  "kernel.kexec_load_disabled" = 1;
+    	  "kernel.sysrq" = 4;
+    	  "kernel.perf_event_paranoid" = 3;
 
-  	    # net
-  	    "net.ipv4.icmp_echo_ignore_broadcasts" = true;
+    	  # net
+    	  "net.ipv4.icmp_echo_ignore_broadcasts" = true;
 
-  	    "net.ipv4.conf.all.accept_redirects" = false;
-  	    "net.ipv4.conf.all.secure_redirects" = false;
-  	    "net.ipv4.conf.default.accept_redirects" = false;
-  	    "net.ipv4.conf.default.secure_redirects" = false;
-  	    "net.ipv6.conf.all.accept_redirects" = false;
-  	    "net.ipv6.conf.default.accept_redirects" = false;
+    	  "net.ipv4.conf.all.accept_redirects" = false;
+    	  "net.ipv4.conf.all.secure_redirects" = false;
+    	  "net.ipv4.conf.default.accept_redirects" = false;
+    	  "net.ipv4.conf.default.secure_redirects" = false;
+    	  "net.ipv6.conf.all.accept_redirects" = false;
+    	  "net.ipv6.conf.default.accept_redirects" = false;
       };
     };
 
     networking = {
       useDHCP = lib.mkDefault true;
-      hostName = config.monorepo.vars.hostName;
       networkmanager = {
-  	    enable = true;
+    	  enable = true;
       };
       firewall = {
-  	    allowedTCPPorts = [ 22 11434 ];
-  	    allowedUDPPorts = [ ];
+    	  allowedTCPPorts = [ 22 11434 ];
+    	  allowedUDPPorts = [ ];
       };
     };
 
@@ -710,16 +752,16 @@ because they enhance security.
       pulseaudio.enable = ! config.monorepo.profiles.pipewire.enable;
 
       bluetooth = {
-  	    enable = true;
-  	    powerOnBoot = true;
+    	  enable = true;
+    	  powerOnBoot = true;
       };
     };
 
     services = {
       chrony = {
-  	    enable = true;
-  	    enableNTS = true;
-  	    servers = [ "time.cloudflare.com" "ptbtime1.ptb.de" "ptbtime2.ptb.de" ];
+    	  enable = true;
+    	  enableNTS = true;
+    	  servers = [ "time.cloudflare.com" "ptbtime1.ptb.de" "ptbtime2.ptb.de" ];
       };
 
       jitterentropy-rngd.enable = true;
@@ -732,12 +774,12 @@ because they enhance security.
 
       # Misc.
       udev = {
-  	    extraRules = '''';
-  	    packages = with pkgs; [ 
-  	      platformio-core
-  	      platformio-core.udev
-  	      openocd
-  	    ];
+    	  extraRules = '''';
+    	  packages = with pkgs; [ 
+    	    platformio-core
+    	    platformio-core.udev
+    	    openocd
+    	  ];
       };
 
       printing.enable = true;
@@ -754,20 +796,20 @@ because they enhance security.
     nixpkgs = {
       hostPlatform = lib.mkDefault "x86_64-linux";
       config = {
-  	    allowUnfree = true;
-  	    cudaSupport = lib.mkDefault config.monorepo.profiles.cuda.enable;
+    	  allowUnfree = true;
+    	  cudaSupport = lib.mkDefault config.monorepo.profiles.cuda.enable;
       };
     };
 
     security = {
       apparmor = {
-  	    enable = true;
-  	    killUnconfinedConfinables = true;
+    	  enable = true;
+    	  killUnconfinedConfinables = true;
       };
 
       pam.loginLimits = [
-  	    { domain = "*"; item = "nofile"; type = "-"; value = "32768"; }
-  	    { domain = "*"; item = "memlock"; type = "-"; value = "32768"; }
+    	  { domain = "*"; item = "nofile"; type = "-"; value = "32768"; }
+    	  { domain = "*"; item = "memlock"; type = "-"; value = "32768"; }
       ];
       rtkit.enable = true;
 
@@ -777,9 +819,9 @@ because they enhance security.
       forcePageTableIsolation = true;
 
       tpm2 = {
-  	    enable = true;
-  	    pkcs11.enable = true;
-  	    tctiEnvironment.enable = true;
+    	  enable = true;
+    	  pkcs11.enable = true;
+    	  tctiEnvironment.enable = true;
       };
 
       auditd.enable = true;
@@ -792,9 +834,9 @@ because they enhance security.
       enable = true;
       wlr.enable = true;
       extraPortals = with pkgs; [
-  	    xdg-desktop-portal-gtk
-  	    xdg-desktop-portal
-  	    xdg-desktop-portal-hyprland
+    	  xdg-desktop-portal-gtk
+    	  xdg-desktop-portal
+    	  xdg-desktop-portal-hyprland
       ];
       config.common.default = "*";
     };
@@ -807,23 +849,25 @@ because they enhance security.
       curl
     ];
 
+    users.groups.git = {};
     users.users = {
       root.openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICts6+MQiMwpA+DfFQxjIN214Jn0pCw/2BDvOzPhR/H2 preston@continuity-dell"
       ];
 
       git = {
-  	    isSystemUser = true;
-  	    home = "/srv/git";
-  	    shell = "${pkgs.git}/bin/git-shell";
+    	  isSystemUser = true;
+    	  home = "/srv/git";
+    	  shell = "${pkgs.git}/bin/git-shell";
+        group = "git";
       };
       "${config.monorepo.vars.userName}" = {
-  	    initialPassword = "${config.monorepo.vars.userName}";
-  	    isNormalUser = true;
-  	    description = config.monorepo.vars.fullName;
-  	    extraGroups = [ "networkmanager" "wheel" "video" "docker" "jackaudio" "tss" "dialout" ];
-  	    shell = pkgs.zsh;
-  	    packages = [];
+    	  initialPassword = "${config.monorepo.vars.userName}";
+    	  isNormalUser = true;
+    	  description = config.monorepo.vars.fullName;
+    	  extraGroups = [ "networkmanager" "wheel" "video" "docker" "jackaudio" "tss" "dialout" ];
+    	  shell = pkgs.zsh;
+    	  packages = [];
       };
     };
 
@@ -837,7 +881,7 @@ because they enhance security.
 This is the disko configuration for my continuity system. It features a boot and ext4 partition,
 on disk /dev/sda. All my SATA disks have this location by default, but if you want to use nvme,
 you will have to import that configuration in your ~systems/xxx/default.nix~.
-#+begin_src nix :tangle ../nix/modules/sda-simple.nix
+#+begin_src nix :tangle ../nix/disko/sda-simple.nix
 {
   disko.devices = {
     disk = {
@@ -876,7 +920,7 @@ you will have to import that configuration in your ~systems/xxx/default.nix~.
 #+end_src
 *** NVME
 For my nvme drives.
-#+begin_src nix :tangle ../nix/modules/nvme-simple.nix
+#+begin_src nix :tangle ../nix/disko/nvme-simple.nix
 {
   disko.devices = {
     disk = {
@@ -915,7 +959,7 @@ For my nvme drives.
 #+end_src
 *** VDA
 For my virtual machines.
-#+begin_src nix :tangle ../nix/modules/vda-simple.nix
+#+begin_src nix :tangle ../nix/disko/vda-simple.nix
   {
     disko.devices = {
       disk = {
@@ -993,23 +1037,8 @@ I have many imports that we'll go through next.
   	    music.enable = lib.mkEnableOption "Enables mpd";
   	    workstation.enable = lib.mkEnableOption "Enables workstation packages (music production and others)";
   	    cuda.enable = lib.mkEnableOption "Enables CUDA user package builds";
+  	    hyprland.enable = lib.mkEnableOption "Enables hyprland";
 
-  	    hyprland = {
-  		    enable = lib.mkEnableOption "Enables hyprland";
-  		    monitors = lib.mkOption {
-  			    type = lib.types.listOf lib.types.str;
-  			    default = [
-  			      "HDMI-A-1"
-  			      "eDP-1"
-  			      "DP-2"
-  			      "DP-3"
-  			      "LVDS-1"
-              "DP-4"
-  			    ];
-  			    example = [];
-  			    description = "Hyprland monitors";
-  		    };
-  	    };
   	    email = {
   		    email = lib.mkOption {
   			    type = lib.types.str;
@@ -1592,140 +1621,146 @@ Make sure those are set correctly. I've set it to sign by default.
 My compositor/window manager. This automatically starts on startup. Instructions on how
 to use this component will come soon.
 #+begin_src nix :tangle ../nix/modules/home/hyprland.nix
-{ lib, config, wallpapers, pkgs, scripts, ... }:
-{
-  wayland.windowManager.hyprland = {
-    enable = lib.mkDefault config.monorepo.profiles.hyprland.enable;
-    package = pkgs.hyprland;
-    xwayland.enable = true;
-    systemd.enable = true;
-    settings = {
-      "$mod" = "SUPER";
-      exec-once = [
-        "waybar"
-        "swww-daemon --format xrgb"
-        "swww img ${wallpapers}/imagination.png"
-        "fcitx5-remote -r"
-        "fcitx5 -d --replace"
-        "fcitx5-remote -r"
-        "emacs"
-        "firefox"
-      ];
-      env = [
-        "LIBVA_DRIVER_NAME,nvidia"
-        "XDG_SESSION_TYPE,wayland"
-        "GBM_BACKEND,nvidia-drm"
-        "__GLX_VENDOR_LIBRARY_NAME,nvidia"
-        "ELECTRON_OZONE_PLATFORM_HINT,auto"
-      ];
-      blurls = [
-        "waybar"
-      ];
-      monitor = [
-        "Unknown-1,disable"
-      ];
-      windowrule = [
-        "workspace 1, ^(.*emacs.*)$"
-        "workspace 2, ^(.*firefox.*)$"
-        "workspace 2, ^(.*Tor Browser.*)$"
-        "workspace 2, ^(.*Chromium-browser.*)$"
-        "workspace 2, ^(.*chromium.*)$"
-        "workspace 3, ^(.*discord.*)$"
-        "workspace 3, ^(.*vesktop.*)$"
-        "workspace 3, ^(.*fluffychat.*)$"
-        "workspace 3, ^(.*element-desktop.*)$"
-        "workspace 4, ^(.*qpwgraph.*)$"
-        "workspace 4, ^(.*mpv.*)$"
-        "workspace 5, ^(.*Monero.*)$"
-        "workspace 5, ^(.*org\.bitcoin\..*)$"
-        "workspace 5, ^(.*Bitcoin Core - preston.*)$"
-        "workspace 5, ^(.*org\.getmonero\..*)$"
-        "workspace 5, ^(.*Monero - preston.*)$"
-        "workspace 5, ^(.*electrum.*)$"
-        "pseudo,fcitx"
-      ];
-      bind = [
-        "$mod, F, exec, firefox"
-        "$mod, T, exec, tor-browser"
-        "$mod, Return, exec, kitty"
-        "$mod, E, exec, emacs"
-        "$mod, B, exec, bitcoin-qt"
-        "$mod, M, exec, monero-wallet-gui"
-        "$mod, V, exec, vesktop"
-        "$mod, D, exec, wofi --show run"
-        "$mod, P, exec, bash ${scripts}/powermenu.sh"
-        "$mod, Q, killactive"
-        "$mod SHIFT, H, movewindow, l"
-        "$mod SHIFT, L, movewindow, r"
-        "$mod SHIFT, K, movewindow, u"
-        "$mod SHIFT, J, movewindow, d"
-        "$mod, H, movefocus, l"
-        "$mod, L, movefocus, r"
-        "$mod, K, movefocus, u"
-        "$mod, J, movefocus, d"
-        ", XF86AudioPlay, exec, mpc toggle"
-        ", Print, exec, grim"
-      ]
-      ++ (
-        builtins.concatLists (builtins.genList
-          (
-            x:
-            let
-              ws =
-                let
-                  c = (x + 1) / 10;
-                in
-                  builtins.toString (x + 1 - (c * 10));
-            in
-              [
-                "$mod, ${ws}, workspace, ${toString (x + 1)}"
-                "$mod SHIFT, ${ws}, movetoworkspace, ${toString (x + 1)}"
-              ]
-          )
-          10)
-      );
-      bindm = [
-        "$mod, mouse:272, movewindow"
-        "$mod, mouse:273, resizewindow"
-        "$mod ALT, mouse:272, resizewindow"
-      ];
-      binde = [
-        ", XF86AudioRaiseVolume, exec, wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+"
-        ", XF86AudioLowerVolume, exec, wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%-"
-        ", XF86AudioNext, exec, mpc next"
-        ", XF86AudioPrev, exec, mpc prev"
-        ", XF86MonBrightnessUp , exec, xbacklight -inc 10"
-        ", XF86MonBrightnessDown, exec, xbacklight -dec 10"
-      ];
-      decoration = {
-        blur = {
-          enabled = true;
-          size = 5;
-          passes = 2;
+  { lib, config, wallpapers, pkgs, scripts, ... }:
+  {
+    wayland.windowManager.hyprland = {
+      enable = lib.mkDefault config.monorepo.profiles.hyprland.enable;
+      package = pkgs.hyprland;
+      xwayland.enable = true;
+      systemd.enable = true;
+      settings = {
+        "$mod" = "SUPER";
+        bezier = [
+          "overshot,0,1,0,0.95"
+        ];
+        animation = [
+          "workspaces, 1, 10, overshot"
+        ];
+        exec-once = [
+          "waybar"
+          "swww-daemon --format xrgb"
+          "swww img ${wallpapers}/imagination.png"
+          "fcitx5-remote -r"
+          "fcitx5 -d --replace"
+          "fcitx5-remote -r"
+          "emacs"
+          "firefox"
+        ];
+        env = [
+          "LIBVA_DRIVER_NAME,nvidia"
+          "XDG_SESSION_TYPE,wayland"
+          "GBM_BACKEND,nvidia-drm"
+          "__GLX_VENDOR_LIBRARY_NAME,nvidia"
+          "ELECTRON_OZONE_PLATFORM_HINT,auto"
+        ];
+        blurls = [
+          "waybar"
+        ];
+        monitor = [
+          "Unknown-1,disable"
+        ];
+        windowrule = [
+          "workspace 1, ^(.*emacs.*)$"
+          "workspace 2, ^(.*firefox.*)$"
+          "workspace 2, ^(.*Tor Browser.*)$"
+          "workspace 2, ^(.*Chromium-browser.*)$"
+          "workspace 2, ^(.*chromium.*)$"
+          "workspace 3, ^(.*discord.*)$"
+          "workspace 3, ^(.*vesktop.*)$"
+          "workspace 3, ^(.*fluffychat.*)$"
+          "workspace 3, ^(.*element-desktop.*)$"
+          "workspace 4, ^(.*qpwgraph.*)$"
+          "workspace 4, ^(.*mpv.*)$"
+          "workspace 5, ^(.*Monero.*)$"
+          "workspace 5, ^(.*org\.bitcoin\..*)$"
+          "workspace 5, ^(.*Bitcoin Core - preston.*)$"
+          "workspace 5, ^(.*org\.getmonero\..*)$"
+          "workspace 5, ^(.*Monero - preston.*)$"
+          "workspace 5, ^(.*electrum.*)$"
+          "pseudo,fcitx"
+        ];
+        bind = [
+          "$mod, F, exec, firefox"
+          "$mod, T, exec, tor-browser"
+          "$mod, Return, exec, kitty"
+          "$mod, E, exec, emacs"
+          "$mod, B, exec, bitcoin-qt"
+          "$mod, M, exec, monero-wallet-gui"
+          "$mod, V, exec, vesktop"
+          "$mod, D, exec, wofi --show run"
+          "$mod, P, exec, bash ${scripts}/powermenu.sh"
+          "$mod, Q, killactive"
+          "$mod SHIFT, H, movewindow, l"
+          "$mod SHIFT, L, movewindow, r"
+          "$mod SHIFT, K, movewindow, u"
+          "$mod SHIFT, J, movewindow, d"
+          "$mod, H, movefocus, l"
+          "$mod, L, movefocus, r"
+          "$mod, K, movefocus, u"
+          "$mod, J, movefocus, d"
+          ", XF86AudioPlay, exec, mpc toggle"
+          ", Print, exec, grim"
+        ]
+        ++ (
+          builtins.concatLists (builtins.genList
+            (
+              x:
+              let
+                ws =
+                  let
+                    c = (x + 1) / 10;
+                  in
+                    builtins.toString (x + 1 - (c * 10));
+              in
+                [
+                  "$mod, ${ws}, workspace, ${toString (x + 1)}"
+                  "$mod SHIFT, ${ws}, movetoworkspace, ${toString (x + 1)}"
+                ]
+            )
+            10)
+        );
+        bindm = [
+          "$mod, mouse:272, movewindow"
+          "$mod, mouse:273, resizewindow"
+          "$mod ALT, mouse:272, resizewindow"
+        ];
+        binde = [
+          ", XF86AudioRaiseVolume, exec, wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+"
+          ", XF86AudioLowerVolume, exec, wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%-"
+          ", XF86AudioNext, exec, mpc next"
+          ", XF86AudioPrev, exec, mpc prev"
+          ", XF86MonBrightnessUp , exec, xbacklight -inc 10"
+          ", XF86MonBrightnessDown, exec, xbacklight -dec 10"
+        ];
+        decoration = {
+          blur = {
+            enabled = true;
+            size = 5;
+            passes = 2;
+          };
+          rounding = 5;
         };
-        rounding = 5;
-      };
-      input = {
-        kb_options = "caps:swapescape";
-        repeat_delay = 300;
-        repeat_rate = 50;
-        natural_scroll = true;
-        touchpad = {
+        input = {
+          kb_options = "caps:swapescape";
+          repeat_delay = 300;
+          repeat_rate = 50;
           natural_scroll = true;
-          disable_while_typing = true;
-          tap-to-click = true;
+          touchpad = {
+            natural_scroll = true;
+            disable_while_typing = true;
+            tap-to-click = true;
+          };
         };
-      };
-      cursor = {
-        no_hardware_cursors = true;
-      };
-      misc = {
-        force_default_wallpaper = 0;
-        disable_hyprland_logo = true;
+        cursor = {
+          no_hardware_cursors = true;
+        };
+        misc = {
+          force_default_wallpaper = 0;
+          disable_hyprland_logo = true;
+        };
       };
     };
-  };
-}
+  }
 #+end_src
 *** Kitty
 I've set my terminal, kitty, to use catppuccin colors.
@@ -2611,7 +2646,7 @@ the path.
       ];
       useGlobalPkgs = true;
       useUserPackages = true;
-      users."${config.monorepo.vars.userName}" = import (./. + "/${config.monorepo.vars.hostName}/home.nix");
+      users."${config.monorepo.vars.userName}" = import (./. + "/${config.networking.hostName}/home.nix");
     };
   }
 #+end_src
@@ -2622,7 +2657,7 @@ This is pretty understandable, if you understand all the above.
   {
     imports = [
       ../../modules/default.nix
-      ../../modules/sda-simple.nix
+      ../../disko/sda-simple.nix
       ../home.nix
     ];
   }
@@ -2646,16 +2681,16 @@ as several other useful services.
   {
     imports = [
       ../../modules/default.nix
-      ../../modules/nvme-simple.nix
+      ../../disko/nvme-simple.nix
       ../home.nix
     ];
     config = {
       monorepo = {
         profiles = {
-          server.enable = true;
+          server.enable = false;
           cuda.enable = true;
+          workstation.enable = true;
         };
-        vars.hostName = "affinity";
       };
     };
   }
@@ -2678,8 +2713,12 @@ Spontaneity is my VPS instance.
   { config, lib, ... }:
   {
     imports = [
+      # nixos-anywhere generates this file
+      ./hardware-configuration.nix
+
+      ../../disko/vda-simple.nix
+
       ../../modules/default.nix
-      ../../modules/vda-simple.nix
       ../home.nix
     ];
 
@@ -2689,7 +2728,6 @@ Spontaneity is my VPS instance.
         ttyonly.enable = true;
         grub.enable = true;
       };
-      vars.hostName = "spontaneity";
     };
   }
 #+end_src
@@ -2719,13 +2757,16 @@ work deterministically.
 *** ISO Default Profile
 This contains the installation script I use to install my systems.
 #+begin_src nix :tangle ../nix/systems/installer/default.nix
-  { pkgs, config, lib, ... }:
+  { pkgs, config, lib, modulesPath, ... }:
   let
     commits = import ./commits.nix;
   in
   {
+    imports = [
+      (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix")
+    ];
+
     networking = {
-      hostName = "nixos";
       networkmanager = {
         enable = true;
       };
@@ -2761,6 +2802,9 @@ This contains the installation script I use to install my systems.
             ''
   #!/usr/bin/env bash
 
+  SYSTEM=continuity
+  DRIVE=sda
+
   set -euo pipefail
   if [ "$(id -u)" -eq 0 ]; then
     echo "ERROR! $(basename "$0") should be run as a regular user"
@@ -2773,10 +2817,10 @@ This contains the installation script I use to install my systems.
     cd monorepo
     git checkout "${commits.monorepoCommitHash}"
   fi
-  vim "$HOME/monorepo/nix/systems/continuity/default.nix"
-  sudo nix --experimental-features "nix-command flakes" run "github:nix-community/disko/${commits.diskoCommitHash}" -- --mode destroy,format,mount "$HOME/monorepo/nix/modules/sda-simple.nix"
+  vim "$HOME/monorepo/nix/systems/$SYSTEM/default.nix"
+  sudo nix --experimental-features "nix-command flakes" run "github:nix-community/disko/${commits.diskoCommitHash}" -- --mode destroy,format,mount "$HOME/monorepo/nix/disko/$DRIVE-simple.nix"
   cd /mnt
-  sudo nixos-install --flake $HOME/monorepo/nix#continuity
+  sudo nixos-install --flake "$HOME/monorepo/nix#$SYSTEM"
   sudo cp -r $HOME/monorepo "/mnt/home/$(ls /mnt/home/)/"
   echo "rebooting..."; sleep 3; reboot
   '')

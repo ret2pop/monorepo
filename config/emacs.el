@@ -24,9 +24,7 @@
   (c-doc-comment-style '((c-mode . doxygen)
 			 (c++-mode . doxygen)))
 
-  :hook ((text-mode . auto-fill-mode)
-	 (text-mode . visual-line-mode)
-	 (prog-mode . auto-fill-mode)
+  :hook ((text-mode . visual-line-mode)
 	 (prog-mode . display-line-numbers-mode)
 	 (prog-mode . display-fill-column-indicator-mode)
 	 (org-mode . auto-fill-mode)
@@ -108,6 +106,7 @@
   (org-latex-preview-image-directory (expand-file-name "~/.cache/ltximg/") "don't use weird cache location")
   (org-preview-latex-image-directory (expand-file-name "~/.cache/ltximg/") "don't use weird cache location")
   (TeX-PDF-mode t)
+  (org-latex-compiler "xelatex")
   (org-latex-pdf-process '("xelatex -interaction=nonstopmode -output-directory=%o %f") "set xelatex as default")
   (TeX-engine 'xetex "set xelatex as default engine")
   (preview-default-option-list '("displaymath" "textmath" "graphics") "preview latex")
@@ -136,7 +135,7 @@
 	   :html-preamble-format (("en" "<p class=\"preamble\"><a href=\"/index.html\">home</a> | <a href=\"./index.html\">section main page</a></p><hr>")))
 	  ("website-static"
 	   :base-directory "~/monorepo"
-	   :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|ico\\|asc\\|pub\\|webmanifest\\|xml"
+	   :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|ico\\|asc\\|pub\\|webmanifest\\|xml\\|svg"
 	   :publishing-directory "~/website_html/"
 	   :recursive t
 	   :publishing-function org-publish-attachment)
@@ -356,7 +355,7 @@
   	     :port   "6697"))
   (defun matrix-org ()
     (interactive)
-    (ement-connect :uri-prefix "http://localhost:8009"))
+    (ement-connect))
   :config
   (general-create-definer leader-key :prefix "SPC")
   (leader-key 'normal
@@ -380,6 +379,7 @@
     "o t" '(vterm :wk "Terminal")
     "o e" '(eshell :wk "Elisp Interpreter")
     "o m" '(mu4e :wk "Email")
+    "o M" '(matrix-org :wk "Connect to matrix")
 
     "e w w" '(eww :wk "web browser")
     "e c c" '(ellama-chat :wk "Chat with Ollama")

@@ -12,7 +12,7 @@ It's ret2pop, a wholistic experience powered by NixOS and Emacs.
 ** so how did you actually do that?
 By using the ~org-publish~ function, ~org-roam~, and ~org-journal~,
 as well as writing a lot of things with a literate config. To see more, see my
-[[file:config/emacs.org][emacs configuration]] and my [[file:nix.org][NixOS configuration]].
+[[file:config/emacs.org][emacs configuration]] and my [[file:config/nix.org][NixOS configuration]].
 ** So, where is this website of yours located?
 https://ret2pop.nullring.xyz, it is the road to enlightenment.
 * Wait, so where are your dotfiles?

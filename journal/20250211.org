@@ -1,0 +1,14 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+options: broken-links:t
+* Tuesday, 11 February 2025
+** 04:00 
+Today I wrote most of my resume, which is published to html and LaTeX
+outputs automatically. This was a kind of miserable task but I did it
+anyways. I'm going to maybe try to write some form of javascript CDN
+for my NullRing webring so that I'm not manually updating everything.

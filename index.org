@@ -10,11 +10,12 @@
 #+html_head: <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
 #+html_head: <meta name="msapplication-TileColor" content="#da532c">
 #+html_head: <meta name="theme-color" content="#ffffff">
-#+html_head: <meta name="viewport" content="width=1000; user-scalable=0;" />
+#+html_head: <meta name="viewport" content="width=1000" />
 #+language: en
 #+OPTIONS: broken-links:t
 #+OPTIONS: html-preamble:nil
 
+#+attr_html: :width 50%
 #+caption: All Hope Abandon, Ye Who Enter Here
 [[./img/drawing-old.png]]
 
@@ -42,6 +43,8 @@ Click the hyperlink to find out! In case you didn't see:
 - [[file:mindmap/index.org][Mindmap]]
 - [[file:mindmap/index.org][Mindmap]]
 * [[file:config/index.org][Configurations]]
+[[./img/topology.svg]]
+
 Most of my configurations/dotfiles for various programs are literate configurations, and I
 can therefore publish them. So I did! Configurations include:
 - EMacs

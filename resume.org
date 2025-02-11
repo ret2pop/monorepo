@@ -1,0 +1,122 @@
+#+TITLE: My Resume
+#+author: Preston Pan
+#+email: ret2pop@gmail.com
+#+OPTIONS: title:nil author:nil date:nil toc:nil num:nil
+#+description: My general purpose resume, for software engineering.
+#+html_head: <link rel="stylesheet" type="text/css" href="style.css" />
+#+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+#+html_head: <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+#+html_head: <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+#+html_head: <link rel="manifest" href="/site.webmanifest">
+#+html_head: <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+#+html_head: <meta name="msapplication-TileColor" content="#da532c">
+#+html_head: <meta name="theme-color" content="#ffffff">
+#+html_head: <meta name="viewport" content="width=1000" />
+#+language: en
+#+OPTIONS: broken-links:t
+
+#+LATEX_COMPILER: xelatex
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS: [10pt,letterpaper]
+
+* Introduction
+:PROPERTIES:
+:EXPORT_EXCLUDE: latex
+:END:
+This is the HTML form of my resume. There is a [[file:resume.pdf][pdf form]] of my resume as well, if that's what you want.
+I'm excited to hear from you!
+
+* Preamble                                           :noexport:
+:PROPERTIES:
+:VISIBILITY: folded
+:END:
+#+LATEX_HEADER: \usepackage{fontspec}
+#+LATEX_HEADER: \newfontfamily\emojifont{Noto Color Emoji}
+#+LATEX_HEADER: \newfontfamily\emoji{Noto Color Emoji}
+#+LATEX_HEADER: \usepackage{xltxtra}
+
+#+LATEX_HEADER: \usepackage[T1]{fontenc}
+#+LATEX_HEADER: \usepackage{mathpazo}
+#+LATEX_HEADER: \usepackage[margin=1in]{geometry}
+#+LATEX_HEADER: \linespread{1.3}
+#+LATEX_HEADER: \usepackage{parskip}
+#+LATEX_HEADER: \usepackage[svgnames]{xcolor}
+#+LATEX_HEADER: \usepackage{hyperref}
+#+LATEX_HEADER: \usepackage{titlesec}
+#+LATEX_HEADER: \usepackage{fancyhdr}
+#+LATEX_HEADER: \pagestyle{fancy}
+#+LATEX_HEADER: \fancyhf{}
+#+LATEX_HEADER: \renewcommand{\headrulewidth}{0pt}
+#+LATEX_HEADER: \pagenumbering{gobble}
+
+#+LATEX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \setlist{itemsep=0.4em}
+
+#+LATEX_HEADER: \titleformat{\section}{\Large\bfseries\color{NavyBlue}}{}{0em}{}[\titlerule]
+#+LATEX_HEADER: \titlespacing{\section}{0pt}{5pt}{5pt}
+#+LATEX_HEADER: \titleformat{\subsection}{\bfseries\color{NavyBlue}}{}{0em}{}[\vspace{0.5em}]
+#+LATEX_HEADER: \titlespacing{\subsection}{0pt}{3pt}{3pt}
+
+#+LATEX_HEADER: \PassOptionsToPackage{hyphens}{url}
+#+LATEX_HEADER: \usepackage[hyphens]{url}
+#+LATEX_HEADER: \usepackage{xurl}
+#+LATEX_HEADER: \usepackage{hyperref}
+#+LATEX_HEADER: \hypersetup{breaklinks=true}
+#+LATEX_HEADER: \urlstyle{same}
+#+LATEX_HEADER: \usepackage{microtype}
+
+#+LATEX_HEADER: \sloppy
+
+* Preston Pan
+#+LATEX: \begin{minipage}[t]{0.47\textwidth}
+
+** CONTACT
+- 📧 **Email:** ret2pop@gmail.com  
+- 📍 **Location:** Vancouver, BC, Canada
+- 🔗 **LinkedIn:** [[https://www.linkedin.com/in/preston-pan-7aa364333][https://www.linkedin.com/in/preston-pan-7aa364333]]
+- 🖥️ **GitHub:** [[https://github.com/ret2pop][https://github.com/ret2pop]]
+
+** SKILLS
+- **Programming:** Python, Solidity, Rust, C, x86-64 Assembly, Shell  
+- **DevOps:** Docker, Kubernetes, NixOS, declarative configurations  
+- **Blockchain:** Aptos Move, FunC, Solidity  
+- **Tools:** Git, Docker, NixOS, LATEX, cmake/make, Linux
+- **Radio:** Amateur radio (licensed); analog/digital radio tech
+
+#+LATEX: \vfill
+** EXPERIENCE
+*** *Software Engineer* - LayerZero Labs
+- Shipped production-ready smart contract code as part of a world-class blockchain engineering team.
+- Discovered and fixed critical vulnerabilities in TON and Aptos blockchain code, preventing potential losses of millions.
+- One of the world's few engineers proficient in FunC and TVM assembly, contributing to LayerZero’s multi-chain infrastructure.
+- Developed SDKs for Aptos blockchain RPC interaction, streamlining smart contract deployment and transaction execution.
+- Analyzed Aptos’ contract package linking, identifying a scaling limitation that triggered a major contract redesign.
+
+#+LATEX: \end{minipage}
+#+LATEX: \hfill
+#+LATEX: \begin{minipage}[t]{0.47\textwidth}
+
+** PROJECTS
+*** Stem
+- Designed a stack-based programming language, written entirely in C.  
+- Reached #1 on HackerNews; led to an offer at LayerZero.
+*** Cognition
+- Engineered a stack-based programming language featuring advanced metaprogramming capabilities.
+- Another blog post that reached #1 on HackerNews
+*** NoExcess
+- Developed a Lisp-like programming language with scoping, written in C.
+*** Server/Website
+- Maintains a website/server with a blog and mindmap — runs a webring ([[https://nullring.xyz][nullring.xyz]]).
+*** Snake3
+- Created a threaded, multiplayer snake game in C.
+- Available at [[https://git.aberrantflux.xyz/snake3.git][https://git.aberrantflux.xyz/snake3.git]]
+
+** INTERESTS
+- Cryptography, decentralized governance, Economic systems
+- low-level programming, compiler design
+- Declarative and functional programming
+
+#+LATEX: \vfill
+** Let's Connect
+I'm open to opportunities in low level programming, blockchain, and cryptography. Feel free to reach out via email or Linkedin!
+#+LATEX: \end{minipage}

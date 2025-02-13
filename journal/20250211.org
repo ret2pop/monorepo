@@ -12,3 +12,9 @@ Today I wrote most of my resume, which is published to html and LaTeX
 outputs automatically. This was a kind of miserable task but I did it
 anyways. I'm going to maybe try to write some form of javascript CDN
 for my NullRing webring so that I'm not manually updating everything.
+** 05:40 
+My agenda is also working pretty well. I think I often look to my
+org-agenda as my source of truth now, and that's really been helping
+with keeping track of things.
+** 18:17 
+Today I'm showing my brother the monorepo and its abilites.

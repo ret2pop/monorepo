@@ -354,18 +354,18 @@ underlying interface and it breaks significantly less often.
 ** SSH
 My SSH daemon configuration.
 #+begin_src nix :tangle ../nix/modules/ssh.nix
-{ config, ... }:
-{
-  services.openssh = {
-    enable = true;
-    settings = {
-      PasswordAuthentication = true;
-      AllowUsers = [ config.monorepo.vars.userName ];
-      PermitRootLogin = "prohibit-password";
-      KbdInteractiveAuthentication = false;
+  { config, lib, ... }:
+  {
+    services.openssh = {
+      enable = true;
+      settings = {
+        PasswordAuthentication = lib.mkDefault (! config.monorepo.profiles.server.enable);
+        AllowUsers = [ config.monorepo.vars.userName "root" "git" ];
+        PermitRootLogin = "yes";
+        KbdInteractiveAuthentication = false;
+      };
     };
-  };
-}
+  }
 #+end_src
 ** Tor
 This is my tor configuration, used for my cryptocurrency wallets and whatever else I want
@@ -462,7 +462,6 @@ Use postfix as an smtps server.
     services.gitDaemon = {
       enable = lib.mkDefault config.monorepo.profiles.server.enable;
       exportAll = true;
-      listenAddress = "0.0.0.0";
       basePath = "/srv/git";
     };
   }
@@ -473,7 +472,7 @@ Use postfix as an smtps server.
   {
     services.nginx = {
       enable = lib.mkDefault config.monorepo.profiles.server.enable;
-
+      user = "nginx";
       # Use recommended settings
       recommendedGzipSettings = true;
       recommendedOptimisation = true;
@@ -481,38 +480,84 @@ Use postfix as an smtps server.
       recommendedTlsSettings = true;
 
       # Only allow PFS-enabled ciphers with AES256
-      sslCiphers = "AES256+EECDH:AES256+EDH:!aNULL";
+      # sslCiphers = "AES256+EECDH:AES256+EDH:!aNULL";
 
-      appendHttpConfig = ''
-    # Add HSTS header with preloading to HTTPS requests.
-    # Adding this header to HTTP requests is discouraged
-    map $scheme $hsts_header {
-  	https   "max-age=31536000; includeSubdomains; preload";
-    }
-    add_header Strict-Transport-Security $hsts_header;
+      appendHttpConfig = '''';
 
-    # Enable CSP for your services.
-    #add_header Content-Security-Policy "script-src 'self'; object-src 'none'; base-uri 'none';" always;
-
-    # Minimize information leaked to other domains
-    add_header 'Referrer-Policy' 'origin-when-cross-origin';
-
-    # Disable embedding as a frame
-    add_header X-Frame-Options DENY;
-
-    # Prevent injection of code in other mime types (XSS Attacks)
-    add_header X-Content-Type-Options nosniff;
-
-    # This might create errors
-    proxy_cookie_path / "/; secure; HttpOnly; SameSite=strict";
-  '';
+      gitweb = {
+        enable = true;
+        virtualHost = "ret2pop.net";
+      };
 
       virtualHosts = {
-  	    "ret2pop.nullring.xyz" = {
-  	      # addSSL = true;
-  	      # enableACME = true;
-  	      root = "/home/preston/ret2pop-website/";
+        "matrix.ret2pop.net" = {
+          enableACME = true;
+          forceSSL = true;
+          listen = [
+            {
+              addr = "0.0.0.0";
+              port = 443;
+              ssl = true;
+            }
+            {
+              addr = "[::]";
+              port = 443;
+              ssl = true;
+            }          {
+              addr = "0.0.0.0";
+              port = 8448;
+              ssl = true;
+            }
+            {
+              addr = "[::]";
+              port = 8448;
+              ssl = true;
+            }
+          ];
+          locations."/_matrix/" = {
+            proxyPass = "http://127.0.0.1:6167";
+            extraConfig = ''
+              proxy_set_header Host $host;
+              proxy_buffers 32 16k;
+              proxy_read_timeout 5m;
+            '';
+          };
+
+          extraConfig = ''
+            merge_slashes off;
+          '';
+        };
+  	    "ret2pop.net" = {
+          serverName = "ret2pop.net";
+  	      root = "/var/www/ret2pop-website/";
+  	      addSSL = true;
+  	      enableACME = true;
   	    };
+      };
+    };
+  }
+#+end_src
+** Git Web Interface
+#+begin_src nix :tangle ../nix/modules/gitweb.nix
+  { lib, config, ... }:
+  {
+    services.gitweb = {
+      gitwebTheme = true;
+      projectroot = "/srv/git/";
+    };
+  }
+#+end_src
+** Conduit
+#+begin_src nix :tangle ../nix/modules/conduit.nix
+  { config, lib, ... }:
+  {
+    services.matrix-conduit = {
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      # random comment
+      settings.global = {
+        server_name = "matrix.ret2pop.net";
+        address = "0.0.0.0";
+        port = 6167;
       };
     };
   }
@@ -574,6 +619,8 @@ because they enhance security.
       ./dovecot.nix
       ./ollama.nix
       ./i2pd.nix
+      ./gitweb.nix
+      ./conduit.nix
     ];
 
     documentation = {
@@ -801,6 +848,10 @@ because they enhance security.
     };
 
     security = {
+      acme = {
+        acceptTerms = true;
+        defaults.email = "ret2pop@gmail.com";
+      };
       apparmor = {
     	  enable = true;
     	  killUnconfinedConfinables = true;
@@ -840,16 +891,39 @@ because they enhance security.
       config.common.default = "*";
     };
 
+    environment.etc."gitconfig".text = ''
+    [init]
+    defaultBranch = main
+    '';
+    environment.extraInit = ''
+    umask 0022
+    '';
     environment.systemPackages = with pkgs; [
       restic
       sbctl
       git
       vim
       curl
+      nmap
+      (writeShellScriptBin "new-repo"
+        ''
+    #!/bin/bash
+    cd /srv/git
+    git init --bare "$1"
+    vim "$1/description"
+    chown -R git:git "$1"
+    ''
+      )
     ];
 
-    users.groups.git = {};
+    users.groups.nginx = lib.mkDefault {};
+    users.groups.git = lib.mkDefault {};
     users.users = {
+      nginx.group = "nginx";
+      nginx.isSystemUser = lib.mkDefault true;
+      nginx.extraGroups = [
+        "acme"
+      ];
       root.openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICts6+MQiMwpA+DfFQxjIN214Jn0pCw/2BDvOzPhR/H2 preston@continuity-dell"
       ];
@@ -859,8 +933,14 @@ because they enhance security.
     	  home = "/srv/git";
     	  shell = "${pkgs.git}/bin/git-shell";
         group = "git";
+        openssh.authorizedKeys.keys = [
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICts6+MQiMwpA+DfFQxjIN214Jn0pCw/2BDvOzPhR/H2 preston@continuity-dell"
+        ];
       };
       "${config.monorepo.vars.userName}" = {
+        openssh.authorizedKeys.keys = [
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICts6+MQiMwpA+DfFQxjIN214Jn0pCw/2BDvOzPhR/H2 preston@continuity-dell"
+        ];
     	  initialPassword = "${config.monorepo.vars.userName}";
     	  isNormalUser = true;
     	  description = config.monorepo.vars.fullName;
@@ -874,7 +954,12 @@ because they enhance security.
       "olm-3.2.16"
     ];
 
-    nix.settings.experimental-features = "nix-command flakes";
+    nix = {
+      settings = {
+        experimental-features = "nix-command flakes";
+        trusted-users = [ "@wheel" ];
+      };
+    };
     time.timeZone = config.monorepo.vars.timeZone;
     i18n.defaultLocale = "en_CA.UTF-8";
     system.stateVersion = "24.11";
@@ -2486,7 +2571,7 @@ standard.
     programs.zsh = {
       enable = true;
       initExtra = ''
-      umask 0077
+      umask 0022
       export EXTRA_CCFLAGS="-I/usr/include"
       source ${pkgs.zsh-vi-mode}/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh
       export QT_QPA_PLATFORM="wayland"
@@ -2618,7 +2703,8 @@ for these configurations.
         (writeShellScriptBin "remote-build"
           ''
   #!/bin/bash
-  nixos-rebuild --target-host "$1" switch --flake .#spontaneity
+  cd ~/monorepo/nix
+  nixos-rebuild --use-remote-sudo --target-host "$1" switch --flake .#spontaneity
   ''
         )
         (writeShellScriptBin "install-vps"
@@ -2755,6 +2841,10 @@ Spontaneity is my VPS instance.
         grub.enable = true;
       };
     };
+    config.networking.firewall.allowedTCPPorts = [
+      80
+      443
+    ];
   }
 #+end_src
 *** Home
@@ -2806,7 +2896,7 @@ This contains the installation script I use to install my systems.
       enable = true;
       ports = [ 22 ];
       settings = {
-        PasswordAuthentication = true;
+        PasswordAuthentication = false;
         AllowUsers = null;
         UseDns = true;
         PermitRootLogin = lib.mkForce "prohibit-password";

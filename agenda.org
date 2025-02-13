@@ -19,14 +19,8 @@ project, it can be referenced here.
 
 * Tasks
 These are general life tasks that I need to do, which don't depend on a specific time or date.
-** TODO [#B] ToughNix
-I need to work on my monorepo flake which builds all my systems, and should accommodate future
-systems and also should be relatively abstractable (i.e. identifiers tied to me should be easily
-removed from the flake).
-*** TODO [#B] Migration
+** TODO [#B] NixOS VPS Migration
 Migrate all my services to NixOS.
-** TODO [#B] CSS
-I need to update my CSS for my website to look better.
 ** TODO [#B] Nullring
 Update the nullring to be in org mode, and also include a couple more sites.
 ** TODO [#B] Umami
@@ -48,12 +42,17 @@ I want to make an analogue computer.
 * Scheduled tasks
 These are one-time tasks that are scheduled at a particular date, and that don't require regular
 schedules.
+** TODO [#A] Clean House
+I need to clean my house very soon.
 ** Friends
 These are tasks related to seeing my friends. There will be tasks listed here when I schedule
 something.
 * Habits
 These are some habits I want to track. They are repeated according to a calendar schedule in
 general.
+** TODO Run
+SCHEDULED: <2025-02-11 Tue .+1d>
+I want to be able to run or bike every day so that I get my exercise in.
 ** TODO Stretch
 SCHEDULED: <2025-02-12 Wed .+1d>
 :PROPERTIES:

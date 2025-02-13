@@ -106,7 +106,7 @@
   (org-latex-preview-image-directory (expand-file-name "~/.cache/ltximg/") "don't use weird cache location")
   (org-preview-latex-image-directory (expand-file-name "~/.cache/ltximg/") "don't use weird cache location")
   (TeX-PDF-mode t)
-  (org-latex-compiler "xelatex")
+  (org-latex-compiler "xelatex" "Use latex as default")
   (org-latex-pdf-process '("xelatex -interaction=nonstopmode -output-directory=%o %f") "set xelatex as default")
   (TeX-engine 'xetex "set xelatex as default engine")
   (preview-default-option-list '("displaymath" "textmath" "graphics") "preview latex")

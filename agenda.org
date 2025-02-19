@@ -19,8 +19,6 @@ project, it can be referenced here.
 
 * Tasks
 These are general life tasks that I need to do, which don't depend on a specific time or date.
-** TODO [#B] NixOS VPS Migration
-Migrate all my services to NixOS.
 ** TODO [#B] Nullring
 Update the nullring to be in org mode, and also include a couple more sites.
 ** TODO [#B] Umami
@@ -62,10 +60,11 @@ SCHEDULED: <2025-02-12 Wed .+1d>
 - State "DONE"       from "TODO"       [2025-01-11 Sat 02:26]
 I want to stretch every day so that I can become more flexible.
 ** TODO Journal
-SCHEDULED: <2025-02-12 Wed .+1d>
+SCHEDULED: <2025-02-19 Wed .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-02-11 Tue 04:01]
+:LAST_REPEAT: [2025-02-18 Tue 01:44]
 :END:
+- State "DONE"       from "TODO"       [2025-02-18 Tue 01:44]
 - State "DONE"       from "TODO"       [2025-02-11 Tue 04:01]
 - State "DONE"       from "TODO"       [2025-02-03 Mon 13:57]
 - State "DONE"       from "TODO"       [2025-02-03 Mon 03:01]

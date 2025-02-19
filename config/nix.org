@@ -44,15 +44,25 @@ so that adding new configurations that add modifications is made simple.
   	    url = "github:nix-community/lanzaboote/v0.4.1";
   	    inputs.nixpkgs.follows = "nixpkgs";
       };
+      nixos-dns = {
+        url = "github:Janik-Haag/nixos-dns";
+        inputs.nixpkgs.follows = "nixpkgs";
+      };
     };
 
-    outputs = { self, nixpkgs, home-manager, nur, disko, lanzaboote, sops-nix, nix-topology, ... }@attrs:
+    outputs = { self, nixpkgs, home-manager, nur, disko, lanzaboote, sops-nix, nix-topology, nixos-dns, ... }@attrs:
       let
         system = "x86_64-linux";
+        pkgs = import nixpkgs { inherit system; };
+        generate = nixos-dns.utils.generate nixpkgs.legacyPackages."${system}";
+        dnsConfig = {
+          inherit (self) nixosConfigurations;
+          extraConfig = import ./dns/default.nix;
+        };
         mkConfigs = map (hostname: {
           name = "${hostname}";
           value = nixpkgs.lib.nixosSystem {
-            system = system;
+            inherit system;
             specialArgs = attrs;
             modules = if (hostname == "installer") then [
               (./. + "/systems/${hostname}/default.nix")
@@ -64,6 +74,7 @@ so that adding new configurations that add modifications is made simple.
               disko.nixosModules.disko
               home-manager.nixosModules.home-manager
               sops-nix.nixosModules.sops
+              nixos-dns.nixosModules.dns
               {
                 nixpkgs.overlays = [ nur.overlays.default ];
                 home-manager.extraSpecialArgs = attrs;
@@ -91,6 +102,39 @@ so that adding new configurations that add modifications is made simple.
             { nixosConfigurations = self.nixosConfigurations; }
           ];
         };
+
+        devShell."${system}" = with pkgs; mkShell {
+          buildInputs = [
+            fira-code
+            python3
+            poetry
+          ];
+          shellHook = ''
+  poetry shell
+          '';
+        };
+
+        packages."${system}" = {
+          zoneFiles = generate.zoneFiles dnsConfig;
+          octodns = generate.octodnsConfig {
+            inherit dnsConfig;
+            
+            config = {
+              providers = {
+                cloudflare = {
+                  class = "octodns_cloudflare.CloudflareProvider";
+                  token = "env/CLOUDFLARE_TOKEN";
+                };
+                config = {
+                  check_origin = false;
+                };
+              };
+            };
+            zones = {
+              "ret2pop.net." = nixos-dns.utils.octodns.generateZoneAttrs [ "cloudflare" ];
+            };
+          };
+        };
       };
   }
 #+end_src
@@ -110,6 +154,12 @@ creation_rules:
 #+end_src
 also note that you will have to write your own secrets.yaml file, with an entry called ~mail~,
 which is used for the imaps and smtps password.
+* Nix DNS
+#+begin_src nix :tangle ../nix/dns/default.nix
+  {
+    defaultTTL = 120;
+  }
+#+end_src
 * Nix Topology
 Nix Topology generates a nice graph of all my hosts. You can view this
 graph by running ~nix build .#topology.x86_64-linux.config.output~.
@@ -201,7 +251,7 @@ largely self-documenting.
 
       remoteHost = lib.mkOption {
         type = lib.types.str;
-        default = "nullring.xyz";
+        default = "ret2pop.net";
         example = "example.com";
         description = "Address to push to and pull from for website and git repos";
       };
@@ -486,11 +536,11 @@ Use postfix as an smtps server.
 
       gitweb = {
         enable = true;
-        virtualHost = "ret2pop.net";
+        virtualHost = "${config.monorepo.vars.remoteHost}";
       };
 
       virtualHosts = {
-        "matrix.ret2pop.net" = {
+        "matrix.${config.monorepo.vars.remoteHost}" = {
           enableACME = true;
           forceSSL = true;
           listen = [
@@ -527,8 +577,8 @@ Use postfix as an smtps server.
             merge_slashes off;
           '';
         };
-  	    "ret2pop.net" = {
-          serverName = "ret2pop.net";
+  	    "${config.monorepo.vars.remoteHost}" = {
+          serverName = "${config.monorepo.vars.remoteHost}";
   	      root = "/var/www/ret2pop-website/";
   	      addSSL = true;
   	      enableACME = true;
@@ -555,7 +605,7 @@ Use postfix as an smtps server.
       enable = lib.mkDefault config.monorepo.profiles.server.enable;
       # random comment
       settings.global = {
-        server_name = "matrix.ret2pop.net";
+        server_name = "matrix.${config.monorepo.vars.remoteHost}";
         address = "0.0.0.0";
         port = 6167;
       };
@@ -1081,189 +1131,190 @@ For my virtual machines.
 As you can see, I have my installed home packages installed based on the profiles enabled. Also,
 I have many imports that we'll go through next.
 #+begin_src nix :tangle ../nix/modules/home/default.nix
-    { lib, config, pkgs, ... }:
-    {
-      imports = [
-        ../vars.nix
-        ./fcitx.nix
-        ./secrets.nix
-        ./emacs.nix
-        ./firefox.nix
-        ./git.nix
-        ./hyprland.nix
-        ./mpv.nix
-        ./yt-dlp.nix
-        ./wofi.nix
-        ./kitty.nix
-        ./waybar.nix
-        ./zsh.nix
-        ./mbsync.nix
-        ./msmtp.nix
-        ./gammastep.nix
-        ./mpd.nix
-        ./mako.nix
-        ./user.nix
-        ./pantalaimon.nix
-      ];
+  { lib, config, pkgs, ... }:
+  {
+    imports = [
+      ../vars.nix
+      ./fcitx.nix
+      ./secrets.nix
+      ./emacs.nix
+      ./firefox.nix
+      ./git.nix
+      ./hyprland.nix
+      ./mpv.nix
+      ./yt-dlp.nix
+      ./wofi.nix
+      ./kitty.nix
+      ./waybar.nix
+      ./zsh.nix
+      ./mbsync.nix
+      ./msmtp.nix
+      ./gammastep.nix
+      ./mpd.nix
+      ./mako.nix
+      ./user.nix
+      ./pantalaimon.nix
+    ];
 
-      options = {
-        monorepo.profiles = {
-    	    enable = lib.mkEnableOption "Enables home manager desktop configuration";
-    	    # Programs
-          graphics.enable = lib.mkEnableOption "Enables graphical programs for user";
-    	    lang-c.enable = lib.mkEnableOption "Enables C language support";
-    	    lang-sh.enable = lib.mkEnableOption "Enables sh language support";
-    	    lang-rust.enable = lib.mkEnableOption "Enables Rust language support";
-    	    lang-python.enable = lib.mkEnableOption "Enables python language support";
-    	    lang-sol.enable = lib.mkEnableOption "Enables solidity language support";
-    	    lang-openscad.enable = lib.mkEnableOption "Enables openscad language support";
-    	    lang-js.enable = lib.mkEnableOption "Enables javascript language support";
-    	    lang-nix.enable = lib.mkEnableOption "Enables nix language support";
-    	    lang-coq.enable = lib.mkEnableOption "Enables coq language support";
+    options = {
+      monorepo.profiles = {
+  	    enable = lib.mkEnableOption "Enables home manager desktop configuration";
+  	    # Programs
+        graphics.enable = lib.mkEnableOption "Enables graphical programs for user";
+  	    lang-c.enable = lib.mkEnableOption "Enables C language support";
+  	    lang-sh.enable = lib.mkEnableOption "Enables sh language support";
+  	    lang-rust.enable = lib.mkEnableOption "Enables Rust language support";
+  	    lang-python.enable = lib.mkEnableOption "Enables python language support";
+  	    lang-sol.enable = lib.mkEnableOption "Enables solidity language support";
+  	    lang-openscad.enable = lib.mkEnableOption "Enables openscad language support";
+  	    lang-js.enable = lib.mkEnableOption "Enables javascript language support";
+  	    lang-nix.enable = lib.mkEnableOption "Enables nix language support";
+  	    lang-coq.enable = lib.mkEnableOption "Enables coq language support";
 
-    	    crypto.enable = lib.mkEnableOption "Enables various cryptocurrency wallets";
-    	    art.enable = lib.mkEnableOption "Enables various art programs";
-    	    music.enable = lib.mkEnableOption "Enables mpd";
-    	    workstation.enable = lib.mkEnableOption "Enables workstation packages (music production and others)";
-    	    cuda.enable = lib.mkEnableOption "Enables CUDA user package builds";
-    	    hyprland.enable = lib.mkEnableOption "Enables hyprland";
+  	    crypto.enable = lib.mkEnableOption "Enables various cryptocurrency wallets";
+  	    art.enable = lib.mkEnableOption "Enables various art programs";
+  	    music.enable = lib.mkEnableOption "Enables mpd";
+  	    workstation.enable = lib.mkEnableOption "Enables workstation packages (music production and others)";
+  	    cuda.enable = lib.mkEnableOption "Enables CUDA user package builds";
+  	    hyprland.enable = lib.mkEnableOption "Enables hyprland";
 
-    	    email = {
-    		    email = lib.mkOption {
-    			    type = lib.types.str;
-    			    default = "ret2pop@gmail.com";
-    			    example = "john@example.com";
-    			    description = "Email address and imaps/smtps account";
-    		    };
-    		    imapsServer = lib.mkOption {
-    			    type = lib.types.str;
-    			    default = "imap.gmail.com";
-    			    example = "imap.example.com";
-    			    description = "imaps server address";
-    		    };
-    		    smtpsServer = lib.mkOption {
-    			    type = lib.types.str;
-    			    default = "smtp.gmail.com";
-    			    example = "smtp.example.com";
-    			    description = "smtp server address";
-    		    };
-    		    enable = lib.mkEnableOption "Enables email";
-    	    };
-        };
+  	    email = {
+  		    email = lib.mkOption {
+  			    type = lib.types.str;
+  			    default = "ret2pop@gmail.com";
+  			    example = "john@example.com";
+  			    description = "Email address and imaps/smtps account";
+  		    };
+  		    imapsServer = lib.mkOption {
+  			    type = lib.types.str;
+  			    default = "imap.gmail.com";
+  			    example = "imap.example.com";
+  			    description = "imaps server address";
+  		    };
+  		    smtpsServer = lib.mkOption {
+  			    type = lib.types.str;
+  			    default = "smtp.gmail.com";
+  			    example = "smtp.example.com";
+  			    description = "smtp server address";
+  		    };
+  		    enable = lib.mkEnableOption "Enables email";
+  	    };
       };
+    };
 
-      config = {
-        home.packages = (if config.monorepo.profiles.email.enable then [ pkgs.mu ] else [])
-    					          ++
-    					          (if config.monorepo.profiles.lang-c.enable then (with pkgs; [
-    						          autobuild
-    						          clang
-    						          gdb
-    						          gnumake
-    						          bear
-    						          clang-tools
-    					          ]) else [])
-    					          ++
-    					          (if config.monorepo.profiles.lang-js.enable then (with pkgs; [
-    						          nodejs
-    						          bun
-    						          yarn
-    						          typescript
-    						          vscode-langservers-extracted
-    					          ]) else [])
-    					          ++
-    					          (if config.monorepo.profiles.lang-rust.enable then (with pkgs; [
-    						          cargo
-    						          rust-analyzer
-    						          rustfmt
-    					          ]) else [])
-    					          ++
-    					          (if config.monorepo.profiles.lang-python.enable then (with pkgs; [
-    						          poetry
-    						          python3
-    						          python312Packages.jedi
-    					          ]) else [])
-    					          ++
-    					          (if config.monorepo.profiles.lang-sol.enable then (with pkgs; [
-    						          solc
-    					          ]) else [])
-    					          ++
-    					          (if config.monorepo.profiles.lang-openscad.enable then (with pkgs; [
-    						          openscad
-    						          openscad-lsp
-    					          ]) else [])
-    					          ++
-    					          (if config.monorepo.profiles.lang-sh.enable then (with pkgs; [
-    						          bash-language-server
-    					          ]) else [])
-    					          ++
-    					          (if config.monorepo.profiles.lang-coq.enable then (with pkgs; [
-    						          coq
-    					          ]) else [])
-    					          ++
-    					          (if config.monorepo.profiles.lang-nix.enable then (with pkgs; [
-    						          nil
-    						          nixd
-    						          nixfmt-rfc-style
-    					          ]) else [])
-    					          ++
-    					          (if config.monorepo.profiles.crypto.enable then (with pkgs; [
-    						          bitcoin
-    						          electrum
-    						          monero-cli
-    						          monero-gui
-    					          ]) else [])
-    					          ++
-    					          (if config.monorepo.profiles.art.enable then (with pkgs; [
-    						          inkscape
-    						          krita
-    					          ]) else [])
-    					          ++
-    					          (if config.monorepo.profiles.music.enable then (with pkgs; [
-    						          mpc-cli
-    						          sox
-    					          ]) else [])
-    					          ++
-    					          (if config.monorepo.profiles.workstation.enable then (with pkgs; [
-    			                alsa-utils
-    			                alsa-scarlett-gui
-    				              ardour
-    				              audacity
-    					            blender
-    			                fluidsynth
-    			                qjackctl
-    			                qsynth
-    			                qpwgraph
-    			                imagemagick
-    			                inkscape
-    			                kdenlive
-    			                kicad
-    					          ]) else []);
+    config = {
+      home.packages = (if config.monorepo.profiles.email.enable then [ pkgs.mu ] else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-c.enable then (with pkgs; [
+  						          autobuild
+  						          clang
+  						          gdb
+  						          gnumake
+  						          bear
+  						          clang-tools
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-js.enable then (with pkgs; [
+  						          nodejs
+  						          bun
+  						          yarn
+  						          typescript
+  						          vscode-langservers-extracted
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-rust.enable then (with pkgs; [
+  						          cargo
+  						          rust-analyzer
+  						          rustfmt
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-python.enable then (with pkgs; [
+                        poetry
+  						          python3
+  						          python312Packages.jedi
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-sol.enable then (with pkgs; [
+  						          solc
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-openscad.enable then (with pkgs; [
+  						          openscad
+  						          openscad-lsp
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-sh.enable then (with pkgs; [
+  						          bash-language-server
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-coq.enable then (with pkgs; [
+  						          coq
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-nix.enable then (with pkgs; [
+  						          nil
+  						          nixd
+  						          nixfmt-rfc-style
+                        nix-prefetch-scripts
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.crypto.enable then (with pkgs; [
+  						          bitcoin
+  						          electrum
+  						          monero-cli
+  						          monero-gui
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.art.enable then (with pkgs; [
+  						          inkscape
+  						          krita
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.music.enable then (with pkgs; [
+  						          mpc-cli
+  						          sox
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.workstation.enable then (with pkgs; [
+  			                alsa-utils
+  			                alsa-scarlett-gui
+  				              ardour
+  				              audacity
+  					            blender
+  			                fluidsynth
+  			                qjackctl
+  			                qsynth
+  			                qpwgraph
+  			                imagemagick
+  			                inkscape
+  			                kdenlive
+  			                kicad
+  					          ]) else []);
 
-        monorepo.profiles = {
-    	    enable = lib.mkDefault true;
-    	    music.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-    	    hyprland.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-    	    email.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+      monorepo.profiles = {
+  	    enable = lib.mkDefault true;
+  	    music.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    hyprland.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    email.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
 
-    	    # Programming
-          graphics.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-    	    lang-c.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-    	    lang-rust.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-    	    lang-python.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-    	    lang-sol.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-    	    lang-sh.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-    	    lang-openscad.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-    	    lang-js.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-    	    lang-nix.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-    	    lang-coq.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    # Programming
+        graphics.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-c.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-rust.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-python.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-sol.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-sh.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-openscad.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-js.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-nix.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-coq.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
 
-    	    crypto.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-    	    art.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-    	    workstation.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-        };
+  	    crypto.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    art.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    workstation.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
       };
-    }
+    };
+  }
 #+end_src
 *** Firefox
 I conditionally enable metamask based on the cryptocurrency option. Everything else here should
@@ -2053,26 +2104,30 @@ here:
 This uses sops in order to declaratively create the secrets on my system by unencrypting
 the yaml file specified. Yes, this is safe to include in the repo.
 #+begin_src nix :tangle ../nix/modules/secrets.nix
-{ config, ... }:
-{
-  sops = {
-    defaultSopsFile = ../../secrets/secrets.yaml;
-    age = {
-      keyFile = "/home/${config.monorepo.vars.userName}/.ssh/keys.txt";
-    };
-    secrets.mail = {
-      format = "yaml";
-      path = "${config.sops.defaultSymlinkPath}/mail";
-    };
-    secrets.digikey = {
-      format = "yaml";
-      path = "${config.sops.defaultSymlinkPath}/digikey";
-    };
+  { config, ... }:
+  {
+    sops = {
+      defaultSopsFile = ../../secrets/secrets.yaml;
+      age = {
+        keyFile = "/home/${config.monorepo.vars.userName}/.ssh/keys.txt";
+      };
+      secrets.mail = {
+        format = "yaml";
+        path = "${config.sops.defaultSymlinkPath}/mail";
+      };
+      secrets.cloudflare-dns = {
+        format = "yaml";
+        path = "${config.sops.defaultSymlinkPath}/cloudflare-dns";
+      };
+      secrets.digikey = {
+        format = "yaml";
+        path = "${config.sops.defaultSymlinkPath}/digikey";
+      };
 
-    defaultSymlinkPath = "/run/user/1000/secrets";
-    defaultSecretsMountPoint = "/run/user/1000/secrets.d";
-  };
-}
+      defaultSymlinkPath = "/run/user/1000/secrets";
+      defaultSecretsMountPoint = "/run/user/1000/secrets.d";
+    };
+  }
 #+end_src
 *** Waybar
 This is the bar I use for my hyprland configuration. You will need to adjust the monitors field
@@ -2595,9 +2650,9 @@ standard.
         rb = "sudo nixos-rebuild switch --flake .#continuity";
         rba = "sudo nixos-rebuild switch --flake .#affinity";
         nfu = "cd ~/monorepo/nix && git add . && git commit -m \"new flake lock\" &&  nix flake update";
-        usync =  "rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/website_html/ root@nullring.xyz:/usr/share/nginx/ret2pop/";
+        usync =  "rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/website_html/ root@${config.monorepo.vars.remoteHost}:/var/www/ret2pop-website/";
         usite
-        = "cd ~/src/publish-org-roam-ui && bash local.sh && rm -rf ~/website_html/graph_view; cp -r ~/src/publish-org-roam-ui/out ~/website_html/graph_view && rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/website_html/ root@${config.monorepo.vars.remoteHost}:/usr/share/nginx/ret2pop/";
+        = "cd ~/src/publish-org-roam-ui && bash local.sh && rm -rf ~/website_html/graph_view; cp -r ~/src/publish-org-roam-ui/out ~/website_html/graph_view && rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/website_html/ root@${config.monorepo.vars.remoteHost}:/var/www/ret2pop-website/";
         sai = "eval \"$(ssh-agent -s)\" && ssh-add ~/.ssh/id_ed25519 && ssh-add -l";
         i3 = "exec ${pkgs.i3-gaps}/bin/i3";
       };
@@ -2783,6 +2838,7 @@ monorepo home options.
     imports = [
       ../../modules/home/default.nix
     ];
+    config.monorepo.profiles.workstation.enable = false;
   }
 #+end_src
 ** Affinity
@@ -2827,24 +2883,39 @@ Spontaneity is my VPS instance.
     imports = [
       # nixos-anywhere generates this file
       ./hardware-configuration.nix
-
       ../../disko/vda-simple.nix
-
       ../../modules/default.nix
       ../home.nix
     ];
-
-    config.monorepo = {
-      profiles = {
-        server.enable = true;
-        ttyonly.enable = true;
-        grub.enable = true;
+    config = {
+      monorepo = {
+        profiles = {
+          server.enable = true;
+          ttyonly.enable = true;
+          grub.enable = true;
+        };
+      };
+      networking = {
+        firewall.allowedTCPPorts = [
+          80
+          443
+        ];
+        domains = {
+          enable = true;
+          baseDomains = {
+            "${config.monorepo.vars.remoteHost}" = {
+              a.data = "66.42.84.130";
+              aaaa.data = "2001:19f0:5401:10d0:5400:5ff:fe4a:7794";
+            };
+          };
+          subDomains = {
+                "${config.monorepo.vars.remoteHost}" = {};
+            "matrix.${config.monorepo.vars.remoteHost}" = {};
+            "www.${config.monorepo.vars.remoteHost}" = {};
+          };
+        };
       };
     };
-    config.networking.firewall.allowedTCPPorts = [
-      80
-      443
-    ];
   }
 #+end_src
 *** Home

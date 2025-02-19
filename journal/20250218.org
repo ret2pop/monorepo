@@ -1,0 +1,18 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+options: broken-links:t
+* Tuesday, 18 February 2025
+** 01:21 
+Right now, I am in Victoria in Howard's room with Marissa. It is
+pretty fun, and I highly recommend this experience. I think I would
+rate it a 7 out of 10.
+
+That being said, I am cognitively tired and I just realized that I
+don't have to work on NixOS forever. I made a PR to NixOS for some
+packages, and I'll probably fix some of the flake system to allow for
+using an ipfs gateway for a fallback mirror.

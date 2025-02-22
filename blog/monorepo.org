@@ -1,0 +1,18 @@
+#+title: My Monorepo
+#+author: Preston Pan
+#+description: NixOS configurations for infrastructure, workstations, and laptops
+#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+#+html_head: <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+#+html_head: <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+#+html_head: <link rel="manifest" href="/site.webmanifest">
+#+html_head: <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+#+html_head: <meta name="msapplication-TileColor" content="#da532c">
+#+html_head: <meta name="theme-color" content="#ffffff">
+#+html_head: <meta name="viewport" content="width=1000; user-scalable=0;" />
+#+language: en
+#+OPTIONS: broken-links:t
+
+* Introduction
+I'd like to introduce you to my architecture for organizing my life:
+org mode and NixOS.

@@ -31,17 +31,25 @@ I want to write another song.
 I want to start making YouTube videos.
 ** TODO [#C] Analogue Computer
 I want to make an analogue computer.
+* Skills
+** TODO Learn Blender
+** TODO Drawing with Krita
+** TODO Circuit Design
+** TODO Learn More Solidity
+** TODO Learn Haskell
+** TODO Learn Coq Theorem Prover
 
 * Academic
-** TODO Statistics
 ** TODO QFT
 ** TODO GM
+** TODO Real and Complex Analysis
+** TODO Measure Theory
+** TODO Category Theory
+** TODO ZK Proof Deep Dive
 
 * Scheduled tasks
 These are one-time tasks that are scheduled at a particular date, and that don't require regular
 schedules.
-** TODO [#A] Clean House
-I need to clean my house very soon.
 ** Friends
 These are tasks related to seeing my friends. There will be tasks listed here when I schedule
 something.
@@ -60,10 +68,11 @@ SCHEDULED: <2025-02-12 Wed .+1d>
 - State "DONE"       from "TODO"       [2025-01-11 Sat 02:26]
 I want to stretch every day so that I can become more flexible.
 ** TODO Journal
-SCHEDULED: <2025-02-21 Fri .+1d>
+SCHEDULED: <2025-03-03 Mon .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-02-20 Thu 22:07]
+:LAST_REPEAT: [2025-03-02 Sun 05:38]
 :END:
+- State "DONE"       from "TODO"       [2025-03-02 Sun 05:38]
 - State "DONE"       from "TODO"       [2025-02-20 Thu 22:07]
 - State "DONE"       from "TODO"       [2025-02-18 Tue 01:44]
 - State "DONE"       from "TODO"       [2025-02-11 Tue 04:01]

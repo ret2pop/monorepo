@@ -1,0 +1,370 @@
+#+title: The End of Equality and The Technocratic Imperative
+#+author: Preston Pan
+#+description: A system built on illusions will always decay.
+#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+#+html_head: <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+#+html_head: <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+#+html_head: <link rel="manifest" href="/site.webmanifest">
+#+html_head: <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+#+html_head: <meta name="msapplication-TileColor" content="#da532c">
+#+html_head: <meta name="theme-color" content="#ffffff">
+#+html_head: <meta name="viewport" content="width=1000;" />
+#+language: en
+#+OPTIONS: broken-links:t
+
+@@html:<span style="display: block; padding-bottom: 30px; text-align: center;"><i>By Preston Pan</i></span>@@
+
+* Introduction
+Our current economic and political system isn't totally failing right
+now, but it's pretty close. Everyone agrees that our current system
+isn't working as well as it once did. Our world leaders are not the
+best among us. We live in an era of great technological progress,
+while at the same time many of our institutions are /rotting/ -- where
+most of our progress is driven by corporate America and Chinese
+manufacturing. It is rotting so badly that /Donald Trump/ and /Elon Musk/
+are taking over in a semi-coup. This phenomenon isn't just a failure
+of governance -- it is a failure of culture.
+
+For decades, we've been taught that culture moves in one, forward
+direction, towards progression. But this is a lie. In our worship of
+ideology, we fail to replace and examine our incompetent structures
+/before/ they fail, and institutional protections are eroded.
+
+The world is collapsing not because of economic cycles or
+partisanship, but because we built our institutions on a myth—equality
+as a moral good. This myth has led to governments that do not select for competence,
+and as a result, our systems are breaking down.
+We need to abandon equality-based governance and replace it with a technocratic,
+results-driven system that rewards competence above all else. It's
+exactly what we need, but keep in mind that Elon Musk is /not/ going to
+do this. He recognizes the problem that we all see, but he may not
+have the solution.
+
+We do not suffer from:
+- a left versus right problem.
+- a rich versus poor problem.
+We suffer from a competence versus incompetence problem. And we have
+failed to replace our institutions before they had a chance to fail on
+us. So what do our "best institutions" think of us -- and what should we
+think of /them/?
+
+* Inside Harvard
+Ivy League schools are some of the best of the best. They promote the
+best ideas and they /punish/ bad ones. They punish bad ideas because
+everyone in Harvard is /smart/. And these central intellectual
+powerhouses will power our future. But is this true? Enter the
+mainstream academic thought complex and one of its core values, which
+led to revolutions all over the globe: our focus on equality, and the
+communist movement which originated in academia
+(many famous American physicists were affiliated with CPUSA; the Russian
+Communist revolutions started on the back of an intellectual class in
+Russia; Chomsky, Deleuze and Guattari; Einstein was a socialist, the
+list goes on and on). Let's look at their track record, one of their most prized ideas, and
+/let's see how they play out in practice/.
+** China
+Chinese communism received copious support from Chinese
+intellectuals. There were intellectuals in China protesting
+for a simpler writing system before Mao implemented the simplified
+writing system, for example. However, the movement quickly turned away
+from any semblance of intellectual input.
+
+The foremost major failure of Mao's regime during this period was the
+great leap forward. During this time, grain was planted densely
+because the idea was that grain wouldn't compete against others of the
+same kind. This reduced grain harvests, and my friend has a personal
+story about this. His grandmother witnessed a farmer telling a commune
+that they were stupid for planting grain so thickly, "you could lie
+down on it!", they said. They got their tongue cut
+off for spreading "false information" about the regime. *Millions starved.*
+Other policies included "communal furnaces", where people were told that
+they could make high quality metals communally without economies of
+scale. The truth is that in order to manufacture high quality steel
+instead of pig iron, you need industrial scale furnaces because
+"communal furnaces" /can't reach heat capacity/. Despite this obvious
+failure waiting to happen and the academics warning Mao of this
+possibility, the plan continued. The result? High quality metal,
+turned into pig iron.
+
+My grandmother starved and her entire village almost died of
+malnutrition. They starved because of bad farming policies, and a
+complete inability to automate or move up the abstraction
+hierarchy. Mao ordered sparrows to be killed because they were pests
+that ate crops. The result?
+*The locusts that sparrows preyed on grew enormously in population, and they ate all the produce. Everyone starved.*
+But it doesn't matter anyways, because communism is cool. Because an
+ideology that created generational trauma for two generations is
+/fashionable/. People who have never experienced direct or indirect
+influence from this communist regime still have the audacity to
+believe this set of failures was caused by the CIA.
+
+After China reverted its socialist policies, it became an economic
+powerhouse. The modern day CCP lifted almost a billion people out of
+poverty, which is the greatest quality of life improvement in human
+history. It is my opinion that the USA attempted to destabilize China
+during the Tienanmen Square protests, but this didn't fundamentally
+alter China's ability to become capitalistic.
+*In spite of possible CIA involvement in destabilizing China, China's new economic policy reflected unforeseen progress*.
+What changed in Deng's period? It turns out that /foreign investment/
+and /private equity/ doesn't destabilize nations, and capitalism isn't
+always a CIA plot. But hey, maybe it's not real socialism. Maybe the
+idea is still good and that was just one /really bad/ implementation.
+** Cambodia
+The Khmer Rouge was one of the deadliest regimes within its lifespan
+in human history. They smashed babies' heads in en masse, and they broke
+up families on the basis that people should value their /nation/ more
+than their families. Within three years, they orchestrated the deaths
+of /two million/, making it one of the deadliest three years in history,
+reducing the Cambodian population by 25%. Cities were emptied, and
+anyone that resisted the regime was executed. It was almost a /fifth/ of
+the Nazi regime's total death count, and ran for one /fourth/ of the
+time. After Pol Pot's death, none of the leaders were formally tried
+for their crimes. The leaders' remaining lives were spent comfortably in
+their home country, while American academics such as Chomsky, one of
+the most cited public intellectuals in linguistics,
+/denied the genocide occured/. The /Nazi/ regime was /de-nazified/ and all their
+collective fiction was turned into /pulp/. The Khmer Rouge regime's
+leaders were at large until they /died of natural causes/, and their
+Western defenders faced no consequences. But hey, maybe... that's just another unlucky instance?
+** North Korea
+What started as a proxy war in Korea turned into one of the most
+brutal modern day regimes. Their propaganda today is a genuine
+preservation of cold-war era mentality. So let's look into their
+modern day regime, and maybe we can reconstruct what it was like
+living in all of these countries.
+
+Their prisons are torture camps, where prisoners catch mice and snakes
+to eat because they have /nothing/. Nobody can leave their
+country. North Korea's biggest money makers today are in fraud and in
+extortion. The people are desperately poor, and the bureaucratic class
+are living it large. And let's not forget that there's a natural
+experiment that played out in Korea. There's the other side of the
+DMZ, where, despite its problems, people have economic freedom and are
+happier, despite living in a /dystopian, cyberpunk/ state. Let's not
+forget that there's always the other side of the wall. Speaking of which...
+** Russia, the Berlin Wall
+The first and foremost thing one can look at for quality of life is
+people voting with their feet. The Berlin wall wasn't built to prevent
+people from getting in; it was to prevent people from escaping. The
+West side and East side were split by this wall. On one side,
+consumers had all the choice in the world, enormous wealth for the
+middle class and even the poor. On the other side, almost /everyone/ was poor.
+** Other Regimes
+It isn't just in Europe and in Asia that Communism has proven to be a
+failed system. It failed in many rogue militant regimes in Africa. It
+has failed in south America in Venezuela. Venezuela /should have/ been
+rich like the OPEC countries. Instead they nationalized their oil
+industry and now they are desperately poor. It failed in Laos. It
+failed in Vietnam. It has failed in almost every continent. One of
+these failures alone was almost as bad as
+the Nazi regime. When failures happen like this, we usually scrap the
+idea, not just the practical implementation. Most intellectuals think
+that it's only a bad idea in practice, without considering that it
+might just be based on /bad principles/.
+
+If communism isn't about centralization and brutal dictatorship,
+how come it plays out in the same predictable way, /every time/?
+** Economic Calculation
+And we know that all these ideas are bad in practice, but what about
+in theory? We know, according to modern day neoclassical economics and
+public choice theory that Communism as an ideology is /broken/. The
+labor theory of value doesn't hold up inasmuch as it doesn't describe
+the /subjective/ value placed on goods by individuals, which is the
+basis of the original Marxist scientific socialism. We know that
+private individuals allocate capital more efficiently than governments
+do on average, and nobody denies this simple fact.
+
+Communism is built on a foundation of collective ownership, but also
+it is a rejection of the idea that hierarchies in capitalism are
+justified. The core tenet of the idea is that /equality/ in economy
+ownership is of utmost importance because of dirty capitalist
+exploitation. So we see the reason: academia is in a civil war with the
+capital owning class, and although they aren't communist anymore, they
+share the same principles (/"it's bad in practice but good in theory"/)
+-- what if the theory should be scrapped? And how are academics, who
+are the smartest people in the world, so /wrong/? What does it say about
+these people that the /smartest people/ in the world cling onto this
+failed theory? And what does it say that our entire urban society is built
+on a milquetoast version of these ideas, after the ideas outright
+didn't work?
+
+Communist arguments usually involve pointing out both the exploitation
+of the working class by the managerial class, and arguments based on
+universal access to public goods. When liberal democracies presuppose
+the universal access to goods, they are making the exact same arguments.
+The end result is similar. Instead of centrally planning the
+production of wheat, you are subsidizing wheat production in order to
+guarantee universal access. But this model has the same failure mode:
+it just happens in 100 years instead of 10.
+* The Stark Reality
+Harvard is just as deluded, and our public consciousness is just as
+deluded about these ideas as neo-nazis and white nationalists are to
+their previous regimes. But at least Nazism only /failed once/. That was
+enough for us to learn from our mistakes. What if the smartest people
+never learn from their mistakes? What if the ideology that equality is
+a universal good -- is actually wrong?
+
+Our society directly /forks/ the same ethical opinions of communists --
+while discarding the /theory and application/ of communism in everyday
+life. But in my view, the /worst idea in history/ shouldn't be discarded
+solely on the practical and the theoretical basis. Imagine if we lived in a
+society where everyone thought that /Nazism/ was a good idea in
+theory, or that it had ethical ideals. Some attribute this imbalance to the fact that communism was
+about equality which is a lot less offensive than explicitly espousing
+a genocidal view. However, it's not true on first principles that we
+/should/ have a more positive view of equality and a less positive view
+of nationalism. Nazis sold their ideas to the nation by using slogans
+like "living space" and "restoring our strong nation".
+The truth is,
+*you can make any ideology sound good if you have a good enough salesman*,
+but we don't have to make communism sound good. We were just trained to.
+And too often, communism (or its ideas such as equality) don't sound
+morally repulsive in the first place because
+/people don't sell it that way/. So why do we sell communism as a noble
+cause gone wrong, when we sell Nazism as the worst idea in history --
+something that isn't remotely true in comparison to Communism?
+
+In my view, academia, and by extension communism, may not have won the
+cold war, but it has won the culture war. It won the culture war
+because although we may not adopt their application or even Marxist
+theory, we adopt their ethical framing of equality as a moral good. We
+adopt their framing because we have uncritically looked to these
+institutions for guidance historically. We have given them unchecked
+cultural power. These people set trends -- and what's in fashion 20
+years from now isn't decided in elections. It's decided in a Harvard
+thesis today. But this begs the question -- if they're so wrong
+about communism, what else could they be so wrong about? If we can't
+trust them on the worst idea in history, why must we trust them on
+anything at all?
+
+Though, even in our society, we have a sector of unrivaled
+economic productivity, making products for people that allow them to
+live better lives. But this sector doesn't care about equality. It
+doesn't care about anything. Or in other terms, it does care about
+people -- as economic units. It cares not who you are, only
+/what you can do/. And yet, it treats its subjects better than empathy
+can treat its subjects. When /individual/ incentives are aligned with
+/collective good/, you can be an /angel/, and a ruthless /investor/. Here,
+international criminals thrive. International criminals create
+international cooperation. Here, governance is a part of the system,
+not adversarial -- we accept a couple of "lobbies" here and there, but
+let's just call it a public-private partnership instead! It isn't a
+utopia -- but it's /real/.
+* The New System
+Elon Musk and Donald Trump are capitalizing on the rot of the United
+States. What if, instead of propping up this fragile rot in the first
+place, we actually designed governance like a systems engineering
+problem? Democracy can be optimized -- but as a systems engineering
+professional, you know that optimizing something is no use if it can
+be /deleted/. Here, we don't value peoples' opinions equally -- we have
+a city-state model where /almost every city/ is a SEZ. We optimize
+everything in governance, following neoclassical economic principles
+and using public choice economics to tell us when we're micromanaging
+(when we would cause a government failure). There are no zoning laws,
+except in tourist attraction hubs, and the only taxes are land value
+taxes, as well as sin taxes and carbon taxes. All wealth
+redistribution is done with a negative income tax. Regulations that do
+not constantly justify themselves get /removed/. Courts
+/manufacture truth/, rather than adhering to preconceived notions of
+"fairness" (professional jurors? Betting markets? A system where
+voting on the jury means you put up money, so if you're wrong you have
+something to lose?). Our police are here to enforce /laws/. Remove all
+laws from the books that aren't enforced. Enforce every law on the
+books equally and with /zero tolerance/. Riots and violent social upsets are not
+tolerated here. Crime and gang violence is treated as domestic
+terrorism. Harming public infrastructure development and private capital is
+strictly forbidden. Climate activists blocking pipeline development
+would simply not be required -- our economists and climate researchers
+have already priced that in with a carbon tax. Sorry, but if you're
+going to keep blocking this pipeline, we're going to remove you. /Forcibly/.
+Freedom of speech doesn't give you a mandate to destroy taxpayer-funded infrastructure.
+
+In this new regime, the old regime's staff can be reused -- if they
+can prove their worth. They get rehired in central bank positions, and
+in governmental planning positions, but they get paid in call options of a standard
+basket of local companies, meaning they get performance pay. In this
+new regime, we replace ideas of democracy and equality (including
+democratic voting, in say, courts) with ideas that /work/. If a
+philosophy is truly shown to work, we optimize it to its logical
+conclusion.
+
+** The Efficiency Doctrine
+The world isn’t held together by sentiment. It’s held together by
+incentives. Governments, corporations, and institutions can preach
+about fairness, justice, and equality all they want, but at the end of
+the day, none of these ideas survive unless they align with reality.
+And reality is governed by efficiency.
+
+Every major human rights movement that succeeded -- whether it was civil rights,
+women’s suffrage, or LGBTQ rights -- didn’t win because it was morally
+right in some abstract sense. It won because it became economically
+impossible to ignore. The same businesses that once refused service to
+black customers now fight for diversity. The same corporations that
+once wouldn’t hire women now push for gender parity. The same
+industries that once ignored LGBTQ rights now celebrate Pride Month with
+corporate sponsorships. Not because they cared, but because it made sense.
+
+You can moralize all you want about what’s right, but the world runs
+on what works. And when something works, you don’t need to force it.
+It wins on its own. Progressives spend so much time trying to
+manufacture empathy that they fail to ask whether their solutions are
+actually efficient. Do LGBTQ rights need to be forced onto businesses,
+or do they emerge naturally because an inclusive workforce is more
+productive? Does it make sense to give away land to Indigenous groups
+based on historical guilt, or does it make more sense to integrate
+them into the economy with productive incentives?
+
+A system that forces people to care is a system that doesn’t trust
+efficiency to do its job. If your worldview depends on mandating
+compassion, then maybe it was never that compassionate to begin
+with. The truth is, the most compassionate thing you can do in such a
+situation is to tell them the truth -- that you don't care about them
+at all.
+
+The great irony is that when efficiency is maximized, humanism
+emerges as a side effect. A prosperous, innovative society needs
+people who are educated, mentally stable, and free to explore their
+talents. It needs diversity -- not because of some ideological quota,
+but because different backgrounds provide different solutions. It
+needs to reduce discrimination -- not because of sentimental morality,
+but because a workforce that hires the best talent regardless of
+gender, race, or identity is simply better at producing results.
+
+If we get rid of the false god of “equality” and replace it with a
+system that selects for results, we don’t become less human. We become
+more human -- because caring for people is no longer a top-down
+directive. It becomes the inevitable consequence of doing things right.
+
+The best part? Most humans want to be compassionate anyways, when
+they're not constantly forced to. They'll give every excuse to
+themselves to be compassionate to you, if they
+like you, even if they're convinced they're doing it for self
+interest. At the end of the day, every efficient system is comprised
+of feeling human beings. And at the end of the day, what's the more
+compassionate system? The one that tells you it doesn't care about you
+when it does, or the one that tells you that it cares about you -- and
+then doesn't?
+** The Road Forward
+A future built on competence won't come from Elon or Trump. It
+doesn't start with hostile takeovers of the current government. It
+first starts with a collective disillusionment with the current
+cultural narratives around equality by spreading awareness, paired
+with a /new/ belief -- the belief in a deep /Deng style/ practicality.
+And it starts from the ground level -- treating people as individuals
+instead of as ideological symbols in a cultural battleground, and a deep
+commitment towards enriching those around you. Activism in its modern
+form often replaces real solutions with performative change.
+Instead of walking into this progressive trap, we should aim to create
+a culture where our best business leaders, workers, and investors are
+recognized and rewarded for their contributions to greater economic and
+technological progress.
+* Conclusion of the Technocratic Manifesto
+The death of our modern day system is a result of /rot/ -- it is the
+result of a system that is predicated on the myth of equality. Elon
+Musk and Trump are profiteers, they are not builders. They profit more
+off of /gutting/ the current system than from accelerating the
+efficiency and progress of the private sector. What if we got rid of
+this myth of equality -- and started over again, without replacing the
+old, taking our understanding from our past failures -- and finally,
+as humanity, acknowledge the great losses and tragedy of these
+Communist regimes whose leaders /never/ faced consequences?

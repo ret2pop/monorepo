@@ -1,0 +1,16 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+options: broken-links:t
+* Sunday, 02 March 2025
+** 03:51 
+I'm currently done reading my entire probability theory book. I'm
+deciding what to do now, because of course I want to learn some GR and
+some measure theory as well as some real analysis, but I think I'm
+better off doing something else right now with my time. Either
+figuring out how to run my own Ethereum node or otherwise would
+probably be a good idea.

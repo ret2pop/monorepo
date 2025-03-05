@@ -6,7 +6,7 @@
 #+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 #+language: en
 #+OPTIONS: broken-links:t
-#+html_head: <meta name="viewport" content="width=1000; user-scalable=0;" />
+#+html_head: <meta name="viewport" content="width=1000;" />
 
 * Why?
 I want a place where I can write long form essays about subjects
@@ -35,11 +35,14 @@ Blog Articles:
 #+end_src
 
 #+RESULTS:
+- [[file:acausal.org][Consciousness and the Universal Handshake]]
 - [[file:automation.org][Automation, Hypocrisy, and Capitalism]]
 - [[file:cognition.org][Cognition]]
 - [[file:crypto.org][A Review of Cryptocurrency]]
 - [[file:horses.org][Stop Asking for Better Horses]]
 - [[file:machine_learning.org][Machine Learning is Here]]
+- [[file:manifesto-1.org][The End of Equality and The Technocratic Imperative]]
+- [[file:monorepo.org][My Monorepo]]
 - [[file:nixos.org][You should use NixOS]]
 - [[file:private_keys.org][Passwords Are Obselete]]
 - [[file:stem.org][Stem]]

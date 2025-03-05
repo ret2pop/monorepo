@@ -429,7 +429,7 @@
   (require 'llm-ollama)
   (setopt ellama-provider (make-llm-ollama
 	     :host "localhost"
-	     :chat-model "phi4:latest")))
+	     :chat-model "qwen2.5:14b")))
 
 (use-package elfeed
   :custom

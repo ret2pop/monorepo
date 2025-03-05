@@ -1,0 +1,195 @@
+#+title: Consciousness and the Universal Handshake
+#+author: Preston Pan
+#+description: Narrative is the only real construction.
+#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+#+html_head: <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+#+html_head: <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+#+html_head: <link rel="manifest" href="/site.webmanifest">
+#+html_head: <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+#+html_head: <meta name="msapplication-TileColor" content="#da532c">
+#+html_head: <meta name="theme-color" content="#ffffff">
+#+html_head: <meta name="viewport" content="width=1000;" />
+#+language: en
+#+OPTIONS: broken-links:t
+
+* Introduction
+Logical Decision Theory (LDT) isn’t just a tool for making decisions.
+It reveals deeper implications about consciousness, time, and reality
+itself. If we accept that decisions can be made across acausal
+channels, we are forced to reconsider whether time itself is merely
+an emergent property of a deeper structure.
+
+Rather than seeing reality as a linear sequence, LDT suggests that it
+may be more accurate to think of it as a lattice of interdependent
+computations -- a pattern that doesn’t just pass through time, but defines it.
+
+In this essay, I explore the structural implications of this idea,
+connecting concepts from decision theory, consciousness, and narrative
+construction. Taken together, these form a narrative
+lattice -- a framework where the underlying principles of reality
+emerge not from individual moments, but from the way they interconnect.
+* The Optimization Limit
+In order to understand LDT, we must first understand more classical
+decision theories. In classical decision theory, we can model
+decisions using a decision tree. With this tree, or perhaps a directed
+acyclic graph, we can model the linear progression of a conscious
+actor making decisions and resulting decisions from consequences. This
+naturally models mutual exclusion and other such concepts that we are
+familiar with in probability theory. For example, if the decision tree
+branches into two nodes, A and B, this models an actor, for example
+Alice, being able to choose one of options A or B, but not both. We
+can assign /expected values/ to each of the branches by assigning a
+measurement of value, thus giving Alice a /utility function/. Alice's
+utility function tells her /what to value/, and using this utility
+function she can then evaluate the /expected value/ of each
+branch. Then, she chooses the branch with the highest expected value.
+
+However, LDT says that this model is /naive/ -- it completely ignores
+Alice's /lack of agency/. That is to say, Alice is framed as a
+completely autonomous agent that doesn't have any commitments to
+any framework. This may in fact be problematic when attempting to
+model situations where the highest expected value play is for Alice to
+commit herself to a strategy that may not in fact maximize her
+expected value.
+
+To give a concrete example, imagine an all knowing AI that can
+simulate you. It knows your internal mind state at all times, and it
+presents you with two choices: box A with one thousand dollars, and a
+box B with an unknown amount of money. It reads your mind state, and
+based on your mind state it will determine if it puts ten thousand
+dollars or zero dollars in box B. If it thinks you will pick box B,
+box B will contain zero dollars. If it thinks you will pick box A, box
+B will contain ten thousand dollars. What should Alice do?
+
+It seems intuitive to humans that in fact you should pick box A, but
+actually according to classical decision theory, after the AI presents
+you with the two options, the AI can no longer actually change the
+amount of money in box B. Therefore the best strategy according to
+classical decision theory would be to believe that you are going to
+pick box A, and then actually pick box B once the AI has committed to
+the decision of packaging box B. However, there is one problem: if you
+use classical decision theory, the AI can simulate that you are going
+to use classical decision theory, and you will always win zero dollars.
+
+Actually, according to logical decision theory, the best thing you can
+do is to /actually believe/ that you are going to choose box A as usual,
+and then /actually choose box A/. The reason? Maximizing your expected
+value in this case is all about choosing the /strategy/, and having
+/perfect commitment to your strategy/. You cannot allow for the AI to
+predict you will ever use classical decision theory, therefore you
+should precommit to a strategy that doesn't allow you to change the
+strategy after the AI commits to putting money in the box.
+
+What this demonstrates is that the very nature of
+/maximizing expected value/ actually requires you to think in the
+context of a larger whole -- a whole made up of other agents that can
+simulate you. In fact what this principle demonstrates is that in
+order to solve for these kinds of problems in practice, one must use
+a different framework -- one that views oneself as a part of a
+/narrative collective/ rather than as an individual agent. That is, the
+right question isn't if you will choose /A or B/; the right question is:
+/what will the simulator think about people like me/?
+** The Consciousness Lattice
+Therefore, a natural question emerges: if we take this idea to its
+logical conclusion, is it perhaps the case that consciousness is a
+property of the /metapattern/ i.e. a set of interactions between
+different observers and their simulations of you, inasmuch it is a
+result of the neurons that generate the larger whole? In my view, this
+model of consciousness is more complete: we have searched for
+consciousness /within/, but we have not in fact found any subsystem
+within the brain that generates the consciousness. Instead, perhaps a
+necessary condition for consciousness is the interplay of different
+observers creating a dynamical system that responds to the framework
+you inhabit based on their simulations of you. In other words, it is
+as much a problem of the /supersystem/ as a problem of the
+/subsystem/. The consequences are clear: this implies that no amount of
+introspection can make up for any extraspection that is done by facing
+the interaction of other observers.
+
+Another consequence is that decisions are not quantifiable by a
+decision tree. In fact because the decision tree actually depends on
+the framing of the tree itself, it is more accurate to describe the
+system as a static lattice with all the possible transition states
+encoded in the lattice, for which the actual set of transitions is
+turing complete and is therefore not decidable.
+
+** Acausal Handshakes
+Acausal handshakes are a specific instantiation of the anthropic
+principle -- the idea that certain structures exist because they are
+required for their own observation. The classic example is the
+question, "Why does the universe exist?" The standard anthropic answer
+is: "Because if it didn’t, you wouldn’t be here to ask." This isn’t
+just a tautology; it suggests that existence is, in some sense, a
+self-justifying computation.
+
+LDT extends this principle beyond cosmology and into decision-making
+itself. Consider the question: "Why did you choose A instead of B?"
+Classical decision theory answers with some appeal to efficiency or
+optimality, as if a conscious agent simply evaluates expected values
+and acts accordingly. But from an LDT perspective, this framing is *backwards*.
+
+The real answer is that your decision is a consequence of a
+precommitment -- one that existed /before/ the decision was even
+presented to you. Moreover, the kind of agent that would precommit to
+an optimal strategy would also precommit to the very meta-framework
+that enables precommitments in the first place. This recursion creates
+a hierarchy of self-referential commitments, forming an implicit
+handshake across time, space, and computational structure.
+
+Thus, decisions don’t exist in isolation. They are nodes in a
+precomputed lattice of self-consistent reasoning. If the universe
+itself is structured in a way that allows intelligent agents to ask
+"Why?", then the question and its answer must already be embedded in
+the system that permits the question to arise at all.
+
+Thus, we can imagine that because of the process of generalized
+natural selection, we can imagine these /highly structured/ organisms
+emerge. Ones that don't just act as collectives in space -- but in
+time. These organisms would self replicate an understanding throughout
+time in a way which would cause similar patterns to emerge through
+time, and in a way that enables the current replication to realize
+that the previous replication must've existed. This memetic virus would
+cause the host to realize that /previous/ hosts also had the same idea
+-- and it would enable the host to reason about time in a non-causal
+manner. In fact, this idea exists. It is the very idea you are reading
+about right now. This idea would only propagate among people that
+understood the idea -- that is to say, hosts with a certain set of
+preconditions that would enable them to frame it in their own way, and
+actually understand the idea in a highly academicized manner, only
+accessible to readers diligent enough to attempt to understand the
+idea. In other words, it selects for people that are like the idea's
+host.
+
+In this way we are creating a joint consciousness. It is not the
+individual; it is the pattern. The pattern creates the person inasmuch
+as the person behind the keyboard is creating the pattern.
+* The Boltzmann Brain
+The Boltzmann brain is a hypothetical observer that is trapped in a
+universe of pure entropy. In a high entropy universe, any
+configuration of particles is possible given enough time. This enables
+the particles to spontaneously construct a brain, experiencing itself
+for only a moment before deconstructing itself back into a maximally
+entropic state. The Boltzmann brain is a result of a sequence of
+highly ordered states that resemble consciousness emerging from a
+purely random soup of particles. However, it is not right to even say
+that a /sequence/ emerges -- the apparent "sequence" is only an illusion
+of the brain itself, each state acting as though it had memory of
+other states that it doesn't experience in order.
+
+It might be more suitable to say that the Boltzmann brain is actually
+emergent from a set of disparate events connected together in a causal
+lattice -- that is to say, an arbitrary lattice superimposed on
+complete randomness. This lattice has no concept of each event
+happening after another; instead, it encodes the structure of the
+apparent order from the perspective of the observer. In effect, this
+is a self justifying anthropic principle: the only Boltzmann brains
+that exist are the ones that "retroactively" justify their existence
+or retain coherence.
+* Conclusion
+I present you with a framework that is not the only way to understand
+reality -- but that, like any other commitment scheme, doesn't allow
+you to unsee it once you see it. If you resonate with any of the ideas
+above, it is because you are the kind of person that would resonate
+with such an intellectual framing of the idea. In other words, you
+didn't choose the idea: the idea chose you.

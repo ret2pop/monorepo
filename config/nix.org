@@ -478,6 +478,22 @@ Use ollama for serving large language models to my other computers.
       enable = lib.mkDefault config.monorepo.profiles.workstation.enable;
       acceleration = "cuda";
       host = "0.0.0.0";
+      openFirewall = true;
+    };
+
+    services.nextjs-ollama-llm-ui = {
+      enable = lib.mkDefault config.services.ollama.enable;
+      port = 3000;
+    };
+  }
+#+end_src
+** Bitcoind
+#+begin_src nix :tangle ../nix/modules/bitcoin.nix
+  { config, lib, ... }:
+  {
+    services.bitcoind."${config.monorepo.vars.userName}" = {
+      enable = lib.mkDefault config.monorepo.profiles.workstation.enable;
+      prune = 10000;
     };
   }
 #+end_src
@@ -603,11 +619,15 @@ Use postfix as an smtps server.
   {
     services.matrix-conduit = {
       enable = lib.mkDefault config.monorepo.profiles.server.enable;
-      # random comment
       settings.global = {
         server_name = "matrix.${config.monorepo.vars.remoteHost}";
+        trusted_servers = [
+          "matrix.org"
+          "nixos.org"
+        ];
         address = "0.0.0.0";
         port = 6167;
+        allow_registration = true;
       };
     };
   }
@@ -671,6 +691,7 @@ because they enhance security.
       ./i2pd.nix
       ./gitweb.nix
       ./conduit.nix
+      ./bitcoin.nix
     ];
 
     documentation = {
@@ -1170,6 +1191,7 @@ I have many imports that we'll go through next.
   	    lang-js.enable = lib.mkEnableOption "Enables javascript language support";
   	    lang-nix.enable = lib.mkEnableOption "Enables nix language support";
   	    lang-coq.enable = lib.mkEnableOption "Enables coq language support";
+  	    lang-haskell.enable = lib.mkEnableOption "Enables haskell language support";
 
   	    crypto.enable = lib.mkEnableOption "Enables various cryptocurrency wallets";
   	    art.enable = lib.mkEnableOption "Enables various art programs";
@@ -1219,6 +1241,7 @@ I have many imports that we'll go through next.
   						          bun
   						          yarn
   						          typescript
+                        typescript-language-server
   						          vscode-langservers-extracted
   					          ]) else [])
   					          ++
@@ -1245,6 +1268,12 @@ I have many imports that we'll go through next.
   					          ++
   					          (if config.monorepo.profiles.lang-sh.enable then (with pkgs; [
   						          bash-language-server
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-haskell.enable then (with pkgs; [
+                        haskell-language-server
+                        haskellPackages.hlint
+                        ghc
   					          ]) else [])
   					          ++
   					          (if config.monorepo.profiles.lang-coq.enable then (with pkgs; [
@@ -1289,6 +1318,7 @@ I have many imports that we'll go through next.
   			                inkscape
   			                kdenlive
   			                kicad
+                        reaper
   					          ]) else []);
 
       monorepo.profiles = {
@@ -1308,6 +1338,7 @@ I have many imports that we'll go through next.
   	    lang-js.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
   	    lang-nix.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
   	    lang-coq.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    lang-haskell.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
 
   	    crypto.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
   	    art.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
@@ -1651,6 +1682,7 @@ as an org file which gets automatically tangled to an emacs-lisp file.
           epkgs.general
           epkgs.gptel
           epkgs.gruvbox-theme
+          epkgs.haskell-mode
           epkgs.htmlize
           epkgs.irony-eldoc
           epkgs.ivy
@@ -1659,6 +1691,7 @@ as an org file which gets automatically tangled to an emacs-lisp file.
           epkgs.latex-preview-pane
           epkgs.lsp-ivy
           epkgs.lsp-mode
+          epkgs.lsp-haskell
           epkgs.lyrics-fetcher
           epkgs.magit
           epkgs.magit-delta
@@ -2111,17 +2144,23 @@ the yaml file specified. Yes, this is safe to include in the repo.
       age = {
         keyFile = "/home/${config.monorepo.vars.userName}/.ssh/keys.txt";
       };
-      secrets.mail = {
-        format = "yaml";
-        path = "${config.sops.defaultSymlinkPath}/mail";
-      };
-      secrets.cloudflare-dns = {
-        format = "yaml";
-        path = "${config.sops.defaultSymlinkPath}/cloudflare-dns";
-      };
-      secrets.digikey = {
-        format = "yaml";
-        path = "${config.sops.defaultSymlinkPath}/digikey";
+      secrets = {
+        mail = {
+          format = "yaml";
+          path = "${config.sops.defaultSymlinkPath}/mail";
+        };
+        cloudflare-dns = {
+          format = "yaml";
+          path = "${config.sops.defaultSymlinkPath}/cloudflare-dns";
+        };
+        digikey = {
+          format = "yaml";
+          path = "${config.sops.defaultSymlinkPath}/digikey";
+        };
+        dn42 = {
+          format = "yaml";
+          path = "${config.sops.defaultSymlinkPath}/dn42";
+        };
       };
 
       defaultSymlinkPath = "/run/user/1000/secrets";
@@ -2736,7 +2775,7 @@ for these configurations.
         pavucontrol alsa-utils imagemagick ffmpeg helvum
 
         # Net
-        curl rsync git
+        curl rsync git iamb
 
         # Tor
         torsocks tor-browser
@@ -2899,6 +2938,7 @@ Spontaneity is my VPS instance.
         firewall.allowedTCPPorts = [
           80
           443
+          8448
         ];
         domains = {
           enable = true;

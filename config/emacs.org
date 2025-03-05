@@ -538,7 +538,7 @@ competitive LLM that doesn't cost money.
     (require 'llm-ollama)
     (setopt ellama-provider (make-llm-ollama
   	     :host "localhost"
-  	     :chat-model "phi4:latest")))
+  	     :chat-model "qwen2.5:14b")))
 #+end_src
 ** RSS Feed
 I use really simple syndication (RSS) in order to read news. As a result, I use

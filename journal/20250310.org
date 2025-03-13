@@ -1,0 +1,18 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+options: broken-links:t
+* Monday, 10 March 2025
+** 01:08 
+I want to learn how to spot weld batteries together or basically just
+make my own battery packs from the cells. This is because I want to
+have more knowledge of how to create batteries for my ebike. Speaking
+of, my ebike build is done.
+** 23:23 
+I am currently trying to fix some low-level activities for my
+life. For instance, I will do a lot of chores today before I
+sleep. Additionally I aim to go on a run and exercise.

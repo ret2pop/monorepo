@@ -1,0 +1,35 @@
+#+title: Sol: A Life OS
+#+author: Preston Pan
+#+description: A technology enhnaced sovereign life operating system for the modern age
+#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+#+html_head: <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+#+html_head: <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+#+html_head: <link rel="manifest" href="/site.webmanifest">
+#+html_head: <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+#+html_head: <meta name="msapplication-TileColor" content="#da532c">
+#+html_head: <meta name="theme-color" content="#ffffff">
+#+html_head: <meta name="viewport" content="width=1000;" />
+#+language: en
+#+OPTIONS: broken-links:t
+
+* Introduction
+Sol is the name of my life operating system. It is the aggregation of all notable tools that I use
+in order to impose both structure and meaning on the world. The completed version may feature a
+sailboat along with the tools below. Note that a ton of other stuff is contained within the system,
+but they have no names as of yet. With that being said, here are the names:
+
+* Names
+- Affinity: My desktop configuration
+- Continuity: My laptop configuration
+- Spontaneity: My VPS server configuration
+- Agility: My nix-on-droid flake
+- Curiosity: My robot vacuum
+- Ingenuity: My (future) 3d printer
+- Vitality: My Aquaponics setup, and the name of the Raspberry Pi Zero2 that powers the system.
+- Asimov: My homemade ebike
+- Olive: My folding knife
+- Blueprint: Bryan Johnson's protocol that I am trying to integrate more of
+Note that Asimov will have an amateur radio antenna on it, and perhaps I will also carry a couple of
+solar panels, and a tent and other things needed for shelter whenever I need to go bikepacking with
+an ebike.

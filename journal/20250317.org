@@ -1,0 +1,26 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+options: broken-links:t
+* Monday, 17 March 2025
+** 01:43 
+I just saw Matthew today at UBC and we talked for a bit about things
+that we had already talked about for some time; I got a 3d printed box
+and discussed the possibility of 3d printing a bell siphon for my
+future aquaponics setup; Ainslie messaged someone on facebook
+marketplace for a 55 Gallon blue barrel for my aquaponics setup and
+I'm planning on having the cycling mechanism done in a couple
+weeks. I'm going to need a saw of some kind in order to cut pieces out
+of these barrels, but that, and a hand drill, are the only tools I
+will need (most likely), as well as some supports in order to suspend
+the barrels.
+
+I'm considering starting a vlog, and I really should start making
+videos, and I really should start making music and whatnot.
+** 22:23 
+I am currently refactoring some of my NixOS VPS configs and I will
+eventually have all the servers that I want hosted done in NixOS.

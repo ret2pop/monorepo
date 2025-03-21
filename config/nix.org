@@ -132,6 +132,7 @@ so that adding new configurations that add modifications is made simple.
             };
             zones = {
               "ret2pop.net." = nixos-dns.utils.octodns.generateZoneAttrs [ "cloudflare" ];
+              "nullring.xyz." = nixos-dns.utils.octodns.generateZoneAttrs [ "cloudflare" ];
             };
           };
         };
@@ -312,6 +313,7 @@ under ~default.nix~ in the ~systems~ folder.
   	    linux-manual
   	    man-pages
   	    man-pages-posix
+        iproute2
       ]);
       boot.loader.grub = lib.mkIf config.monorepo.profiles.grub.enable {
         enable = true;
@@ -447,12 +449,29 @@ I use IPFS for my website and also for my ISOs for truly declarative and determi
 configuration. NixOS might be moving to IPFS for binary cache distribution and package
 distribution soon, and I'm waiting on that.
 #+begin_src nix :tangle ../nix/modules/kubo.nix
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 {
   services.kubo = {
-    enable = true;
+    enable = lib.mkDefault config.monorepo.profiles.workstation.enable;
   };
 }
+#+end_src
+** Murmur
+#+begin_src nix :tangle ../nix/modules/murmur.nix
+  { lib, config, ... }:
+  {
+    services.murmur = {
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      logFile = "/var/log/murmur.log";
+      openFirewall = true;
+      hostName = "0.0.0.0";
+      welcometext = "Wecome to the Null Murmur instance!";
+      registerName = "nullring";
+      registerHostname = "nullring.xyz";
+      sslCert = "/var/lib/acme/nullring.xyz/fullchain.pem";
+      sslKey = "/var/lib/acme/nullring.xyz/sslKey.pem";
+    };
+  }
 #+end_src
 ** i2pd
 I use i2p for some p2p connections. We enable it with the server profile:
@@ -466,6 +485,149 @@ I use i2p for some p2p connections. We enable it with the server profile:
       };
       outTunnels = {
       };
+    };
+  }
+#+end_src
+** Icecast
+This is an internet radio which will host a ton of music.
+#+begin_src nix :tangle ../nix/modules/icecast.nix
+  { lib, config, ... }:
+  {
+    services.icecast = {
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      listen.address = "0.0.0.0";
+      extraConfig = ''
+  <mount type="default">
+    <public>0</public>
+    <intro>/stream.m3u</intro>
+    <max-listener-duration>3600</max-listener-duration>
+    <authentication type="url">
+      <option name="mount_add" value="http://auth.example.org/stream_start.php"/>
+    </authentication>
+    <http-headers>
+      <header name="foo" value="bar" />
+    </http-headers>
+  </mount>
+  '';
+    };
+    admin.password = "changeme";
+  }
+#+end_src
+** IRC
+A great protocol. It's the most widely usable by any netizen, as it is
+just pure plaintext and the operating costs are trivial.
+*** NgIRCD
+I run my own IRC server to bridge with my Matrix server and my discord guild.
+#+begin_src nix :tangle ../nix/modules/ngircd.nix
+  { lib, config, ... }:
+  {
+    services.ngircd = {
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      config = ''
+  [Global]
+  	Name = nullring.xyz
+  	Info = NullRing IRC Instance
+    Listen = 0.0.0.0
+    MotdFile = /etc/motd.txt
+  	Network = NullRing
+  	Ports = 6667
+  [Options]
+  	PAM = no
+  [SSL]
+  	CertFile = /var/lib/acme/nullring.xyz/fullchain.pem
+  	CipherList = HIGH:!aNULL:@STRENGTH:!SSLv3
+  	KeyFile = /var/lib/acme/nullring.xyz/key.pem
+  	Ports = 6697
+  '';
+    };
+    environment.etc."motd.txt" = {
+      source = ../data/motd.txt;
+      mode = "644";
+      user = "ngircd";
+      group = "ngircd";
+    };
+  }
+#+end_src
+*** MOTD
+I also have a MOTD file that I want to add, which displays when users
+connect to the server:
+#+begin_src fundamental :tangle ../nix/data/motd.txt
+  Welcome to the NullRing experience!
+  The main channel is #nullring; we're glad to have you!
+
+  Rules:
+  1. Don't be annoying.
+  2. No illegal content.
+  And if you're here to have constructive, philisophical and theoretical
+  conversations, this is the place for you!
+#+end_src
+*** ZNC
+I want to be able to create some sort of identity persistence on IRC
+for users:
+#+begin_src nix :tangle ../nix/modules/znc.nix
+  { lib, config, ... }:
+  {
+    services.znc = {
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      openFirewall = true;
+      confOptions = {
+        useSSL = true;
+        passBlock = ''
+  <Pass password>
+    Method = sha256
+    Hash = d4abdd69aa24de69693885c5bd83a4a0e9ee989e1a69a905041b0dad9abc06ea
+    Salt = sDY,?H5AxC-!gH3a.:)D
+  </Pass>
+  '';
+        modules = [
+          "partyline"
+          "webadmin"
+          "adminlog"
+          "log"
+        ];
+        networks = {
+          "libera" = {
+            server = "irc.libera.chat";
+            port = 6697;
+            useSSL = true;
+            modules = [ "simple_away" ];
+          };
+        };
+      };
+    };
+  }
+#+end_src
+Note that the password hash and whatnot is completely random so there
+is almost no point to cracking it with hashcat.
+** Conduit
+This is a modern matrix server that is meant to be lightweight while
+still federating and hosting the same protocol.
+#+begin_src nix :tangle ../nix/modules/conduit.nix
+  { config, lib, ... }:
+  {
+    services.matrix-conduit = {
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      settings.global = {
+        server_name = "matrix.${config.monorepo.vars.remoteHost}";
+        trusted_servers = [
+          "matrix.org"
+          "nixos.org"
+        ];
+        address = "0.0.0.0";
+        port = 6167;
+        allow_registration = true;
+      };
+    };
+  }
+#+end_src
+** Matterbridge
+Then I want to connect all these servers together with Matterbridge:
+#+begin_src nix :tangle ../nix/modules/matterbridge.nix
+  { lib, config, ... }:
+  {
+    services.matterbridge = {
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      configPath = "/etc/matterbridge.toml";
     };
   }
 #+end_src
@@ -497,31 +659,8 @@ Use ollama for serving large language models to my other computers.
     };
   }
 #+end_src
-** Dovecot
-My server sets up dovecot in order to use imaps.
-#+begin_src nix :tangle ../nix/modules/dovecot.nix
-  { config, lib, ... }:
-  {
-    services.dovecot2 = {
-      enable = lib.mkDefault config.monorepo.profiles.server.enable;
-      enableImap = true;
-      enablePop3 = true;
-    };
-  }
-#+end_src
-** Postfix
-Use postfix as an smtps server.
-#+begin_src nix :tangle ../nix/modules/postfix.nix
-  { config, lib, ... }:
-  {
-    services.postfix = {
-      enable = lib.mkDefault config.monorepo.profiles.server.enable;
-      config = {
-      };
-    };
-  }
-#+end_src
 ** Git Server
+I run my own git server in order to have a mirror in case github goes down.
 #+begin_src nix :tangle ../nix/modules/git-daemon.nix
   { config, lib, ... }:
   {
@@ -533,6 +672,9 @@ Use postfix as an smtps server.
   }
 #+end_src
 ** Nginx
+These are all my virtual hosts. For many of these servers we have to
+have a reverse proxy in order to expose the locally running instances
+to the outside world under a domain.
 #+begin_src nix :tangle ../nix/modules/nginx.nix
   { config, lib, services, ... }:
   {
@@ -544,10 +686,6 @@ Use postfix as an smtps server.
       recommendedOptimisation = true;
       recommendedProxySettings = true;
       recommendedTlsSettings = true;
-
-      # Only allow PFS-enabled ciphers with AES256
-      # sslCiphers = "AES256+EECDH:AES256+EDH:!aNULL";
-
       appendHttpConfig = '''';
 
       gitweb = {
@@ -595,40 +733,38 @@ Use postfix as an smtps server.
         };
   	    "${config.monorepo.vars.remoteHost}" = {
           serverName = "${config.monorepo.vars.remoteHost}";
+          serverAliases = [ "ret2pop.nullring.xyz" ];
   	      root = "/var/www/ret2pop-website/";
   	      addSSL = true;
   	      enableACME = true;
   	    };
+
+        "nullring.xyz" = {
+          serverName = "nullring.xyz";
+          root = "/var/www/nullring/";
+          addSSL = true;
+          enableACME = true;
+        };
+
+        "mail.${config.monorepo.vars.remoteHost}" = {
+          serverName = "mail.${config.monorepo.vars.remoteHost}";
+          root = "/var/www/dummy";
+          addSSL = true;
+          enableACME = true;
+        };
       };
     };
   }
 #+end_src
 ** Git Web Interface
+I enable the git web interface to show off my git repos to the
+world. This was the easiest frontend to set up on NixOS.
 #+begin_src nix :tangle ../nix/modules/gitweb.nix
   { lib, config, ... }:
   {
     services.gitweb = {
       gitwebTheme = true;
       projectroot = "/srv/git/";
-    };
-  }
-#+end_src
-** Conduit
-#+begin_src nix :tangle ../nix/modules/conduit.nix
-  { config, lib, ... }:
-  {
-    services.matrix-conduit = {
-      enable = lib.mkDefault config.monorepo.profiles.server.enable;
-      settings.global = {
-        server_name = "matrix.${config.monorepo.vars.remoteHost}";
-        trusted_servers = [
-          "matrix.org"
-          "nixos.org"
-        ];
-        address = "0.0.0.0";
-        port = 6167;
-        allow_registration = true;
-      };
     };
   }
 #+end_src
@@ -669,6 +805,27 @@ Use postfix as an smtps server.
     ] else []);
   }
 #+end_src
+** Maddy
+#+begin_src nix :tangle ../nix/modules/maddy.nix
+  { lib, config, options, ... }:
+  {
+    services.maddy = {
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      openFirewall = true;
+      primaryDomain = "ret2pop.net";
+      tls = {
+        loader = "acme";
+      };
+      config = builtins.replaceStrings [
+        "imap tcp://0.0.0.0:143"
+        "submission tcp://0.0.0.0:587"
+      ] [
+        "imap tls://0.0.0.0:993 tcp://0.0.0.0:143"
+        "submission tls://0.0.0.0:465 tcp://0.0.0.0:587"
+      ] options.services.maddy.config.default;
+    };
+  }
+#+end_src
 ** Main Configuration
 This is the backbone of the all the NixOS configurations, with all these options being shared
 because they enhance security.
@@ -676,6 +833,7 @@ because they enhance security.
   { config, pkgs, lib, ... }:
   {
     imports = [
+      ./matterbridge.nix
       ./xserver.nix
       ./ssh.nix
       ./pipewire.nix
@@ -685,13 +843,14 @@ because they enhance security.
       ./cuda.nix
       ./nginx.nix
       ./git-daemon.nix
-      ./postfix.nix
-      ./dovecot.nix
       ./ollama.nix
       ./i2pd.nix
       ./gitweb.nix
       ./conduit.nix
       ./bitcoin.nix
+      ./murmur.nix
+      ./ngircd.nix
+      ./znc.nix
     ];
 
     documentation = {
@@ -989,12 +1148,28 @@ because they enhance security.
 
     users.groups.nginx = lib.mkDefault {};
     users.groups.git = lib.mkDefault {};
+    users.groups.ircd = lib.mkDefault {};
+
     users.users = {
-      nginx.group = "nginx";
-      nginx.isSystemUser = lib.mkDefault true;
-      nginx.extraGroups = [
-        "acme"
-      ];
+      ngircd = {
+        isSystemUser = lib.mkDefault true;
+        extraGroups = [ "acme" "nginx" ];
+      };
+
+      ircd = {
+        isSystemUser = lib.mkDefault true;
+        group = "ircd";
+        home = "/home/ircd";
+      };
+      
+      nginx = {
+        group = "nginx";
+        isSystemUser = lib.mkDefault true;
+        extraGroups = [
+          "acme"
+        ];
+      };
+
       root.openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICts6+MQiMwpA+DfFQxjIN214Jn0pCw/2BDvOzPhR/H2 preston@continuity-dell"
       ];
@@ -1235,7 +1410,12 @@ I have many imports that we'll go through next.
   						          bear
   						          clang-tools
   					          ]) else [])
-  					          ++
+                      ++
+                      (if config.monorepo.profiles.workstation.enable then (with pkgs; [
+                        open-webui
+                        mumble
+                      ]) else [])
+                      ++
   					          (if config.monorepo.profiles.lang-js.enable then (with pkgs; [
   						          nodejs
   						          bun
@@ -1319,6 +1499,7 @@ I have many imports that we'll go through next.
   			                kdenlive
   			                kicad
                         reaper
+                        murmur
   					          ]) else []);
 
       monorepo.profiles = {
@@ -1648,7 +1829,7 @@ as an org file which gets automatically tangled to an emacs-lisp file.
     programs.emacs = 
       {
         enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
-        package = pkgs.emacs29-pgtk;
+        package = pkgs.emacs30-pgtk;
         extraConfig = ''
         (setq debug-on-error t)
         (org-babel-load-file
@@ -2086,35 +2267,49 @@ just set the options to the ones you want in your system ~default.nix~.
 This mpd configuration uses pipewire by default, and it should just work if you place music
 in the ~~/music~ directory and then run ~mpc add /~ afterwards.
 #+begin_src nix :tangle ../nix/modules/home/mpd.nix
-{ lib, config, ... }:
-{
-  services.mpd = {
-  enable = lib.mkDefault config.monorepo.profiles.music.enable;
-  dbFile = "/home/${config.monorepo.vars.userName}/.config/mpd/db";
-  dataDir = "/home/${config.monorepo.vars.userName}/.config/mpd/";
-  network.port = 6600;
-  musicDirectory = "/home/${config.monorepo.vars.userName}/music";
-  playlistDirectory = "/home/${config.monorepo.vars.userName}/.config/mpd/playlists";
-  network.listenAddress = "0.0.0.0";
-  extraConfig = ''
-      audio_output {
-        type "pipewire"
-        name "pipewire output"
-      }
-      audio_output {
-        type		"httpd"
-        name		"My HTTP Stream"
-        encoder		"opus"		# optional
-        port		"8000"
-     #	quality		"5.0"			# do not define if bitrate is defined
-        bitrate		"128000"			# do not define if quality is defined
-        format		"48000:16:1"
-        always_on       "yes" # prevent MPD from disconnecting all listeners when playback is stopped.
-        tags            "yes" # httpd supports sending tags to listening streams.
-      }
-    '';
-  };
-}
+  { lib, config, ... }:
+  {
+    services.mpd = {
+    enable = lib.mkDefault config.monorepo.profiles.music.enable;
+    dbFile = "/home/${config.monorepo.vars.userName}/.config/mpd/db";
+    dataDir = "/home/${config.monorepo.vars.userName}/.config/mpd/";
+    network.port = 6600;
+    musicDirectory = "/home/${config.monorepo.vars.userName}/music";
+    playlistDirectory = "/home/${config.monorepo.vars.userName}/.config/mpd/playlists";
+    network.listenAddress = "0.0.0.0";
+    extraConfig = ''
+        audio_output {
+          type "pipewire"
+          name "pipewire output"
+        }
+        audio_output {
+          type		"httpd"
+          name		"My HTTP Stream"
+          encoder		"opus"		# optional
+          port		"8000"
+       #	quality		"5.0"			# do not define if bitrate is defined
+          bitrate		"128000"			# do not define if quality is defined
+          format		"48000:16:1"
+          always_on       "yes" # prevent MPD from disconnecting all listeners when playback is stopped.
+          tags            "yes" # httpd supports sending tags to listening streams.
+        }
+  audio_output {
+      type        "shout"
+      encoding    "ogg"
+      name        "my cool stream"
+      host        "localhost"
+      port        "8000"
+      mount       "/example.ogg"
+      user        "source"
+      password    "<source-password>"
+
+      bitrate     "64"
+      format      "44100:16:1"
+      description "Nullring public radio"
+  }
+      '';
+    };
+  }
 #+end_src
 *** MPV
 I have some emacs + yt-dlp integrations with mpv with my rss feed, and therefore we need it
@@ -2938,7 +3133,11 @@ Spontaneity is my VPS instance.
         firewall.allowedTCPPorts = [
           80
           443
+          465
+          993
           8448
+          6697
+          6667
         ];
         domains = {
           enable = true;
@@ -2947,11 +3146,22 @@ Spontaneity is my VPS instance.
               a.data = "66.42.84.130";
               aaaa.data = "2001:19f0:5401:10d0:5400:5ff:fe4a:7794";
             };
+            "nullring.xyz" = {
+              a.data = "66.42.84.130";
+              aaaa.data = "2001:19f0:5401:10d0:5400:5ff:fe4a:7794";
+            };
           };
           subDomains = {
-                "${config.monorepo.vars.remoteHost}" = {};
+            "${config.monorepo.vars.remoteHost}" = {};
             "matrix.${config.monorepo.vars.remoteHost}" = {};
             "www.${config.monorepo.vars.remoteHost}" = {};
+            "mail.${config.monorepo.vars.remoteHost}" = {};
+
+            "nullring.xyz" = {};
+            "matrix.nullring.xyz" = {};
+            "talk.nullring.xyz" = {};
+            "mail.nullring.xyz" = {};
+            "ret2pop.nullring.xyz" = {};
           };
         };
       };

@@ -1,0 +1,28 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+options: broken-links:t
+* Friday, 21 March 2025
+** 04:27 
+Journaling again. I've been on a roll! Except not really. I haven't
+been brushing my teeth like I should and I need to do the dishes. I
+also need to keep my physical health in order by doing pushups and
+cardio, which I haven't been doing. Though, the aquaponics setup is
+going to be done soon as I've already ordered everything for it. Sans
+the plants and the fish, of course. I need to cycle the system until
+there are bacteria growing in the bed that actually fixes ammonia. I
+think in order to do this I will need these bacteria from other setups
+and I will need to seed it. However this shouldn't be too much of an
+issue and worst case they occur naturally.
+
+I want to work on a section of my website that's dedicated to naming
+all my services, and I want to work on the mindmap more
+also. Hopefully that will be fruitful.
+** 04:47 
+I forgot to mention that Asimov needs a front and back rack. I ordered
+the front rack but it turns out that I actually need this other part
+in order for it to mount. That's fine though -- I ordered that too.

@@ -1,5 +1,5 @@
 (setq system-email "ret2pop@gmail.com")
-(setq system-username "prestonpan")
+(setq system-username "ret2pop")
 (setq system-fullname "Preston Pan")
 
 (use-package emacs
@@ -356,6 +356,10 @@
   (defun matrix-org ()
     (interactive)
     (ement-connect))
+  (defun gimp-org ()
+    (interactive)
+    (erc-tls :server "irc.gimp.org"
+	     :port "6697"))
   :config
   (general-create-definer leader-key :prefix "SPC")
   (leader-key 'normal
@@ -408,6 +412,7 @@
     "i p c" '(prestonpan :wk "Connect to my IRC server")
     "i l c" '(liberachat :wk "Connect to libera chat server")
     "i e c" '(efnet :wk "Connect to efnet chat server")
+    "i g c" '(gimp-org :wk "Connect to gimp chat server")
     "h" '(:ignore t :wk "Documentation")
     "h v" '(counsel-describe-variable :wk "Describe variable")
     "h f" '(counsel-describe-function :wk "Describe function")

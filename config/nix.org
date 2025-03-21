@@ -1149,10 +1149,12 @@ because they enhance security.
     users.groups.nginx = lib.mkDefault {};
     users.groups.git = lib.mkDefault {};
     users.groups.ircd = lib.mkDefault {};
+    users.groups.ngircd = lib.mkDefault {};
 
     users.users = {
       ngircd = {
         isSystemUser = lib.mkDefault true;
+        group = "ngircd";
         extraGroups = [ "acme" "nginx" ];
       };
 
@@ -2356,8 +2358,15 @@ the yaml file specified. Yes, this is safe to include in the repo.
           format = "yaml";
           path = "${config.sops.defaultSymlinkPath}/dn42";
         };
+        znc = {
+          format = "yaml";
+          path = "${config.sops.defaultSymlinkPath}/znc";
+        };
+        matrix_bridge = {
+          format = "yaml";
+          path = "${config.sops.defaultSymlinkPath}/matrix_bridge";
+        };
       };
-
       defaultSymlinkPath = "/run/user/1000/secrets";
       defaultSecretsMountPoint = "/run/user/1000/secrets.d";
     };

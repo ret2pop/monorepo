@@ -22,7 +22,7 @@ so that adding new configurations that add modifications is made simple.
     description = "Emacs centric configurations for a complete networked system";
 
     inputs = {
-      nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+      nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
       nur.url = "github:nix-community/NUR";
       sops-nix.url = "github:Mic92/sops-nix";
       scripts.url = "github:ret2pop/scripts";
@@ -642,11 +642,6 @@ Use ollama for serving large language models to my other computers.
       host = "0.0.0.0";
       openFirewall = true;
     };
-
-    services.nextjs-ollama-llm-ui = {
-      enable = lib.mkDefault config.services.ollama.enable;
-      port = 3000;
-    };
   }
 #+end_src
 ** Bitcoind
@@ -1025,7 +1020,6 @@ because they enhance security.
       enableAllFirmware = true;
       cpu.intel.updateMicrocode = true;
       graphics.enable = ! config.monorepo.profiles.ttyonly.enable;
-      pulseaudio.enable = ! config.monorepo.profiles.pipewire.enable;
 
       bluetooth = {
     	  enable = true;
@@ -1034,6 +1028,7 @@ because they enhance security.
     };
 
     services = {
+      pulseaudio.enable = ! config.monorepo.profiles.pipewire.enable;
       chrony = {
     	  enable = true;
     	  enableNTS = true;
@@ -1351,7 +1346,6 @@ I have many imports that we'll go through next.
       ./mpd.nix
       ./mako.nix
       ./user.nix
-      ./pantalaimon.nix
     ];
 
     options = {
@@ -1414,7 +1408,6 @@ I have many imports that we'll go through next.
   					          ]) else [])
                       ++
                       (if config.monorepo.profiles.workstation.enable then (with pkgs; [
-                        open-webui
                         mumble
                       ]) else [])
                       ++
@@ -1498,7 +1491,7 @@ I have many imports that we'll go through next.
   			                qpwgraph
   			                imagemagick
   			                inkscape
-  			                kdenlive
+  			                kdePackages.kdenlive
   			                kicad
                         reaper
                         murmur
@@ -1831,7 +1824,7 @@ as an org file which gets automatically tangled to an emacs-lisp file.
     programs.emacs = 
       {
         enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
-        package = pkgs.emacs30-pgtk;
+        package = pkgs.emacs-pgtk;
         extraConfig = ''
         (setq debug-on-error t)
         (org-babel-load-file
@@ -2016,24 +2009,24 @@ to use this component will come soon.
           "Unknown-1,disable"
         ];
         windowrule = [
-          "workspace 1, ^(.*emacs.*)$"
-          "workspace 2, ^(.*firefox.*)$"
-          "workspace 2, ^(.*Tor Browser.*)$"
-          "workspace 2, ^(.*Chromium-browser.*)$"
-          "workspace 2, ^(.*chromium.*)$"
-          "workspace 3, ^(.*discord.*)$"
-          "workspace 3, ^(.*vesktop.*)$"
-          "workspace 3, ^(.*fluffychat.*)$"
-          "workspace 3, ^(.*element-desktop.*)$"
-          "workspace 4, ^(.*qpwgraph.*)$"
-          "workspace 4, ^(.*mpv.*)$"
-          "workspace 5, ^(.*Monero.*)$"
-          "workspace 5, ^(.*org\.bitcoin\..*)$"
-          "workspace 5, ^(.*Bitcoin Core - preston.*)$"
-          "workspace 5, ^(.*org\.getmonero\..*)$"
-          "workspace 5, ^(.*Monero - preston.*)$"
-          "workspace 5, ^(.*electrum.*)$"
-          "pseudo,fcitx"
+          "workspace 1, title:(^(.*emacs.*)$)"
+          "workspace 2, title:(^(.*firefox.*)$)"
+          "workspace 2, title:(^(.*Tor Browser.*)$)"
+          "workspace 2, title:(^(.*Chromium-browser.*)$)"
+          "workspace 2, title:(^(.*chromium.*)$)"
+          "workspace 3, title:(^(.*discord.*)$)"
+          "workspace 3, title:^(.*vesktop.*)$)"
+          "workspace 3, title:(^(.*fluffychat.*)$)"
+          "workspace 3, title:(^(.*element-desktop.*)$)"
+          "workspace 4, title:(^(.*qpwgraph.*)$)"
+          "workspace 4, title:(^(.*mpv.*)$)"
+          "workspace 5, title:(^(.*Monero.*)$)"
+          "workspace 5, title:(^(.*org\.bitcoin\..*)$)"
+          "workspace 5, title:(^(.*Bitcoin Core - preston.*)$)"
+          "workspace 5, title:(^(.*org\.getmonero\..*)$)"
+          "workspace 5, title:(^(.*Monero - preston.*)$)"
+          "workspace 5, title:(^(.*electrum.*)$)"
+          "pseudo,title:fcitx"
         ];
         bind = [
           "$mod, F, exec, firefox"
@@ -2985,10 +2978,9 @@ for these configurations.
         torsocks tor-browser
 
         # fonts
-        noto-fonts noto-fonts-cjk-sans noto-fonts-emoji fira-code font-awesome_6
+        nerd-fonts.iosevka noto-fonts noto-fonts-cjk-sans noto-fonts-emoji fira-code font-awesome_6
         (aspellWithDicts
           (dicts: with dicts; [ en en-computers en-science ]))
-        (nerdfonts.override { fonts = [ "Iosevka" ]; })
 
         # Misc.
         pinentry

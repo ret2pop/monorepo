@@ -20,6 +20,7 @@
   (use-short-answers t "Use y instead of yes")
   (make-backup-files nil "Don't make backups")
   (display-fill-column-indicator-column 150 "Draw a line at 100 characters")
+  (fill-column 150)
   (line-spacing 2 "Default line spacing")
   (c-doc-comment-style '((c-mode . doxygen)
 			 (c++-mode . doxygen)))

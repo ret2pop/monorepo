@@ -24,6 +24,9 @@ Update the nullring to be in org mode, and also include a couple more sites.
 ** TODO [#B] Umami
 My client server protocol needs to continue to be written. I also need to make a git repository
 for it.
+** TODO RTOS
+Write an RTOS for ARM and an emulator maybe?
+** TODO Advanced Amateur Radio License
 ** Music and Media
 *** TODO [#B] Write Another Song
 I want to write another song.

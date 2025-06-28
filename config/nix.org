@@ -33,7 +33,7 @@ so that adding new configurations that add modifications is made simple.
         inputs.nixpkgs.follows = "nixpkgs";
       };
       home-manager = {
-  	    url = "github:nix-community/home-manager/release-24.11";
+  	    url = "github:nix-community/home-manager/release-25.05";
   	    inputs.nixpkgs.follows = "nixpkgs";
       };
       disko = {
@@ -370,38 +370,48 @@ My low latency pipewire configuration is used for music production, as well as f
 desktop usage. Pipewire is much better than pulseaudio because it supports jack with the same
 underlying interface and it breaks significantly less often.
 #+begin_src nix :tangle ../nix/modules/pipewire.nix
-{ lib, config, ... }:
-{
-  services.pipewire = {
-    enable = lib.mkDefault config.monorepo.profiles.pipewire.enable;
-    alsa = {
-      enable = true;
-      support32Bit = true;
-    };
-    pulse.enable = true;
-    jack.enable = true;
-    wireplumber.enable = true;
-    extraConfig.pipewire-pulse."92-low-latency" = {
-      "context.properties" = [
-        {
-          name = "libpipewire-module-protocol-pulse";
-          args = { };
-        }
-      ];
-      "pulse.properties" = {
-        "pulse.min.req" = "32/48000";
-        "pulse.default.req" = "32/48000";
-        "pulse.max.req" = "32/48000";
-        "pulse.min.quantum" = "32/48000";
-        "pulse.max.quantum" = "32/48000";
+  { lib, config, ... }:
+  {
+    services.pipewire = {
+      enable = lib.mkDefault config.monorepo.profiles.pipewire.enable;
+      alsa = {
+        enable = true;
+        support32Bit = true;
       };
-      "stream.properties" = {
-        "node.latency" = "32/48000";
-        "resample.quality" = 1;
+      pulse.enable = true;
+      jack.enable = true;
+      wireplumber.enable = true;
+      extraConfig = {
+        pipewire."92-low-latency" = {
+          "context.properties" = {
+            "default.clock.rate" = 48000;
+            "default.clock.quantum" = 256;
+            "default.clock.min-quantum" = 32;
+            "default.clock.max-quantum" = 512;
+          };
+          pipewire-pulse."92-low-latency" = {
+            "context.properties" = [
+              {
+                name = "libpipewire-module-protocol-pulse";
+                args = { };
+              }
+            ];
+            "pulse.properties" = {
+              "pulse.min.req" = "32/48000";
+              "pulse.default.req" = "32/48000";
+              "pulse.max.req" = "32/48000";
+              "pulse.min.quantum" = "32/48000";
+              "pulse.max.quantum" = "32/48000";
+            };
+            "stream.properties" = {
+              "node.latency" = "32/48000";
+              "resample.quality" = 1;
+            };
+          };
+        };
       };
     };
-  };
-}
+  }
 #+end_src
 ** SSH
 My SSH daemon configuration.
@@ -931,10 +941,7 @@ because they enhance security.
     	  "spectre_v2=on"
     	  "spec_store_bypass_disable=on"
     	  "tsx=off"
-    	  "tsx_async_abort=full,nosmt"
-    	  "mds=full,nosmt"
     	  "l1tf=full,force"
-    	  "nosmt=force"
     	  "kvm.nx_huge_pages=force"
 
     	  # hardened
@@ -986,6 +993,7 @@ because they enhance security.
     	  "kernel.kptr_restrict" = 2;
 
     	  # madaidan
+              "kernel.smtcontrol" = "on";
     	  "vm.swappiness" = 1;
     	  "vm.unprivileged_userfaultfd" = 0;
     	  "dev.tty.ldisc_autoload" = 0;
@@ -1090,7 +1098,7 @@ because they enhance security.
 
       lockKernelModules = true;
       protectKernelImage = true;
-      allowSimultaneousMultithreading = false;
+      allowSimultaneousMultithreading = true;
       forcePageTableIsolation = true;
 
       tpm2 = {
@@ -1485,15 +1493,16 @@ I have many imports that we'll go through next.
   				              ardour
   				              audacity
   					            blender
+                        foxdot
   			                fluidsynth
   			                qjackctl
   			                qsynth
   			                qpwgraph
   			                imagemagick
+                        supercollider
   			                inkscape
   			                kdePackages.kdenlive
   			                kicad
-                        reaper
                         murmur
   					          ]) else []);
 
@@ -1542,7 +1551,7 @@ be straightforward.
           name = "default";
           isDefault = true;
 
-          extensions = with pkgs.nur.repos.rycee.firefox-addons; [
+          extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
             ublock-origin
             tree-style-tab
             firefox-color
@@ -2089,6 +2098,10 @@ to use this component will come soon.
           };
           rounding = 5;
         };
+        device = {
+          name = "beken-usb-gaming-mouse-1";
+          sensitivity = -0.5;
+        };
         input = {
           kb_options = "caps:swapescape";
           repeat_delay = 300;
@@ -2172,21 +2185,21 @@ I've set my terminal, kitty, to use catppuccin colors.
 This is my notification system. My flake automatically fetches the notification sound, so you
 are all set from the get-go!
 #+begin_src nix :tangle ../nix/modules/home/mako.nix
-{ lib, config, sounds, ... }:
-{
-  services.mako = {
-    enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
-    backgroundColor = "#11111bf8";
-    textColor = "#cdd6f4";
-    borderColor = "#89b4faff";
-    borderRadius = 1;
-    font = "Fira Code 10";
-    defaultTimeout = 3000;
-    extraConfig = ''
-on-notify=exec mpv ${sounds}/polite.ogg --no-config --no-video
-'';
-  };
-}
+  { lib, config, sounds, ... }:
+  {
+    services.mako = {
+      enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
+      settings = {
+        on-notify = "exec mpv ${sounds}/polite.ogg --no-config --no-video";
+        background-color = "#11111bf8";
+        text-color = "#cdd6f4";
+        border-color = "#89b4faff";
+        border-radius = 1;
+        font = "Fira Code 10";
+        default-timeout = 3000;
+      };
+    };
+  }
 #+end_src
 *** Mbsync
 Note that in order to use my email configuration, your imaps and smtps servers must be
@@ -2369,280 +2382,280 @@ the yaml file specified. Yes, this is safe to include in the repo.
 This is the bar I use for my hyprland configuration. You will need to adjust the monitors field
 in the ~default.nix~ for it to really appear.
 #+begin_src nix :tangle ../nix/modules/home/waybar.nix
-{ lib, config, ... }:
-{
-  programs.waybar = {
-    enable = lib.mkDefault config.monorepo.profiles.hyprland.enable;
-    style = ''
-      * {
-          border: none;
-          border-radius: 0px;
-          font-family: Iosevka Nerd Font, FontAwesome, Noto Sans CJK;
-          font-size: 14px;
-          font-style: normal;
-          min-height: 0;
-      }
+  { lib, config, ... }:
+  {
+    programs.waybar = {
+      enable = lib.mkDefault config.monorepo.profiles.hyprland.enable;
+      style = ''
+        ,* {
+            border: none;
+            border-radius: 0px;
+            font-family: Iosevka Nerd Font, FontAwesome, Noto Sans CJK;
+            font-size: 14px;
+            font-style: normal;
+            min-height: 0;
+        }
 
-      window#waybar {
-          background: rgba(30, 30, 46, 0.5);
-          border-bottom: 1px solid #45475a;
-          color: #cdd6f4;
-      }
+        window#waybar {
+            background: rgba(30, 30, 46, 0.5);
+            border-bottom: 1px solid #45475a;
+            color: #cdd6f4;
+        }
 
-      #workspaces {
-        background: #45475a;
-        margin: 5px 5px 5px 5px;
-        padding: 0px 5px 0px 5px;
-        border-radius: 16px;
-        border: solid 0px #f4d9e1;
-        font-weight: normal;
-        font-style: normal;
-      }
-      #workspaces button {
-          padding: 0px 5px;
-          border-radius: 16px;
-          color: #a6adc8;
-      }
-
-      #workspaces button.active {
-          color: #f4d9e1;
-          background-color: transparent;
-          border-radius: 16px;
-      }
-
-      #workspaces button:hover {
-      	background-color: #cdd6f4;
-      	color: black;
-      	border-radius: 16px;
-      }
-
-      #custom-date, #clock, #battery, #pulseaudio, #network, #custom-randwall, #custom-launcher {
-      	background: transparent;
-      	padding: 5px 5px 5px 5px;
-      	margin: 5px 5px 5px 5px;
-        border-radius: 8px;
-        border: solid 0px #f4d9e1;
-      }
-
-      #custom-date {
-      	color: #D3869B;
-      }
-
-      #custom-power {
-      	color: #24283b;
-      	background-color: #db4b4b;
-      	border-radius: 5px;
-      	margin-right: 10px;
-      	margin-top: 5px;
-      	margin-bottom: 5px;
-      	margin-left: 0px;
-      	padding: 5px 10px;
-      }
-
-      #tray {
+        #workspaces {
           background: #45475a;
           margin: 5px 5px 5px 5px;
+          padding: 0px 5px 0px 5px;
           border-radius: 16px;
-          padding: 0px 5px;
-          /*border-right: solid 1px #282738;*/
-      }
+          border: solid 0px #f4d9e1;
+          font-weight: normal;
+          font-style: normal;
+        }
+        #workspaces button {
+            padding: 0px 5px;
+            border-radius: 16px;
+            color: #a6adc8;
+        }
 
-      #clock {
-          color: #cdd6f4;
-          background-color: #45475a;
-          border-radius: 0px 0px 0px 24px;
-          padding-left: 13px;
-          padding-right: 15px;
-          margin-right: 0px;
-          margin-left: 10px;
-          margin-top: 0px;
-          margin-bottom: 0px;
-          font-weight: bold;
-          /*border-left: solid 1px #282738;*/
-      }
+        #workspaces button.active {
+            color: #f4d9e1;
+            background-color: transparent;
+            border-radius: 16px;
+        }
 
-      #battery {
-          color: #89b4fa;
-      }
+        #workspaces button:hover {
+        	background-color: #cdd6f4;
+        	color: black;
+        	border-radius: 16px;
+        }
 
-      #battery.charging {
-          color: #a6e3a1;
-      }
-
-      #battery.warning:not(.charging) {
-          background-color: #f7768e;
-          color: #f38ba8;
-          border-radius: 5px 5px 5px 5px;
-      }
-
-      #backlight {
-          background-color: #24283b;
-          color: #db4b4b;
-          border-radius: 0px 0px 0px 0px;
-          margin: 5px;
-          margin-left: 0px;
-          margin-right: 0px;
-          padding: 0px 0px;
-      }
-
-      #network {
-          color: #f4d9e1;
+        #custom-date, #clock, #battery, #pulseaudio, #network, #custom-randwall, #custom-launcher {
+        	background: transparent;
+        	padding: 5px 5px 5px 5px;
+        	margin: 5px 5px 5px 5px;
           border-radius: 8px;
-          margin-right: 5px;
-      }
+          border: solid 0px #f4d9e1;
+        }
 
-      #pulseaudio {
-          color: #f4d9e1;
-          border-radius: 8px;
-          margin-left: 0px;
-      }
+        #custom-date {
+        	color: #D3869B;
+        }
 
-      #pulseaudio.muted {
-          background: transparent;
-          color: #928374;
-          border-radius: 8px;
-          margin-left: 0px;
-      }
+        #custom-power {
+        	color: #24283b;
+        	background-color: #db4b4b;
+        	border-radius: 5px;
+        	margin-right: 10px;
+        	margin-top: 5px;
+        	margin-bottom: 5px;
+        	margin-left: 0px;
+        	padding: 5px 10px;
+        }
 
-      #custom-randwall {
-          color: #f4d9e1;
-          border-radius: 8px;
-          margin-right: 0px;
-      }
+        #tray {
+            background: #45475a;
+            margin: 5px 5px 5px 5px;
+            border-radius: 16px;
+            padding: 0px 5px;
+            /*border-right: solid 1px #282738;*/
+        }
 
-      #custom-launcher {
-          color: #e5809e;
-          background-color: #45475a;
-          border-radius: 0px 24px 0px 0px;
-          margin: 0px 0px 0px 0px;
-          padding: 0 20px 0 13px;
-          /*border-right: solid 1px #282738;*/
-          font-size: 20px;
-      }
+        #clock {
+            color: #cdd6f4;
+            background-color: #45475a;
+            border-radius: 0px 0px 0px 24px;
+            padding-left: 13px;
+            padding-right: 15px;
+            margin-right: 0px;
+            margin-left: 10px;
+            margin-top: 0px;
+            margin-bottom: 0px;
+            font-weight: bold;
+            /*border-left: solid 1px #282738;*/
+        }
 
-      #custom-launcher button:hover {
-          background-color: #FB4934;
-          color: transparent;
-          border-radius: 8px;
-          margin-right: -5px;
-          margin-left: 10px;
-      }
+        #battery {
+            color: #89b4fa;
+        }
 
-      #custom-playerctl {
-      	background: #45475a;
-      	padding-left: 15px;
-        padding-right: 14px;
-      	border-radius: 16px;
-        /*border-left: solid 1px #282738;*/
-        /*border-right: solid 1px #282738;*/
-        margin-top: 5px;
-        margin-bottom: 5px;
-        margin-left: 0px;
-        font-weight: normal;
-        font-style: normal;
-        font-size: 16px;
-      }
+        #battery.charging {
+            color: #a6e3a1;
+        }
 
-      #custom-playerlabel {
-          background: transparent;
-          padding-left: 10px;
-          padding-right: 15px;
-          border-radius: 16px;
+        #battery.warning:not(.charging) {
+            background-color: #f7768e;
+            color: #f38ba8;
+            border-radius: 5px 5px 5px 5px;
+        }
+
+        #backlight {
+            background-color: #24283b;
+            color: #db4b4b;
+            border-radius: 0px 0px 0px 0px;
+            margin: 5px;
+            margin-left: 0px;
+            margin-right: 0px;
+            padding: 0px 0px;
+        }
+
+        #network {
+            color: #f4d9e1;
+            border-radius: 8px;
+            margin-right: 5px;
+        }
+
+        #pulseaudio {
+            color: #f4d9e1;
+            border-radius: 8px;
+            margin-left: 0px;
+        }
+
+        #pulseaudio.muted {
+            background: transparent;
+            color: #928374;
+            border-radius: 8px;
+            margin-left: 0px;
+        }
+
+        #custom-randwall {
+            color: #f4d9e1;
+            border-radius: 8px;
+            margin-right: 0px;
+        }
+
+        #custom-launcher {
+            color: #e5809e;
+            background-color: #45475a;
+            border-radius: 0px 24px 0px 0px;
+            margin: 0px 0px 0px 0px;
+            padding: 0 20px 0 13px;
+            /*border-right: solid 1px #282738;*/
+            font-size: 20px;
+        }
+
+        #custom-launcher button:hover {
+            background-color: #FB4934;
+            color: transparent;
+            border-radius: 8px;
+            margin-right: -5px;
+            margin-left: 10px;
+        }
+
+        #custom-playerctl {
+        	background: #45475a;
+        	padding-left: 15px;
+          padding-right: 14px;
+        	border-radius: 16px;
           /*border-left: solid 1px #282738;*/
           /*border-right: solid 1px #282738;*/
           margin-top: 5px;
           margin-bottom: 5px;
+          margin-left: 0px;
           font-weight: normal;
           font-style: normal;
-      }
+          font-size: 16px;
+        }
 
-      #window {
-          background: #45475a;
-          padding-left: 15px;
-          padding-right: 15px;
-          border-radius: 16px;
-          /*border-left: solid 1px #282738;*/
-          /*border-right: solid 1px #282738;*/
-          margin-top: 5px;
-          margin-bottom: 5px;
-          font-weight: normal;
-          font-style: normal;
-      }
+        #custom-playerlabel {
+            background: transparent;
+            padding-left: 10px;
+            padding-right: 15px;
+            border-radius: 16px;
+            /*border-left: solid 1px #282738;*/
+            /*border-right: solid 1px #282738;*/
+            margin-top: 5px;
+            margin-bottom: 5px;
+            font-weight: normal;
+            font-style: normal;
+        }
 
-      #custom-wf-recorder {
-          padding: 0 20px;
-          color: #e5809e;
-          background-color: #1E1E2E;
-      }
+        #window {
+            background: #45475a;
+            padding-left: 15px;
+            padding-right: 15px;
+            border-radius: 16px;
+            /*border-left: solid 1px #282738;*/
+            /*border-right: solid 1px #282738;*/
+            margin-top: 5px;
+            margin-bottom: 5px;
+            font-weight: normal;
+            font-style: normal;
+        }
 
-      #cpu {
-          background-color: #45475a;
-          /*color: #FABD2D;*/
-          border-radius: 16px;
-          margin: 5px;
-          margin-left: 5px;
-          margin-right: 5px;
-          padding: 0px 10px 0px 10px;
-          font-weight: bold;
-      }
+        #custom-wf-recorder {
+            padding: 0 20px;
+            color: #e5809e;
+            background-color: #1E1E2E;
+        }
 
-      #memory {
-          background-color: #45475a;
-          /*color: #83A598;*/
-          border-radius: 16px;
-          margin: 5px;
-          margin-left: 5px;
-          margin-right: 5px;
-          padding: 0px 10px 0px 10px;
-          font-weight: bold;
-      }
+        #cpu {
+            background-color: #45475a;
+            /*color: #FABD2D;*/
+            border-radius: 16px;
+            margin: 5px;
+            margin-left: 5px;
+            margin-right: 5px;
+            padding: 0px 10px 0px 10px;
+            font-weight: bold;
+        }
 
-      #disk {
-          background-color: #45475a;
-          /*color: #8EC07C;*/
-          border-radius: 16px;
-          margin: 5px;
-          margin-left: 5px;
-          margin-right: 5px;
-          padding: 0px 10px 0px 10px;
-          font-weight: bold;
-      }
+        #memory {
+            background-color: #45475a;
+            /*color: #83A598;*/
+            border-radius: 16px;
+            margin: 5px;
+            margin-left: 5px;
+            margin-right: 5px;
+            padding: 0px 10px 0px 10px;
+            font-weight: bold;
+        }
 
-      #custom-hyprpicker {
-          background-color: #45475a;
-          /*color: #8EC07C;*/
-          border-radius: 16px;
-          margin: 5px;
-          margin-left: 5px;
-          margin-right: 5px;
-          padding: 0px 11px 0px 9px;
-          font-weight: bold;
-      }
-    '';
-    settings = {
-      mainBar = {
-        layer = "top";
-        position = "top";
-        height = 50;
+        #disk {
+            background-color: #45475a;
+            /*color: #8EC07C;*/
+            border-radius: 16px;
+            margin: 5px;
+            margin-left: 5px;
+            margin-right: 5px;
+            padding: 0px 10px 0px 10px;
+            font-weight: bold;
+        }
 
-        output = config.monorepo.vars.monitors;
+        #custom-hyprpicker {
+            background-color: #45475a;
+            /*color: #8EC07C;*/
+            border-radius: 16px;
+            margin: 5px;
+            margin-left: 5px;
+            margin-right: 5px;
+            padding: 0px 11px 0px 9px;
+            font-weight: bold;
+        }
+      '';
+      settings = {
+        mainBar = {
+          layer = "top";
+          position = "top";
+          height = 50;
 
-        modules-left = [ "hyprland/workspaces" ];
-        modules-center = [ "hyprland/window" ];
-        modules-right = [ "battery" "clock" ];
+          output = config.monorepo.vars.monitors;
 
-        battery = {
-          format = "{icon}  {capacity}%";
-          format-icons = ["" "" "" "" "" ];
-        };
+          modules-left = [ "hyprland/workspaces" ];
+          modules-center = [ "hyprland/window" ];
+          modules-right = [ "battery" "clock" ];
 
-        clock = {
-          format = "⏰ {:%a %d, %b %H:%M}";
+          battery = {
+            format = "{icon}  {capacity}%";
+            format-icons = ["" "" "" "" "" ];
+          };
+
+          clock = {
+            format = "⏰ {:%a %d, %b %H:%M}";
+          };
         };
       };
     };
-  };
-}
+  }
 #+end_src
 *** Wofi
 This is a run launcher for wayland. I also use it for my powermenu.
@@ -2861,7 +2874,7 @@ standard.
   {
     programs.zsh = {
       enable = true;
-      initExtra = ''
+      initContent = ''
       umask 0022
       export EXTRA_CCFLAGS="-I/usr/include"
       source ${pkgs.zsh-vi-mode}/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh
@@ -2966,7 +2979,8 @@ for these configurations.
         graphviz jq
 
         # Apps
-        octaveFull vesktop grim swww vim 
+        octaveFull
+        vesktop grim swww vim 
 
         # Sound/media
         pavucontrol alsa-utils imagemagick ffmpeg helvum
@@ -3014,7 +3028,7 @@ for these configurations.
 
     services = {
       gpg-agent = {
-        pinentryPackage = pkgs.pinentry-emacs;
+        pinentry.package = pkgs.pinentry-emacs;
         enable = true;
         extraConfig = ''
         allow-emacs-pinentry

@@ -35,18 +35,17 @@ I want to start making YouTube videos.
 ** TODO [#C] Analogue Computer
 I want to make an analogue computer.
 * Skills
-** TODO Learn Supercollider Languages
+** TODO Learn Supercollider Languages For Music Production
 ** TODO Learn Blender
 ** TODO Drawing with Krita
 ** DONE Circuit Design
 ** TODO Learn More Solidity
 ** TODO Learn Haskell
-** TODO Learn Coq Theorem Prover
+** TODO Learn Lean Theorem Prover
 * Academic
 ** TODO QFT
 ** TODO GM
-** TODO Real and Complex Analysis
-*** DONE Real Analysis
+** TODO Complex Analysis
 ** TODO Measure Theory
 ** TODO Category Theory
 ** TODO ZK Proof Deep Dive
@@ -56,6 +55,14 @@ schedules.
 ** Friends
 These are tasks related to seeing my friends. There will be tasks listed here when I schedule
 something.
+*** TODO Transhuman meetup
+SCHEDULED: <2025-07-26 Sat 16:00>
+I signed up for one with some random people. Meeting Andrei.
+*** TODO Camping with David
+SCHEDULED: <2025-08-03 Sun>
+Camping with several people on this day.
+*** TODO Friend coming over
+SCHEDULED: <2025-08-09 Sat>
 * Habits
 These are some habits I want to track. They are repeated according to a calendar schedule in
 general.
@@ -97,10 +104,11 @@ SCHEDULED: <2025-02-12 Wed .+1d>
 - State "DONE"       from "TODO"       [2025-01-11 Sat 02:26]
 I want to stretch every day so that I can become more flexible.
 ** TODO Journal
-SCHEDULED: <2025-06-27 Fri .+1d>
+SCHEDULED: <2025-07-21 Mon .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-06-26 Thu 23:21]
+:LAST_REPEAT: [2025-07-20 Sun 21:28]
 :END:
+- State "DONE"       from "TODO"       [2025-07-20 Sun 21:28]
 - State "DONE"       from "TODO"       [2025-06-26 Thu 23:21]
 - State "DONE"       from "TODO"       [2025-03-21 Fri 04:49]
 - State "DONE"       from "TODO"       [2025-03-13 Thu 09:55]

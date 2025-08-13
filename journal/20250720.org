@@ -1,0 +1,14 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+options: broken-links:t
+* Sunday, 20 July 2025
+** 21:21 
+I'm almost done real analysis. I'm just reviewing and I'm probably going to take a look
+at the chapter on the Riemann-Stieltjes integral. Then I'm going to switch over to complex analysis.
+I also skipped a couple of subchapters that I have to go back to now, but that's no big deal, and I'm
+going back to them now.

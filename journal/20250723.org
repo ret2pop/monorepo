@@ -1,0 +1,14 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+options: broken-links:t
+* Wednesday, 23 July 2025
+** 23:15 
+I'm journaling again to say that I'm basically done real analysis now, and I'm onto
+one of complex analysis, or programming. I should really do some more physical projects as well.
+Hopefully I can learn some differential geometry next, as it is required in order to continue exploring
+physics.

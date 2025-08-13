@@ -1,0 +1,23 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+options: broken-links:t
+* Thursday, 03 July 2025
+** 20:05 
+I am currently studying more radio mathematics in order to fully understand
+how certain radio modes work, and secondly how antennas work on a deeper level.
+I've gained some insight into antennas already by analyzing the radiation patterns
+of dipole antennas and loop antennas, particularly with the use of retarded potentials
+and certain simplifying assumptions regarding the strength of far-field radiation and the
+size of the dipole as well as the transmitting frequency.
+
+Additionally, I am studying many filter circuits that are used in superheterodyne circuits,
+and I am studying the structure of different transmitters such as AM, QAM, SSB, and FM
+transmitters. I hope to gain a fully functional understanding of these transmitters as well
+as an understanding of the different propagation methods (skywave, ground wave, moon bounce, scattering, etc...).
+Of course I already have an operational understanding of propagation, but I would like to understand
+these all from a mathematical perspective, and understand polarization with regards to scattering.

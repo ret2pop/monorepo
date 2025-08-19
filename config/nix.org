@@ -365,6 +365,15 @@ Still, it is suitable for using Krita.
   }
 #+end_src
 You should add your own video drivers in a custom machine configuration.
+** Docker
+In order to run docker containers, I need this file:
+#+begin_src nix :tangle ../nix/modules/docker.nix
+  { lib, config, vars, ... }:
+  {
+    virtualisation.docker.enable = true;
+  }
+#+end_src
+
 ** Pipewire
 My low latency pipewire configuration is used for music production, as well as for regular
 desktop usage. Pipewire is much better than pulseaudio because it supports jack with the same
@@ -856,6 +865,7 @@ because they enhance security.
       ./murmur.nix
       ./ngircd.nix
       ./znc.nix
+      ./docker.nix
     ];
 
     documentation = {
@@ -1155,6 +1165,7 @@ because they enhance security.
     users.groups.ngircd = lib.mkDefault {};
 
     users.users = {
+
       ngircd = {
         isSystemUser = lib.mkDefault true;
         group = "ngircd";
@@ -1192,10 +1203,11 @@ because they enhance security.
         openssh.authorizedKeys.keys = [
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICts6+MQiMwpA+DfFQxjIN214Jn0pCw/2BDvOzPhR/H2 preston@continuity-dell"
         ];
+
     	  initialPassword = "${config.monorepo.vars.userName}";
     	  isNormalUser = true;
     	  description = config.monorepo.vars.fullName;
-    	  extraGroups = [ "networkmanager" "wheel" "video" "docker" "jackaudio" "tss" "dialout" ];
+    	  extraGroups = [ "networkmanager" "wheel" "video" "docker" "jackaudio" "tss" "dialout" "docker" ];
     	  shell = pkgs.zsh;
     	  packages = [];
       };

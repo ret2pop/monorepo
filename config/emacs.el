@@ -4,6 +4,11 @@
 
 (use-package emacs
   :custom
+  ;; global defaults
+  (setq-default indent-tabs-mode nil)  ;; no real tabs, only spaces
+  (setq-default tab-width 2)           ;; just in case, make a "tab" show as 4 spaces
+  (setq-default standard-indent 2)     ;; base indentation
+
   ;; Startup errors
   (warning-minimum-level :emergency "Supress emacs warnings")
   (confirm-kill-processes nil "Don't ask to quit")
@@ -254,22 +259,32 @@
   :after (org)
   :hook (org-mode . (lambda () (org-superstar-mode 1))))
 
-(use-package eglot
-  :hook
-  (prog-mode . eglot-ensure)
-  (nix-mode . eglot-ensure)
+;; (use-package eglot
+ ;;   :hook
+ ;;   (prog-mode . eglot-ensure)
+ ;;   (nix-mode . eglot-ensure)
+ ;;   :config
+ ;;   (add-to-list 'eglot-server-programs '(nix-mode . ("nil"))))
+
+ (use-package lsp
+   :hook
+   (prog-mode . lsp))
+
+(with-eval-after-load 'lsp-mode
+  (setq lsp-typescript-format-enable t
+        lsp-typescript-indent-size 4
+        lsp-typescript-tab-size 4
+        lsp-typescript-indent-style "spaces"))
+
+(use-package editorconfig
   :config
-  (add-to-list 'eglot-server-programs '(nix-mode . ("nil"))))
+  (editorconfig-mode 1))
 
-(use-package lsp
-  :hook
-  (prog-mode . lsp))
+ (use-package flycheck
+   :config (global-flycheck-mode))
 
-(use-package flycheck
-  :config (global-flycheck-mode))
-
-(use-package platformio-mode
-  :hook (prog-mode . platformio-conditionally-enable))
+ (use-package platformio-mode
+:hook (prog-mode . platformio-conditionally-enable))
 
 (use-package irony-mode
   :hook (
@@ -409,7 +424,7 @@
     "m l" '(lyrics-fetcher-show-lyrics :wk "Music lyrics")
     "o p" '(treemacs :wk "Project Drawer")
     "o P" '(treemacs-projectile :wk "Import Projectile project to treemacs")
-    "f f" '(eglot-format :wk "Format code buffer")
+    ;; "f f" '(eglot-format :wk "Format code buffer")
     "i p c" '(prestonpan :wk "Connect to my IRC server")
     "i l c" '(liberachat :wk "Connect to libera chat server")
     "i e c" '(efnet :wk "Connect to efnet chat server")

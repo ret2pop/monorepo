@@ -67,10 +67,12 @@ SCHEDULED: <2025-08-09 Sat>
 These are some habits I want to track. They are repeated according to a calendar schedule in
 general.
 ** TODO Supplements
-SCHEDULED: <2025-03-22 Sat .+1d>
+SCHEDULED: <2025-08-28 Thu .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-03-21 Fri 04:48]
+:LAST_REPEAT: [2025-08-27 Wed 21:46]
 :END:
+- State "DONE"       from "TODO"       [2025-08-27 Wed 21:46]
+- State "DONE"       from "TODO"       [2025-08-25 Mon 21:17]
 - State "DONE"       from "TODO"       [2025-03-21 Fri 04:48]
 - State "DONE"       from "TODO"       [2025-03-13 Thu 09:52]
 - State "DONE"       from "TODO"       [2025-03-11 Tue 00:34]
@@ -81,18 +83,21 @@ Current stack:
 - Vitamin D3
 - EPA/DHA
 ** TODO Pushups
-SCHEDULED: <2025-03-22 Sat .+1d>
+SCHEDULED: <2025-08-28 Thu .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-03-21 Fri 04:49]
+:LAST_REPEAT: [2025-08-27 Wed 21:46]
 :END:
+- State "DONE"       from "TODO"       [2025-08-27 Wed 21:46]
+- State "DONE"       from "TODO"       [2025-08-25 Mon 21:16]
 - State "DONE"       from "TODO"       [2025-03-21 Fri 04:49]
 - State "DONE"       from "TODO"       [2025-03-11 Tue 00:16]
 I want to be healthy.
 ** TODO Run
-SCHEDULED: <2025-06-27 Fri .+1d>
+SCHEDULED: <2025-08-26 Tue .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-06-26 Thu 23:22]
+:LAST_REPEAT: [2025-08-25 Mon 21:17]
 :END:
+- State "DONE"       from "TODO"       [2025-08-25 Mon 21:17]
 - State "DONE"       from "TODO"       [2025-06-26 Thu 23:22]
 I want to be able to run or bike every day so that I get my exercise in.
 ** TODO Stretch

@@ -18,15 +18,14 @@ https://ret2pop.nullring.xyz, it is the road to enlightenment.
 * Wait, so where are your dotfiles?
 To use my dotfiles, download the ISO image for the installer, log in, and run:
 #+begin_src bash
-  nmtui
-  git clone https://git.nullring.xyz/monorepo.git
-  # use vim to change whatever nix files you want
-  nix_installer
+  SYSTEM=continuity DRIVE=sda-simple nix_installer
 #+end_src
-That's it! If you want to install with all the default settings (look at them first), just run:
+then reboot, and run:
 #+begin_src bash
-  nix_installer
+  cd $HOME/monorepo && git pull
 #+end_src
-and it will work for you.
+** Post-setup
+In emacs, run ~M-x all-the-icons-install-fonts, ~~M-x nerd-icons-install-fonts~, and ~M-x org-roam-db-sync~. Install your music to ~$HOME/music~ for
+emms.
 * License
 See the [[file:LICENSE.org][license]]. The style.css has its own license.

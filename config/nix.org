@@ -55,6 +55,13 @@ so that adding new configurations that add modifications is made simple.
 
     outputs = { self, nixpkgs, home-manager, nur, disko, lanzaboote, sops-nix, nix-topology, nixos-dns, deep-research, ... }@attrs:
       let
+        hostnames = [
+          "affinity"
+          "continuity"
+          "installer"
+          "spontaneity"
+          # add hostnames here
+        ];
         system = "x86_64-linux";
         pkgs = import nixpkgs { inherit system; };
         generate = nixos-dns.utils.generate nixpkgs.legacyPackages."${system}";
@@ -62,8 +69,7 @@ so that adding new configurations that add modifications is made simple.
           inherit (self) nixosConfigurations;
           extraConfig = import ./dns/default.nix;
         };
-        mkConfigs = map (hostname: {
-          name = "${hostname}";
+        mkConfigs = map (hostname: {name = "${hostname}";
           value = nixpkgs.lib.nixosSystem {
             inherit system;
             specialArgs = attrs;
@@ -74,7 +80,7 @@ so that adding new configurations that add modifications is made simple.
             ] else [
               {
                 environment.systemPackages = with nixpkgs.lib; [
-                  deep-research.packages.${system}.deep-research
+                  deep-research.packages."${system}".deep-research
                 ];
               }
               nix-topology.nixosModules.default
@@ -85,7 +91,7 @@ so that adding new configurations that add modifications is made simple.
               nixos-dns.nixosModules.dns
               {
                 nixpkgs.overlays = [ nur.overlays.default ];
-                home-manager.extraSpecialArgs = attrs;
+                home-manager.extraSpecialArgs = attrs // { systemHostName = "${hostname}"; };
                 networking.hostName = "${hostname}";
               }
               (./. + "/systems/${hostname}/default.nix")
@@ -94,12 +100,7 @@ so that adding new configurations that add modifications is made simple.
         });
       in {
         # add new systems here
-        nixosConfigurations = builtins.listToAttrs (mkConfigs [
-          "affinity"
-          "continuity"
-          "installer"
-          "spontaneity"
-        ]);
+        nixosConfigurations = builtins.listToAttrs (mkConfigs hostnames);
 
         topology."${system}" = import nix-topology {
           pkgs = import nixpkgs {
@@ -347,9 +348,9 @@ Still, it is suitable for using Krita.
   { lib, config, pkgs, ... }:
   {
     services.xserver = {
-      enable = lib.mkDefault true;
+      enable = (! config.monorepo.profiles.ttyonly.enable);
       displayManager = {
-        startx.enable = true;
+        startx.enable = (! config.monorepo.profiles.ttyonly.enable);
       };
 
       windowManager = {
@@ -933,7 +934,7 @@ because they enhance security.
 
       loader = {
     	  systemd-boot.enable = lib.mkForce (! config.monorepo.profiles.grub.enable);
-    	  efi.canTouchEfiVariables = lib.mkDefault (! config.monorepo.profiles.grub.enable);
+    	  efi.canTouchEfiVariables = lib.mkForce (! config.monorepo.profiles.grub.enable);
       };
 
       kernelModules = [
@@ -1128,7 +1129,7 @@ because they enhance security.
 
       auditd.enable = true;
       audit.enable = true;
-      chromiumSuidSandbox.enable = true;
+      chromiumSuidSandbox.enable = (! config.monorepo.profiles.ttyonly.enable);
       sudo.enable = true;
     };
 
@@ -1242,41 +1243,41 @@ This is the disko configuration for my continuity system. It features a boot and
 on disk /dev/sda. All my SATA disks have this location by default, but if you want to use nvme,
 you will have to import that configuration in your ~systems/xxx/default.nix~.
 #+begin_src nix :tangle ../nix/disko/sda-simple.nix
-{
-  disko.devices = {
-    disk = {
-      my-disk = {
-        device = "/dev/sda";
-        type = "disk";
-        content = {
-          type = "gpt";
-          partitions = {
-            ESP = {
-              type = "EF00";
-              size = "500M";
-              priority = 1;
-              content = {
-                type = "filesystem";
-                format = "vfat";
-                mountpoint = "/boot";
-                mountOptions = [ "umask=0077" ];
+  {
+    disko.devices = {
+      disk = {
+        my-disk = {
+          device = "/dev/sda";
+          type = "disk";
+          content = {
+            type = "gpt";
+            partitions = {
+              ESP = {
+                type = "EF00";
+                size = "500M";
+                priority = 1;
+                content = {
+                  type = "filesystem";
+                  format = "vfat";
+                  mountpoint = "/boot";
+                  mountOptions = [ "umask=0077" ];
+                };
               };
-            };
-            root = {
-              size = "100%";
-              priority = 2;
-              content = {
-                type = "filesystem";
-                format = "ext4";
-                mountpoint = "/";
+              root = {
+                size = "100%";
+                priority = 2;
+                content = {
+                  type = "filesystem";
+                  format = "ext4";
+                  mountpoint = "/";
+                };
               };
             };
           };
         };
       };
     };
-  };
-}
+  }
 #+end_src
 *** NVME
 For my nvme drives.
@@ -1334,6 +1335,7 @@ For my virtual machines.
                 type = "EF02";
               };
               root = {
+                label = "disk-main-root"; 
                 size = "100%";
                 content = {
                   type = "filesystem";
@@ -1530,26 +1532,26 @@ I have many imports that we'll go through next.
 
       monorepo.profiles = {
   	    enable = lib.mkDefault true;
-  	    music.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-  	    hyprland.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-  	    email.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    music.enable = lib.mkDefault config.monorepo.profiles.enable;
+  	    hyprland.enable = lib.mkDefault config.monorepo.profiles.enable;
+  	    email.enable = lib.mkDefault config.monorepo.profiles.enable;
 
   	    # Programming
-        graphics.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-  	    lang-c.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-  	    lang-rust.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-  	    lang-python.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-  	    lang-sol.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-  	    lang-sh.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-  	    lang-openscad.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-  	    lang-js.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-  	    lang-nix.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-  	    lang-coq.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-  	    lang-haskell.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+        graphics.enable = lib.mkDefault  config.monorepo.profiles.enable;
+  	    lang-c.enable = lib.mkDefault config.monorepo.profiles.enable;
+  	    lang-rust.enable = lib.mkDefault config.monorepo.profiles.enable;
+  	    lang-python.enable = lib.mkDefault config.monorepo.profiles.enable;
+  	    lang-sol.enable = lib.mkDefault config.monorepo.profiles.enable;
+  	    lang-sh.enable = lib.mkDefault config.monorepo.profiles.enable;
+  	    lang-openscad.enable = lib.mkDefault config.monorepo.profiles.enable;
+  	    lang-js.enable = lib.mkDefault config.monorepo.profiles.enable;
+  	    lang-nix.enable = lib.mkDefault config.monorepo.profiles.enable;
+  	    lang-coq.enable = lib.mkDefault config.monorepo.profiles.enable;
+  	    lang-haskell.enable = lib.mkDefault config.monorepo.profiles.enable;
 
-  	    crypto.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-  	    art.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
-  	    workstation.enable = lib.mkDefault (true && config.monorepo.profiles.enable);
+  	    crypto.enable = lib.mkDefault config.monorepo.profiles.enable;
+  	    art.enable = lib.mkDefault config.monorepo.profiles.enable;
+  	    workstation.enable = lib.mkDefault config.monorepo.profiles.enable;
       };
     };
   }
@@ -1829,19 +1831,20 @@ be straightforward.
 *** Fcitx
 This is a virtual keyboard program for writing in multiple languages. I use this sometimes.
 #+begin_src nix :tangle ../nix/modules/home/fcitx.nix
-{ pkgs, ... }:
-{
-  i18n.inputMethod = {
-    enabled = "fcitx5";
-    fcitx5.addons = with pkgs; [
-      fcitx5-gtk
-      fcitx5-chinese-addons
-      fcitx5-configtool
-      fcitx5-mozc
-      fcitx5-rime
-    ];
-  };
-}
+  { config, pkgs, lib, ... }:
+  {
+    i18n.inputMethod = {
+      type = "fcitx5";
+      enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
+      fcitx5.addons = with pkgs; [
+        fcitx5-gtk
+        fcitx5-chinese-addons
+        fcitx5-configtool
+        fcitx5-mozc
+        fcitx5-rime
+      ];
+    };
+  }
 #+end_src
 Note that I configure fcitx with chinese and some japanese input enabled.
 *** Emacs
@@ -2892,7 +2895,7 @@ A classic program that allows you to download from youtube. Also has integration
 My zsh config has some useful aliases that one should read through. Otherwise it is pretty
 standard.
 #+begin_src nix :tangle ../nix/modules/home/zsh.nix
-  { lib, config, pkgs, ... }:
+  { lib, config, pkgs, systemHostName, ... }:
   {
     programs.zsh = {
       enable = true;
@@ -2919,8 +2922,7 @@ standard.
         g = "git";
         v = "vim";
         py = "python3";
-        rb = "sudo nixos-rebuild switch --flake .#continuity";
-        rba = "sudo nixos-rebuild switch --flake .#affinity";
+        rb = "sudo nixos-rebuild switch --flake .#${systemHostName}";
         nfu = "cd ~/monorepo/nix && git add . && git commit -m \"new flake lock\" &&  nix flake update";
         usync =  "rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/website_html/ root@${config.monorepo.vars.remoteHost}:/var/www/ret2pop-website/";
         usite
@@ -3069,7 +3071,6 @@ for these configurations.
     };
 
     fonts.fontconfig.enable = true;
-    nixpkgs.config.cudaSupport = lib.mkDefault config.monorepo.profiles.cuda.enable;
   }
 #+end_src
 * Systems
@@ -3167,6 +3168,8 @@ Spontaneity is my VPS instance.
           grub.enable = true;
         };
       };
+
+      boot.loader.grub.device = "nodev";
       networking = {
         firewall.allowedTCPPorts = [
           80
@@ -3196,6 +3199,7 @@ Spontaneity is my VPS instance.
             "mail.${config.monorepo.vars.remoteHost}" = {};
 
             "nullring.xyz" = {};
+            "git.nullring.xyz" = {};
             "matrix.nullring.xyz" = {};
             "talk.nullring.xyz" = {};
             "mail.nullring.xyz" = {};
@@ -3227,6 +3231,7 @@ work deterministically.
   {
     diskoCommitHash = "a5c4f2ab72e3d1ab43e3e65aa421c6f2bd2e12a1";
     monorepoCommitHash = "af3c15c43c65fd77aab441f4c657aeaa74cc67d5";
+    monorepoUrl = "https://github.com/ret2pop/monorepo";
   }
 #+end_src
 *** ISO Default Profile
@@ -3284,12 +3289,21 @@ This contains the installation script I use to install my systems.
     exit 1
   fi
 
-  if [ -z "$SYSTEM" ]; then
-      SYSTEM=continuity
+  gum style --border normal --margin "1" --padding "1 2" "Choose a system to install or select `new` in order to create a new system."
+
+  SYSTEM="$(gum choose "$(find "$HOME/monorepo/nix/systems" -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | grep -v -E 'installer'; printf "New")")"
+
+  if [[ "$SYSTEM" == "New" ]]; then
+    gum style --border normal --margin "1" --padding "1 2" "Choose a system name"
+    SYSTEM="$(gum input --placeholder "system name")"
   fi
 
-  if [ -z "$DRIVE" ]; then
-      DRIVE=sda-simple
+  gum style --border normal --margin "1" --padding "1 2" "Select a drive file or create a new drive file."
+  DRIVE="$(gum choose "$(find "$HOME/monorepo/nix/disko" -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | printf "New")")"
+
+  if [[ "$DRIVE" == "New" ]]; then
+    gum style --border normal --margin "1" --padding "1 2" "Choose a name to call your drive file."
+    SYSTEM="$(gum input --placeholder "drive file name (ex: my_sda.nix)")"
   fi
 
   ping -q -c1 google.com &>/dev/null && echo "online! Proceeding with the installation..." || nmtui
@@ -3297,9 +3311,10 @@ This contains the installation script I use to install my systems.
   cd "$HOME"
 
   if [ ! -d "$HOME/monorepo/" ]; then
-    git clone https://git.nullring.xyz/monorepo.git
-    cd monorepo
+    git clone ${commits.monorepoUrl}
+    cd "$HOME/monorepo"
     git checkout "${commits.monorepoCommitHash}"
+    cd "$HOME"
   fi
 
 
@@ -3311,7 +3326,7 @@ This contains the installation script I use to install my systems.
   {
     imports = [
       ../../modules/default.nix
-      ../../disko/$DRIVE.nix
+      ../../disko/$DRIVE
       ../home.nix
     ];
   }
@@ -3321,17 +3336,21 @@ This contains the installation script I use to install my systems.
     gum input --placeholder "Press Enter to continue" >/dev/null
     vim "$HOME/monorepo/nix/systems/$SYSTEM/default.nix"
 
-    sed -i "/mkConfigs \[/,/\]/ s/^\(\s*\)\]/\1  \"$SYSTEM\"\n\1]/" "$HOME/monorepo/nix/flake.nix"
+    sed -i "/hostnames = \[/,/];/ { /];/i \        \"your-hostname-$SYSTEM\" }" "$HOME/monorepo/nix/flake.nix"
+
+    if [ ! -f "$HOME/monorepo/nix/disko/$DRIVE" ]; then
+      cp "$HOME/monorepo/nix/disko/sda-simple.nix" "$HOME/monorepo/nix/disko/$DRIVE"
+      gum style --border normal --margin "1" --padding "1 2" "Edit the drive file with your preferred partitioning scheme."
+      gum input --placeholder "Press Enter to continue" >/dev/null
+      vim "$HOME/monorepo/nix/disko/$DRIVE"
+    fi
+    cd "$HOME/monorepo" && git add . && cd "$HOME"
   fi
 
-  if [ ! -f "$HOME/monorepo/nix/disko/$DRIVE.nix" ]; then
-    cp "$HOME/monorepo/nix/disko/sda-simple.nix" "$HOME/monorepo/nix/disko/$DRIVE.nix"
-    gum style --border normal --margin "1" --padding "1 2" "Edit the drive file with your preferred partitioning scheme."
-    gum input --placeholder "Press Enter to continue" >/dev/null
-    vim "$HOME/monorepo/nix/disko/$DRIVE.nix"
+  if [ ! -f "$HOME/monorepo/nix/disko/$DRIVE" ]; then
+    echo "error: you should create a new system if you use a drive file that is not in the repo."
+    exit 1
   fi
-
-  cd "$HOME/monorepo" && git add . && cd "$HOME"
 
   gum style --border normal --margin "1" --padding "1 2" "Formatting the drive is destructive!"
   if gum confirm "Are you sure you want to continue?"; then
@@ -3341,7 +3360,7 @@ This contains the installation script I use to install my systems.
       exit 1
   fi
 
-  sudo nix --experimental-features "nix-command flakes" run "github:nix-community/disko/${commits.diskoCommitHash}" -- --mode destroy,format,mount "$HOME/monorepo/nix/disko/$DRIVE.nix"
+  sudo nix --experimental-features "nix-command flakes" run "github:nix-community/disko/${commits.diskoCommitHash}" -- --mode destroy,format,mount "$HOME/monorepo/nix/disko/$DRIVE"
   cd /mnt
   sudo nixos-install --flake "$HOME/monorepo/nix#$SYSTEM"
 

@@ -52,8 +52,3 @@ This is for all my public keys that are important. Note: for cryptocurrency publ
 public scanner to get my public keys.
 - This is [[file:public-key.asc][my gpg public key for ret2pop]].
 - This is [[file:id_ed25519.pub][my ssh key]].
-
-* Feeds
-RSS (and Atom feeds) are ways of keeping up-to-date in a minimal and universal way.
-- [[https://git.nullring.xyz/ret2pop-website.git/?format=atom][Website Cgit repo atom feed]]
-

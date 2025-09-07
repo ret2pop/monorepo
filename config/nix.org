@@ -3230,7 +3230,7 @@ work deterministically.
 #+begin_src nix :tangle ../nix/systems/installer/commits.nix
   {
     diskoCommitHash = "a5c4f2ab72e3d1ab43e3e65aa421c6f2bd2e12a1";
-    monorepoCommitHash = "af3c15c43c65fd77aab441f4c657aeaa74cc67d5";
+    monorepoCommitHash = "8f4f46e59ad0b7c5662a417d10f3074f17c962c3";
     monorepoUrl = "https://github.com/ret2pop/monorepo";
   }
 #+end_src
@@ -3291,20 +3291,21 @@ This contains the installation script I use to install my systems.
 
   gum style --border normal --margin "1" --padding "1 2" "Choose a system to install or select `new` in order to create a new system."
 
-  SYSTEM="$(gum choose "$(find "$HOME/monorepo/nix/systems" -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | grep -v -E 'installer'; printf "New")")"
+  SYSTEM="$(gum choose $(find "$HOME/monorepo/nix/systems" -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | grep -v -E 'installer'; printf "New"))"
 
   if [[ "$SYSTEM" == "New" ]]; then
     gum style --border normal --margin "1" --padding "1 2" "Choose a system name"
     SYSTEM="$(gum input --placeholder "system name")"
+
+    gum style --border normal --margin "1" --padding "1 2" "Select a drive file or create a new drive file."
+    DRIVE="$(gum choose $(find "$HOME/monorepo/nix/disko" -mindepth 1 -maxdepth 1 -type f -printf "%f\n"; printf "New"))"
+
+    if [[ "$DRIVE" == "New" ]]; then
+      gum style --border normal --margin "1" --padding "1 2" "Choose a name to call your drive file."
+      DRIVE="$(gum input --placeholder "drive file name (ex: my_sda.nix)")"
+    fi
   fi
 
-  gum style --border normal --margin "1" --padding "1 2" "Select a drive file or create a new drive file."
-  DRIVE="$(gum choose "$(find "$HOME/monorepo/nix/disko" -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | printf "New")")"
-
-  if [[ "$DRIVE" == "New" ]]; then
-    gum style --border normal --margin "1" --padding "1 2" "Choose a name to call your drive file."
-    SYSTEM="$(gum input --placeholder "drive file name (ex: my_sda.nix)")"
-  fi
 
   ping -q -c1 google.com &>/dev/null && echo "online! Proceeding with the installation..." || nmtui
 
@@ -3345,11 +3346,6 @@ This contains the installation script I use to install my systems.
       vim "$HOME/monorepo/nix/disko/$DRIVE"
     fi
     cd "$HOME/monorepo" && git add . && cd "$HOME"
-  fi
-
-  if [ ! -f "$HOME/monorepo/nix/disko/$DRIVE" ]; then
-    echo "error: you should create a new system if you use a drive file that is not in the repo."
-    exit 1
   fi
 
   gum style --border normal --margin "1" --padding "1 2" "Formatting the drive is destructive!"

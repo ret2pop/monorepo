@@ -5,7 +5,7 @@
 
 * Introduction
 This is my NixOS configuration. It is a part of my monorepo, and this file automatically tangles
-to all the under the nix/ directory in my monorepo [[https://git.nullring.xyz/monorepo.git][git repository]]. My monorepo also stores my
+to all the under the nix/ directory in my monorepo [[https://ret2pop.net/gitweb/monorepo.git][git repository]]. My monorepo also stores my
 website, as my website stores my [[file:elfeed.org][elfeed]] and [[file:emacs.org][emacs]] configurations. Additionally, I want to track
 my emacs configuration with my Nix configuration. Having them in one repository means that my
 emacs configuration is pinned to my flake.
@@ -62,13 +62,19 @@ so that adding new configurations that add modifications is made simple.
           "spontaneity"
           # add hostnames here
         ];
+
         system = "x86_64-linux";
+
         pkgs = import nixpkgs { inherit system; };
+
         generate = nixos-dns.utils.generate nixpkgs.legacyPackages."${system}";
+
         dnsConfig = {
           inherit (self) nixosConfigurations;
           extraConfig = import ./dns/default.nix;
         };
+
+        # function that generates all systems from hostnames
         mkConfigs = map (hostname: {name = "${hostname}";
           value = nixpkgs.lib.nixosSystem {
             inherit system;
@@ -98,9 +104,16 @@ so that adding new configurations that add modifications is made simple.
             ];
           };
         });
+
+        mkDiskoFiles = map (hostname: {
+          name = "${hostname}";
+          value = self.nixosConfigurations."${hostname}".config.monorepo.vars.myDiskoSpec;
+        });
+
       in {
-        # add new systems here
         nixosConfigurations = builtins.listToAttrs (mkConfigs hostnames);
+
+        evalDisko = builtins.listToAttrs (mkDiskoFiles (builtins.filter (x: x != "installer") hostnames));
 
         topology."${system}" = import nix-topology {
           pkgs = import nixpkgs {
@@ -239,6 +252,18 @@ largely self-documenting.
   { lib, ... }:
   {
     options.monorepo.vars = {
+      device = lib.mkOption {
+        type = lib.types.str;
+        default = "/dev/sda";
+        example = "/dev/nvme0n1";
+        description = "device that NixOS is installed to";
+      };
+
+      myDiskoSpec = lib.mkOption {
+        type = lib.types.attrs;
+        description = "retains a copy of the disko spec for reflection";
+      };
+
       userName = lib.mkOption {
         type = lib.types.str;
         default = "preston";
@@ -1242,105 +1267,78 @@ because they enhance security.
 This is the disko configuration for my continuity system. It features a boot and ext4 partition,
 on disk /dev/sda. All my SATA disks have this location by default, but if you want to use nvme,
 you will have to import that configuration in your ~systems/xxx/default.nix~.
-#+begin_src nix :tangle ../nix/disko/sda-simple.nix
-  {
-    disko.devices = {
-      disk = {
-        my-disk = {
-          device = "/dev/sda";
-          type = "disk";
-          content = {
-            type = "gpt";
-            partitions = {
-              ESP = {
-                type = "EF00";
-                size = "500M";
-                priority = 1;
-                content = {
-                  type = "filesystem";
-                  format = "vfat";
-                  mountpoint = "/boot";
-                  mountOptions = [ "umask=0077" ];
-                };
-              };
-              root = {
-                size = "100%";
-                priority = 2;
-                content = {
-                  type = "filesystem";
-                  format = "ext4";
-                  mountpoint = "/";
-                };
-              };
-            };
-          };
-        };
-      };
-    };
-  }
-#+end_src
 *** NVME
 For my nvme drives.
-#+begin_src nix :tangle ../nix/disko/nvme-simple.nix
-{
-  disko.devices = {
-    disk = {
-      my-disk = {
-        device = "/dev/nvme0n1";
-        type = "disk";
-        content = {
-          type = "gpt";
-          partitions = {
-            ESP = {
-              type = "EF00";
-              size = "500M";
-              priority = 1;
-              content = {
-                type = "filesystem";
-                format = "vfat";
-                mountpoint = "/boot";
-                mountOptions = [ "umask=0077" ];
-              };
-            };
-            root = {
-              size = "100%";
-              priority = 2;
-              content = {
-                type = "filesystem";
-                format = "ext4";
-                mountpoint = "/";
+#+begin_src nix :tangle ../nix/disko/drive-simple.nix
+  { lib, config, ... }:
+  let
+    spec = {
+      disko.devices = {
+        disk = {
+          my-disk = {
+            device = config.monorepo.vars.device;
+            type = "disk";
+            content = {
+              type = "gpt";
+              partitions = {
+                ESP = {
+                  type = "EF00";
+                  size = "500M";
+                  priority = 1;
+                  content = {
+                    type = "filesystem";
+                    format = "vfat";
+                    mountpoint = "/boot";
+                    mountOptions = [ "umask=0077" ];
+                  };
+                };
+                root = {
+                  size = "100%";
+                  priority = 2;
+                  content = {
+                    type = "filesystem";
+                    format = "ext4";
+                    mountpoint = "/";
+                  };
+                };
               };
             };
           };
         };
       };
     };
-  };
-}
+  in
+  {
+    monorepo.vars.myDiskoSpec = spec;
+    disko.devices = spec.disko.devices;
+  }
 #+end_src
 *** VDA
 For my virtual machines.
-#+begin_src nix :tangle ../nix/disko/vda-simple.nix
-  {
-    disko.devices = {
-      disk = {
-        main = {
-          device = "/dev/vda";
-          type = "disk";
-          content = {
-            type = "gpt";
-            partitions = {
-              boot = {
-                size = "1M";
-                type = "EF02";
-              };
-              root = {
-                label = "disk-main-root"; 
-                size = "100%";
-                content = {
-                  type = "filesystem";
-                  format = "ext4";
-                  mountpoint = "/";
+#+begin_src nix :tangle ../nix/disko/drive-bios.nix
+  { config, lib, ... }:
+  let
+    spec = {
+      disko.devices = {
+        disk = {
+          main = {
+            device = config.monorepo.vars.device;
+            type = "disk";
+            content = {
+              type = "gpt";
+              partitions = {
+                boot = {
+                  size = "1M";
+                  type = "EF02";
+                };
+                root = {
+                  label = "disk-main-root"; 
+                  size = "100%";
+                  content = {
+                    type = "filesystem";
+                    format = "ext4";
+                    mountpoint = "/";
+                  };
                 };
               };
             };
@@ -1348,6 +1346,10 @@ For my virtual machines.
         };
       };
     };
+  in
+  {
+    monorepo.vars.myDiskoSpec = spec;
+    disko.devices = spec.disko.devices;
   }
 #+end_src
 ** Home
@@ -1502,7 +1504,7 @@ I have many imports that we'll go through next.
   					          ++
   					          (if config.monorepo.profiles.art.enable then (with pkgs; [
   						          inkscape
-  						          krita
+  						          # krita
   					          ]) else [])
   					          ++
   					          (if config.monorepo.profiles.music.enable then (with pkgs; [
@@ -1515,7 +1517,7 @@ I have many imports that we'll go through next.
   			                alsa-scarlett-gui
   				              ardour
   				              audacity
-  					            blender
+  					            # blender
                         foxdot
   			                fluidsynth
   			                qjackctl
@@ -1525,7 +1527,7 @@ I have many imports that we'll go through next.
                         supercollider
   			                inkscape
   			                kdePackages.kdenlive
-  			                kicad
+  			                # kicad
                         murmur
                         silver-searcher
   					          ]) else []);
@@ -2922,7 +2924,7 @@ standard.
         g = "git";
         v = "vim";
         py = "python3";
-        rb = "sudo nixos-rebuild switch --flake .#${systemHostName}";
+        rb = "sudo nixos-rebuild switch --flake $HOME/monorepo/nix#${systemHostName}";
         nfu = "cd ~/monorepo/nix && git add . && git commit -m \"new flake lock\" &&  nix flake update";
         usync =  "rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/website_html/ root@${config.monorepo.vars.remoteHost}:/var/www/ret2pop-website/";
         usite
@@ -2992,7 +2994,7 @@ for these configurations.
 
       packages = with pkgs; (if config.monorepo.profiles.graphics.enable then [
         # wikipedia
-        kiwix kiwix-tools
+        # kiwix kiwix-tools
 
         # passwords
         age sops
@@ -3004,7 +3006,7 @@ for these configurations.
         graphviz jq
 
         # Apps
-        octaveFull
+        # octaveFull
         vesktop grim swww vim telegram-desktop
 
         # Sound/media
@@ -3032,14 +3034,13 @@ for these configurations.
         (writeShellScriptBin "remote-build"
           ''
   #!/bin/bash
-  cd ~/monorepo/nix
-  nixos-rebuild --use-remote-sudo --target-host "$1" switch --flake .#spontaneity
+  nixos-rebuild --sudo --ask-sudo-password --target-host "$1" switch --flake $HOME/monorepo/nix#spontaneity
   ''
         )
         (writeShellScriptBin "install-vps"
           ''
   #!/bin/bash
-  nix run github:nix-community/nixos-anywhere -- --generate-hardware-config nixos-generate-config ./systems/spontaneity/hardware-configuration.nix --flake .#spontaneity --target-host "$1"
+  nix run github:nix-community/nixos-anywhere -- --generate-hardware-config nixos-generate-config $HOME/monorepo/nix/systems/spontaneity/hardware-configuration.nix --flake $HOME/monorepo/nix#spontaneity --target-host "$1"
           '')
       ] else [
         pfetch
@@ -3090,16 +3091,30 @@ the path.
     };
   }
 #+end_src
+** Includes
+These are the common includes for my systems.
+#+begin_src nix :tangle ../nix/systems/includes.nix
+  { config, lib, ... }:
+  {
+    imports = [
+      ./home.nix
+      ../modules/default.nix
+    ];
+  }
+#+end_src
 ** Continuity
 This is pretty understandable, if you understand all the above.
 #+begin_src nix :tangle ../nix/systems/continuity/default.nix
   { ... }:
   {
     imports = [
-      ../../modules/default.nix
-      ../../disko/sda-simple.nix
-      ../home.nix
+      ../../disko/drive-simple.nix
+      ../includes.nix
     ];
+    config = {
+      # drive to install to
+      monorepo.vars.device = "/dev/sda";
+    };
   }
 #+end_src
 *** Home
@@ -3121,12 +3136,12 @@ as several other useful services.
   { config, lib, home-manager, ... }:
   {
     imports = [
-      ../../modules/default.nix
-      ../../disko/nvme-simple.nix
-      ../home.nix
+      ../includes.nix
+      ../../disko/drive-simple.nix
     ];
     config = {
       monorepo = {
+        vars.device = "/dev/nvme0n1";
         profiles = {
           server.enable = false;
           cuda.enable = true;
@@ -3154,14 +3169,14 @@ Spontaneity is my VPS instance.
   { config, lib, ... }:
   {
     imports = [
+      ../includes.nix
       # nixos-anywhere generates this file
       ./hardware-configuration.nix
-      ../../disko/vda-simple.nix
-      ../../modules/default.nix
-      ../home.nix
+      ../../disko/drive-bios.nix
     ];
     config = {
       monorepo = {
+        vars.device = "/dev/vda";
         profiles = {
           server.enable = true;
           ttyonly.enable = true;
@@ -3289,6 +3304,10 @@ This contains the installation script I use to install my systems.
     exit 1
   fi
 
+  cd "$HOME"
+
+  ping -q -c1 google.com &>/dev/null && echo "online! Proceeding with the installation..." || nmtui
+
   gum style --border normal --margin "1" --padding "1 2" "Choose a system to install or select `new` in order to create a new system."
 
   SYSTEM="$(gum choose $(find "$HOME/monorepo/nix/systems" -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | grep -v -E 'installer'; printf "New"))"
@@ -3302,14 +3321,9 @@ This contains the installation script I use to install my systems.
 
     if [[ "$DRIVE" == "New" ]]; then
       gum style --border normal --margin "1" --padding "1 2" "Choose a name to call your drive file."
-      DRIVE="$(gum input --placeholder "drive file name (ex: my_sda.nix)")"
+      DRIVE="$(gum input --placeholder "drive file name (ex: partition_scheme.nix)")"
     fi
   fi
-
-
-  ping -q -c1 google.com &>/dev/null && echo "online! Proceeding with the installation..." || nmtui
-
-  cd "$HOME"
 
   if [ ! -d "$HOME/monorepo/" ]; then
     git clone ${commits.monorepoUrl}
@@ -3326,10 +3340,11 @@ This contains the installation script I use to install my systems.
   { ... }:
   {
     imports = [
-      ../../modules/default.nix
+      ../includes.nix
       ../../disko/$DRIVE
-      ../home.nix
     ];
+    # CHANGEME
+    config.monorepo.vars.drive = "/dev/sda";
   }
   EOF
 
@@ -3337,16 +3352,22 @@ This contains the installation script I use to install my systems.
     gum input --placeholder "Press Enter to continue" >/dev/null
     vim "$HOME/monorepo/nix/systems/$SYSTEM/default.nix"
 
+    gum style --border normal --margin "1" --padding "1 2" "Edit the home default.nix with options."
+    gum input --placeholder "Press Enter to continue" >/dev/null
+    vim "$HOME/monorepo/nix/systems/$SYSTEM/home.nix"
+
     sed -i "/hostnames = \[/,/];/ { /];/i \        \"your-hostname-$SYSTEM\" }" "$HOME/monorepo/nix/flake.nix"
 
     if [ ! -f "$HOME/monorepo/nix/disko/$DRIVE" ]; then
-      cp "$HOME/monorepo/nix/disko/sda-simple.nix" "$HOME/monorepo/nix/disko/$DRIVE"
+      cp "$HOME/monorepo/nix/disko/drive-simple.nix" "$HOME/monorepo/nix/disko/$DRIVE"
       gum style --border normal --margin "1" --padding "1 2" "Edit the drive file with your preferred partitioning scheme."
       gum input --placeholder "Press Enter to continue" >/dev/null
       vim "$HOME/monorepo/nix/disko/$DRIVE"
     fi
     cd "$HOME/monorepo" && git add . && cd "$HOME"
   fi
+
+  nix --extra-experimental-features 'nix-command flakes' eval "$HOME/monorepo/nix#evalDisko.$SYSTEM" > "$HOME/drive.nix"
 
   gum style --border normal --margin "1" --padding "1 2" "Formatting the drive is destructive!"
   if gum confirm "Are you sure you want to continue?"; then
@@ -3356,7 +3377,8 @@ This contains the installation script I use to install my systems.
       exit 1
   fi
 
-  sudo nix --experimental-features "nix-command flakes" run "github:nix-community/disko/${commits.diskoCommitHash}" -- --mode destroy,format,mount "$HOME/monorepo/nix/disko/$DRIVE"
+  sudo nix --experimental-features "nix-command flakes" run "github:nix-community/disko/${commits.diskoCommitHash}" -- --mode destroy,format,mount "$HOME/drive.nix"
+
   cd /mnt
   sudo nixos-install --flake "$HOME/monorepo/nix#$SYSTEM"
 

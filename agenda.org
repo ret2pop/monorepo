@@ -46,6 +46,7 @@ I want to make an analogue computer.
 ** TODO QFT
 ** TODO GM
 ** TODO Complex Analysis
+** TODO Topology
 ** TODO Measure Theory
 ** TODO Category Theory
 ** TODO ZK Proof Deep Dive
@@ -55,22 +56,17 @@ schedules.
 ** Friends
 These are tasks related to seeing my friends. There will be tasks listed here when I schedule
 something.
-*** TODO Transhuman meetup
-SCHEDULED: <2025-07-26 Sat 16:00>
-I signed up for one with some random people. Meeting Andrei.
-*** TODO Camping with David
-SCHEDULED: <2025-08-03 Sun>
-Camping with several people on this day.
-*** TODO Friend coming over
-SCHEDULED: <2025-08-09 Sat>
 * Habits
 These are some habits I want to track. They are repeated according to a calendar schedule in
 general.
 ** TODO Supplements
-SCHEDULED: <2025-08-28 Thu .+1d>
+SCHEDULED: <2025-09-09 Tue .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-08-27 Wed 21:46]
+:LAST_REPEAT: [2025-09-08 Mon 15:39]
+:STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2025-09-08 Mon 15:39]
+- State "DONE"       from "TODO"       [2025-09-08 Mon 04:35]
 - State "DONE"       from "TODO"       [2025-08-27 Wed 21:46]
 - State "DONE"       from "TODO"       [2025-08-25 Mon 21:17]
 - State "DONE"       from "TODO"       [2025-03-21 Fri 04:48]
@@ -83,10 +79,12 @@ Current stack:
 - Vitamin D3
 - EPA/DHA
 ** TODO Pushups
-SCHEDULED: <2025-08-28 Thu .+1d>
+SCHEDULED: <2025-09-09 Tue .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-08-27 Wed 21:46]
+:LAST_REPEAT: [2025-09-08 Mon 04:35]
+:STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2025-09-08 Mon 04:35]
 - State "DONE"       from "TODO"       [2025-08-27 Wed 21:46]
 - State "DONE"       from "TODO"       [2025-08-25 Mon 21:16]
 - State "DONE"       from "TODO"       [2025-03-21 Fri 04:49]
@@ -101,18 +99,22 @@ SCHEDULED: <2025-08-26 Tue .+1d>
 - State "DONE"       from "TODO"       [2025-06-26 Thu 23:22]
 I want to be able to run or bike every day so that I get my exercise in.
 ** TODO Stretch
-SCHEDULED: <2025-02-12 Wed .+1d>
+SCHEDULED: <2025-09-09 Tue .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-02-11 Tue 04:01]
+:LAST_REPEAT: [2025-09-08 Mon 04:47]
+:STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2025-09-08 Mon 04:47]
 - State "DONE"       from "TODO"       [2025-02-11 Tue 04:01]
 - State "DONE"       from "TODO"       [2025-01-11 Sat 02:26]
 I want to stretch every day so that I can become more flexible.
 ** TODO Journal
-SCHEDULED: <2025-07-21 Mon .+1d>
+SCHEDULED: <2025-09-09 Tue .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-07-20 Sun 21:28]
+:LAST_REPEAT: [2025-09-08 Mon 04:35]
+:STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2025-09-08 Mon 04:35]
 - State "DONE"       from "TODO"       [2025-07-20 Sun 21:28]
 - State "DONE"       from "TODO"       [2025-06-26 Thu 23:21]
 - State "DONE"       from "TODO"       [2025-03-21 Fri 04:49]

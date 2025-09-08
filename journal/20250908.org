@@ -1,0 +1,15 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+options: broken-links:t
+* Monday, 08 September 2025
+** 04:34 
+I am working on my monorepo again. I'm almost done, but I want to add impermanence and I want to add a
+tmpfs in order to make everything not in certain directories temporary. I hope I'll be able to do that!
+** 15:40 
+I need to change my sleep schedule. Anyways, I'm going to be working on some topology today hopefully,
+and I'm starting to use my org agenda more often now.

@@ -107,7 +107,7 @@ so that adding new configurations that add modifications is made simple.
 
         mkDiskoFiles = map (hostname: {
           name = "${hostname}";
-          value = self.nixosConfigurations."${hostname}".config.monorepo.vars.myDiskoSpec;
+          value = self.nixosConfigurations."${hostname}".config.monorepo.vars.diskoSpec;
         });
 
       in {
@@ -246,7 +246,7 @@ graph by running ~nix build .#topology.x86_64-linux.config.output~.
 #+end_src
 * Modules
 ** Vars
-Variables used for regular configuration in your system ~defafult.nix~ file. The options are
+Variables used for regular configuration in your system ~default.nix~ file. The options are
 largely self-documenting.
 #+begin_src nix :tangle ../nix/modules/vars.nix
   { lib, ... }:
@@ -259,7 +259,7 @@ largely self-documenting.
         description = "device that NixOS is installed to";
       };
 
-      myDiskoSpec = lib.mkOption {
+      diskoSpec = lib.mkOption {
         type = lib.types.attrs;
         description = "retains a copy of the disko spec for reflection";
       };
@@ -467,7 +467,7 @@ My SSH daemon configuration.
       settings = {
         PasswordAuthentication = lib.mkDefault (! config.monorepo.profiles.server.enable);
         AllowUsers = [ config.monorepo.vars.userName "root" "git" ];
-        PermitRootLogin = "yes";
+        PermitRootLogin = "prohibit-password";
         KbdInteractiveAuthentication = false;
       };
     };
@@ -629,8 +629,8 @@ for users:
         passBlock = ''
   <Pass password>
     Method = sha256
-    Hash = d4abdd69aa24de69693885c5bd83a4a0e9ee989e1a69a905041b0dad9abc06ea
-    Salt = sDY,?H5AxC-!gH3a.:)D
+    Hash = ${config.sops.secrets.znc_password_hash}
+    Salt = ${config.sops.secrets.znc_password_salt}
   </Pass>
   '';
         modules = [
@@ -934,6 +934,10 @@ because they enhance security.
 
 
     boot = {
+
+      extraModprobeConfig = ''
+    options snd-usb-audio vid=0x1235 pid=0x8200 device_setup=1
+  '';
       extraModulePackages = [ ];
 
       initrd = {
@@ -970,6 +974,7 @@ because they enhance security.
       ];
 
       kernelParams = [
+        "usbcore.autosuspend=-1"
     	  "debugfs=off"
     	  "page_alloc.shuffle=1"
     	  "slab_nomerge"
@@ -1159,13 +1164,13 @@ because they enhance security.
     };
 
     xdg.portal = {
-      enable = true;
+      enable = (! config.monorepo.profiles.ttyonly.enable);
       wlr.enable = true;
-      extraPortals = with pkgs; [
+      extraPortals = with pkgs; if (! config.monorepo.profiles.ttyonly.enable) then [
     	  xdg-desktop-portal-gtk
     	  xdg-desktop-portal
     	  xdg-desktop-portal-hyprland
-      ];
+      ] else [];
       config.common.default = "*";
     };
 
@@ -1265,10 +1270,9 @@ because they enhance security.
 #+end_src
 ** Disko
 This is the disko configuration for my continuity system. It features a boot and ext4 partition,
-on disk /dev/sda. All my SATA disks have this location by default, but if you want to use nvme,
-you will have to import that configuration in your ~systems/xxx/default.nix~.
-*** NVME
-For my nvme drives.
+with configurable disk.
+*** Simple
+This configuration is used for simple partitioning schemes with EFI.
 #+begin_src nix :tangle ../nix/disko/drive-simple.nix
   { lib, config, ... }:
   let
@@ -1309,12 +1313,12 @@ For my nvme drives.
     };
   in
   {
-    monorepo.vars.myDiskoSpec = spec;
+    monorepo.vars.diskoSpec = spec;
     disko.devices = spec.disko.devices;
   }
 #+end_src
-*** VDA
-For my virtual machines.
+*** BIOS
+For machines that use BIOS instead of EFI.
 #+begin_src nix :tangle ../nix/disko/drive-bios.nix
   { config, lib, ... }:
   let
@@ -1348,7 +1352,7 @@ For my virtual machines.
     };
   in
   {
-    monorepo.vars.myDiskoSpec = spec;
+    monorepo.vars.diskoSpec = spec;
     disko.devices = spec.disko.devices;
   }
 #+end_src
@@ -1357,9 +1361,10 @@ For my virtual machines.
 As you can see, I have my installed home packages installed based on the profiles enabled. Also,
 I have many imports that we'll go through next.
 #+begin_src nix :tangle ../nix/modules/home/default.nix
-  { lib, config, pkgs, ... }:
+  { lib, config, pkgs, sops-nix, ... }:
   {
     imports = [
+      sops-nix.homeManagerModules.sops
       ../vars.nix
       ./fcitx.nix
       ./secrets.nix
@@ -1566,11 +1571,11 @@ be straightforward.
   {
     programs.firefox = {
       enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
+      package = pkgs.firefox-bin;
       policies = {
         EnableTrackingProtection = true;
         OfferToSaveLogins = false;
       };
-      package = pkgs.firefox-wayland;
       profiles = {
         default = {
           id = 0;
@@ -2044,24 +2049,24 @@ to use this component will come soon.
         monitor = [
           "Unknown-1,disable"
         ];
-        windowrule = [
-          "workspace 1, title:(^(.*emacs.*)$)"
-          "workspace 2, title:(^(.*firefox.*)$)"
-          "workspace 2, title:(^(.*Tor Browser.*)$)"
-          "workspace 2, title:(^(.*Chromium-browser.*)$)"
-          "workspace 2, title:(^(.*chromium.*)$)"
-          "workspace 3, title:(^(.*discord.*)$)"
-          "workspace 3, title:^(.*vesktop.*)$)"
-          "workspace 3, title:(^(.*fluffychat.*)$)"
-          "workspace 3, title:(^(.*element-desktop.*)$)"
-          "workspace 4, title:(^(.*qpwgraph.*)$)"
-          "workspace 4, title:(^(.*mpv.*)$)"
-          "workspace 5, title:(^(.*Monero.*)$)"
-          "workspace 5, title:(^(.*org\.bitcoin\..*)$)"
-          "workspace 5, title:(^(.*Bitcoin Core - preston.*)$)"
-          "workspace 5, title:(^(.*org\.getmonero\..*)$)"
-          "workspace 5, title:(^(.*Monero - preston.*)$)"
-          "workspace 5, title:(^(.*electrum.*)$)"
+        windowrulev2 = [
+          "workspace 1, class:^(emacs)$"
+          "workspace 2, class:^(firefox)$"
+          "workspace 2, title:^(.*Tor Browser.*)$"
+          "workspace 2, title:^(.*Chromium-browser.*)$"
+          "workspace 2, class:^(chromium)$"
+          "workspace 3, class:^(discord)$"
+          "workspace 3, class:^(vesktop)$"
+          "workspace 3, title:^(.*fluffychat.*)$"
+          "workspace 3, class:^(.*element-desktop.*)$"
+          "workspace 4, class:^(.*qpwgraph.*)$"
+          "workspace 4, class:^(.*mpv.*)$"
+          "workspace 5, title:^(.*Monero.*)$"
+          "workspace 5, title:^(.*org\.bitcoin\..*)$"
+          "workspace 5, title:^(.*Bitcoin Core - preston.*)$"
+          "workspace 5, title:^(.*org\.getmonero\..*)$"
+          "workspace 5, title:^(.*Monero - preston.*)$"
+          "workspace 5, title:^(.*electrum.*)$"
           "pseudo,title:fcitx"
         ];
         bind = [
@@ -2366,7 +2371,7 @@ here:
 *** Secrets
 This uses sops in order to declaratively create the secrets on my system by unencrypting
 the yaml file specified. Yes, this is safe to include in the repo.
-#+begin_src nix :tangle ../nix/modules/secrets.nix
+#+begin_src nix :tangle ../nix/modules/home/secrets.nix
   { config, ... }:
   {
     sops = {
@@ -2395,6 +2400,16 @@ the yaml file specified. Yes, this is safe to include in the repo.
           format = "yaml";
           path = "${config.sops.defaultSymlinkPath}/znc";
         };
+        znc_password_salt = {
+          format = "yaml";
+          path = "${config.sops.defaultSymlinkPath}/znc_password_salt";
+        };
+
+        znc_password_hash = {
+          format = "yaml";
+          path = "${config.sops.defaultSymlinkPath}/znc_password_hash";
+        };
+
         matrix_bridge = {
           format = "yaml";
           path = "${config.sops.defaultSymlinkPath}/matrix_bridge";
@@ -3082,6 +3097,7 @@ the path.
   { config, sops-nix, ... }:
   {
     home-manager = {
+
       sharedModules = [
         sops-nix.homeManagerModules.sops
       ];
@@ -3092,7 +3108,8 @@ the path.
   }
 #+end_src
 ** Includes
-These are the common includes for my systems.
+These are the common includes for each of my systems. This ensures that we don't have to duplicate includes every time we want to add a new
+system.
 #+begin_src nix :tangle ../nix/systems/includes.nix
   { config, lib, ... }:
   {
@@ -3245,7 +3262,7 @@ work deterministically.
 #+begin_src nix :tangle ../nix/systems/installer/commits.nix
   {
     diskoCommitHash = "a5c4f2ab72e3d1ab43e3e65aa421c6f2bd2e12a1";
-    monorepoCommitHash = "8f4f46e59ad0b7c5662a417d10f3074f17c962c3";
+    monorepoCommitHash = "5b8d09f2d7ebb7a1670c695af5761353d5b76d7e";
     monorepoUrl = "https://github.com/ret2pop/monorepo";
   }
 #+end_src
@@ -3356,7 +3373,7 @@ This contains the installation script I use to install my systems.
     gum input --placeholder "Press Enter to continue" >/dev/null
     vim "$HOME/monorepo/nix/systems/$SYSTEM/home.nix"
 
-    sed -i "/hostnames = \[/,/];/ { /];/i \        \"your-hostname-$SYSTEM\" }" "$HOME/monorepo/nix/flake.nix"
+    sed -i "/# add hostnames here/i \  \"$1\"" "$HOME/monorepo/nix/flake.nix"
 
     if [ ! -f "$HOME/monorepo/nix/disko/$DRIVE" ]; then
       cp "$HOME/monorepo/nix/disko/drive-simple.nix" "$HOME/monorepo/nix/disko/$DRIVE"
@@ -3406,3 +3423,27 @@ This contains the installation script I use to install my systems.
     };
   }
 #+end_src
+* Add System Script
+Here is a script to add a new system automatically:
+#+begin_src bash :tangle ../nix/add-system.sh
+  #!/usr/bin/env bash
+  sed -i "/# add hostnames here/i \  \"$1\"" "$HOME/monorepo/nix/flake.nix"
+  sed -i "/# add hostnames here/i \  \"$1\"" "$HOME/monorepo/config/nix.org"
+
+  mkdir -p "$HOME/monorepo/nix/systems/$1"
+
+  cat > "$HOME/monorepo/nix/systems/$1/default.nix" <<EOF
+  { ... }:
+  {
+    imports = [
+      ../includes.nix
+      ../../disko/drive-simple.nix
+    ];
+    # CHANGEME
+    config.monorepo.vars.drive = "/dev/sda";
+  }
+  EOF
+
+  cp "$HOME/monorepo/nix/systems/continuity/home.nix" "$HOME/monorepo/nix/systems/$1/home.nix"
+#+end_src
+note that one will have to add some files to this org file afterwards, but this is a fine short term solution.

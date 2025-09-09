@@ -1,8 +1,7 @@
-#+title: Emacs Configuration
+#+TITLE: Emacs Configuration
 #+AUTHOR: Preston Pan
 #+DESCRIPTION: my personal emacs configuration for nixOS
 #+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
-
 * Introduction
 This is my Vanilla Emacs configuration, made to work with my NixOS configuration. For that
 reason, you will not see :ensure t inside any use-package declaration, for emacs packages
@@ -11,9 +10,9 @@ emacs-lisp language only to configure variables for said packages, for the most 
 ** User
 Change these variables:
 #+begin_src emacs-lisp
-  (setq system-email "ret2pop@gmail.com")
-  (setq system-username "ret2pop")
-  (setq system-fullname "Preston Pan")
+(setq system-email "ret2pop@gmail.com")
+(setq system-username "ret2pop")
+(setq system-fullname "Preston Pan")
 #+end_src
 ** Emacs
 These are all the options that need to be set at the start of the program. Because use-package
@@ -24,106 +23,106 @@ have documentation strings attached, so it is easy to follow what the individual
 Emacs is self documenting, after all!
 #+begin_src emacs-lisp
   (use-package emacs
-    :custom
-    ;; global defaults
-    (setq-default indent-tabs-mode nil)  ;; no real tabs, only spaces
-    (setq-default tab-width 2)           ;; just in case, make a "tab" show as 4 spaces
-    (setq-default standard-indent 2)     ;; base indentation
+  :custom
+  ;; global defaults
+  (indent-tabs-mode nil "no real tabs, only spaces")
+  (tab-width 2 "tab show as 2 spaces")
+  (standard-indent 2 "base indentation")
 
-    ;; Startup errors
-    (warning-minimum-level :emergency "Supress emacs warnings")
-    (confirm-kill-processes nil "Don't ask to quit")
-    (debug-ignored-errors (cons 'remote-file-error debug-ignored-errors) "Remove annoying error from debug errors")
+  ;; Startup errors
+  (warning-minimum-level :emergency "Supress emacs warnings")
+  (confirm-kill-processes nil "Don't ask to quit")
+  (debug-ignored-errors (cons 'remote-file-error debug-ignored-errors) "Remove annoying error from debug errors")
 
-    ;; Mouse wheel
-    (mouse-wheel-scroll-amount '(1 ((shift) . 1)) "Nicer scrolling")
-    (mouse-wheel-progressive-speed nil "Make scrolling non laggy")
-    (mouse-wheel-follow-mouse 't "Scroll correct window")
-    (scroll-conservatively 101 "Sort of smooth scrolling")
-    (scroll-step 1 "Scroll one line at a time")
-    (display-time-24hr-format t "Use 24 hour format to read the time")
-    (display-line-numbers-type 'relative "Relative line numbers for easy vim jumping")
-    (use-short-answers t "Use y instead of yes")
-    (make-backup-files nil "Don't make backups")
-    (display-fill-column-indicator-column 150 "Draw a line at 100 characters")
-    (fill-column 150)
-    (line-spacing 2 "Default line spacing")
-    (c-doc-comment-style '((c-mode . doxygen)
-  			 (c++-mode . doxygen)))
+  ;; Mouse wheel
+  (mouse-wheel-scroll-amount '(1 ((shift) . 1)) "Nicer scrolling")
+  (mouse-wheel-progressive-speed nil "Make scrolling non laggy")
+  (mouse-wheel-follow-mouse 't "Scroll correct window")
+  (scroll-conservatively 101 "Sort of smooth scrolling")
+  (scroll-step 1 "Scroll one line at a time")
+  (display-time-24hr-format t "Use 24 hour format to read the time")
+      (display-line-numbers-type 'relative "Relative line numbers for easy vim jumping")
+      (use-short-answers t "Use y instead of yes")
+      (make-backup-files nil "Don't make backups")
+      (display-fill-column-indicator-column 150 "Draw a line at 100 characters")
+      (fill-column 150)
+      (line-spacing 2 "Default line spacing")
+      (c-doc-comment-style '((c-mode . doxygen)
+    			 (c++-mode . doxygen)))
 
-    :hook ((text-mode . visual-line-mode)
-  	 (prog-mode . display-line-numbers-mode)
-  	 (prog-mode . display-fill-column-indicator-mode)
-  	 (org-mode . auto-fill-mode)
-  	 (org-mode . display-fill-column-indicator-mode)
-  	 (org-mode . display-line-numbers-mode)
-  	 (org-mode . (lambda ()
-  		       (setq prettify-symbols-alist
-  			     '(("#+begin_src" . ?)
-  			       ("#+BEGIN_SRC" . ?)
-  			       ("#+end_src" . ?)
-  			       ("#+END_SRC" . ?)
-  			       ("#+begin_example" . ?)
-  			       ("#+BEGIN_EXAMPLE" . ?)
-  			       ("#+end_example" . ?)
-  			       ("#+END_EXAMPLE" . ?)
-  			       ("#+header:" . ?)
-  			       ("#+HEADER:" . ?)
-  			       ("#+name:" . ?﮸)
-  			       ("#+NAME:" . ?﮸)
-  			       ("#+results:" . ?)
-  			       ("#+RESULTS:" . ?)
-  			       ("#+call:" . ?)
-  			       ("#+CALL:" . ?)
-  			       (":PROPERTIES:" . ?)
-  			       (":properties:" . ?)
-  			       ("lambda" . ?λ)
-  			       ("->"     . ?→)
-  			       ("map"    . ?↦)
-  			       ("/="     . ?≠)
-  			       ("!="     . ?≠)
-  			       ("=="     . ?≡)
-  			       ("<="     . ?≤)
-  			       (">="     . ?≥)
-  			       ("&&"     . ?∧)
-  			       ("||"     . ?∨)
-  			       ("sqrt"   . ?√)
-  			       ("..."    . ?…)))
-  		       (prettify-symbols-mode)))
-  	 (prog-mode .
-  		    (lambda ()
-  		      (setq prettify-symbols-alist
-  			    '(("lambda" . ?λ)
-  			      ("->"     . ?→)
-  			      ("map"    . ?↦)
-  			      ("/="     . ?≠)
-  			      ("!="     . ?≠)
-  			      ("=="     . ?≡)
-  			      ("<="     . ?≤)
-  			      (">="     . ?≥)
-  			      ("&&"     . ?∧)
-  			      ("||"     . ?∨)
-  			      ("sqrt"   . ?√)
-  			      ("..."    . ?…)))
-  		      (prettify-symbols-mode))))
-    :config
-    (require 'tex-site)
-    (server-start)
+      :hook ((text-mode . visual-line-mode)
+    	 (prog-mode . display-line-numbers-mode)
+    	 (prog-mode . display-fill-column-indicator-mode)
+    	 (org-mode . auto-fill-mode)
+    	 (org-mode . display-fill-column-indicator-mode)
+    	 (org-mode . display-line-numbers-mode)
+    	 (org-mode . (lambda ()
+    		       (setq prettify-symbols-alist
+    			     '(("#+begin_src" . ?)
+    			       ("#+BEGIN_SRC" . ?)
+    			       ("#+end_src" . ?)
+    			       ("#+END_SRC" . ?)
+    			       ("#+begin_example" . ?)
+    			       ("#+BEGIN_EXAMPLE" . ?)
+    			       ("#+end_example" . ?)
+    			       ("#+END_EXAMPLE" . ?)
+    			       ("#+header:" . ?)
+    			       ("#+HEADER:" . ?)
+    			       ("#+name:" . ?﮸)
+    			       ("#+NAME:" . ?﮸)
+    			       ("#+results:" . ?)
+    			       ("#+RESULTS:" . ?)
+    			       ("#+call:" . ?)
+    			       ("#+CALL:" . ?)
+    			       (":PROPERTIES:" . ?)
+    			       (":properties:" . ?)
+    			       ("lambda" . ?λ)
+    			       ("->"     . ?→)
+    			       ("map"    . ?↦)
+    			       ("/="     . ?≠)
+    			       ("!="     . ?≠)
+    			       ("=="     . ?≡)
+    			       ("<="     . ?≤)
+    			       (">="     . ?≥)
+    			       ("&&"     . ?∧)
+    			       ("||"     . ?∨)
+    			       ("sqrt"   . ?√)
+    			       ("..."    . ?…)))
+    		       (prettify-symbols-mode)))
+    	 (prog-mode .
+    		    (lambda ()
+    		      (setq prettify-symbols-alist
+    			    '(("lambda" . ?λ)
+    			      ("->"     . ?→)
+    			      ("map"    . ?↦)
+    			      ("/="     . ?≠)
+    			      ("!="     . ?≠)
+    			      ("=="     . ?≡)
+    			      ("<="     . ?≤)
+    			      (">="     . ?≥)
+    			      ("&&"     . ?∧)
+    			      ("||"     . ?∨)
+    			      ("sqrt"   . ?√)
+    			      ("..."    . ?…)))
+    		      (prettify-symbols-mode))))
+      :config
+      (require 'tex-site)
+      (server-start)
 
-    ;; start wiith sane defaults
-    (pixel-scroll-precision-mode 1)
-    (display-battery-mode 1)
-    (display-time-mode 1)
-    (menu-bar-mode -1)
-    (scroll-bar-mode -1)
-    (tool-bar-mode -1)
+      ;; start wiith sane defaults
+      (pixel-scroll-precision-mode 1)
+      (display-battery-mode 1)
+      (display-time-mode 1)
+      (menu-bar-mode -1)
+      (scroll-bar-mode -1)
+      (tool-bar-mode -1)
 
-    ;; load theme, fonts, and transparency. Prettify symbols.
-    (global-prettify-symbols-mode 1)
-    (load-theme 'catppuccin :no-confirm)
-    (set-face-attribute 'default nil :font "Iosevka Nerd Font" :height 130)
-    (set-frame-parameter nil 'alpha-background 90)
-    (add-to-list 'default-frame-alist '(alpha-background . 90)))
+      ;; load theme, fonts, and transparency. Prettify symbols.
+      (global-prettify-symbols-mode 1)
+      (load-theme 'catppuccin :no-confirm)
+      (set-face-attribute 'default nil :font "Iosevka Nerd Font" :height 130)
+      (set-frame-parameter nil 'alpha-background 90)
+      (add-to-list 'default-frame-alist '(alpha-background . 90)))
 #+end_src
 As you can see, the config (and sometimes the init section) of most of these use-package blocks
 contain most of the imperative commands. In fact, most of the configurations are completely
@@ -139,6 +138,8 @@ of course Emacs was not designed to be fully imperative.
 This is my org mode configuration, which also configures latex.
 #+begin_src emacs-lisp
   (use-package org
+    :hook
+    ((org-mode-hook . (lambda () (remove-hook 'post-self-insert-hook #'yaml-electric-bar-and-angle t))))
     :custom
     (org-confirm-babel-evaluate nil "Don't ask to evaluate code block")
     (org-export-with-broken-links t "publish website even with broken links")
@@ -193,6 +194,14 @@ This is my org mode configuration, which also configures latex.
   			       '((shell . t)
   				 (python . t)
   				 (latex . t))))
+
+  ;; (with-eval-after-load 'org
+  ;;   ;; stop electric-pair from pairing < in org-mode
+  ;;   (add-hook 'org-mode-hook
+  ;;             (lambda ()
+  ;;               (setq-local electric-pair-inhibit-predicate
+  ;;                           (lambda (c)
+  ;;                             (if (eq c ?<) t (electric-pair-default-inhibit c)))))))
 #+end_src
 As you can see, I only have one real entry in config here (I don't count requires even though
 they have to be on the top)
@@ -207,7 +216,13 @@ Use electric-pair to automatically complete pairs of things. We need to change
 what electric-pair does based on the mode.
 #+begin_src emacs-lisp
   (use-package electric-pair
-    :hook ((prog-mode . electric-pair-mode)))
+    :hook ((prog-mode . electric-pair-mode)
+           (org-mode . (lambda () (setq-local electric-pair-inhibit-predicate (lambda (c) (if (eq c ?<) t (electric-pair-default-inhibit c))))))))
+#+end_src
+* Search and Replace
+#+begin_src emacs-lisp
+  (use-package wgrep
+    :after grep)
 #+end_src
 * Lyrics
 This currently doesn't work I'm pretty sure, but it's supposed to fetch lyrics from mpd.
@@ -265,7 +280,11 @@ First, some small configurations and some evil-mode initilaization because I lik
     :config
     (evil-mode 1)
     (evil-set-undo-system 'undo-redo)
-    (evil-set-initial-state 'pdf-view-mode 'normal))
+    (evil-set-initial-state 'pdf-view-mode 'normal)
+    ;; bind / and ? safely after evil is loaded
+    (define-key evil-normal-state-map (kbd "/") 'swiper)
+    (define-key evil-normal-state-map (kbd "?")
+      (lambda () (interactive) (swiper "--reverse"))))
 
   (use-package evil-collection
     :after (evil)
@@ -422,6 +441,7 @@ We want our emacs initialization to be pretty and display useful things.
 Ivy is a pretty cool general program for displaying stuff:
 #+begin_src emacs-lisp
   (use-package counsel)
+
   (use-package ivy
     :custom
     (ivy-use-virtual-buffers t "Make searching more efficient")
@@ -469,15 +489,15 @@ emacs keybindings.
     (defun prestonpan ()
       (interactive)
       (erc-tls :server "nullring.xyz"
-    	     :port   "6697"))
+  	     :port   "6697"))
     (defun liberachat ()
       (interactive)
       (erc-tls :server "irc.libera.chat"
-    	     :port   "6697"))
+  	     :port   "6697"))
     (defun efnet ()
       (interactive)
       (erc-tls :server "irc.prison.net"
-    	     :port   "6697"))
+  	     :port   "6697"))
     (defun matrix-org ()
       (interactive)
       (ement-connect))
@@ -488,68 +508,74 @@ emacs keybindings.
     :config
     (general-create-definer leader-key :prefix "SPC")
     (leader-key 'normal
-      "o a" '(org-agenda :wk "Open agenda")
       "o c" '(org-capture :wk "Capture")
+
+      ;; Org Mode
       "n" '(:ignore t :wk "Org mode plugins")
       "n j j" '(org-journal-new-entry :wk "Make new journal entry")
       "n r f" '(org-roam-node-find :wk "Find roam node")
       "n r i" '(org-roam-node-insert :wk "Insert roam node")
       "n r a" '(org-roam-alias-add :wk "Add alias to org roam node")
       "n r g" '(org-roam-graph :wk "Graph roam database")
-      "r s s" '(elfeed :wk "rss feed")
+      "m I" '(org-id-get-create :wk "Make org id")
+
+      ;; Programming Projects
       "." '(counsel-find-file :wk "find file")
+      "p I" '(projectile-add-known-project :wk "Add to project list")
+      
+      "N f" '(nix-flake :wk "nix flake menu")
+      "f" '(:ignore t :wk "file operations")
+      "f p" '(projectile-switch-project :wk "find project to switch to")
+      "f f" '(projectile-find-file :wk "find file in project")
+      "f s" '(counsel-rg :wk "find string in project")
+
+      "y n s" '(yas-new-snippet :wk "Create new snippet")
+
       "g" '(:ignore t :wk "Magit")
       "g /" '(magit-dispatch :wk "git commands")
       "g P" '(magit-push :wk "git push")
       "g c" '(magit-commit :wk "git commit")
       "g p" '(magit-pull :wk "Pull from git")
       "g s" '(magit-status :wk "Change status of files")
+      "g i" '(magit-init :wk "init new git project")
+
+      "o p" '(treemacs :wk "Project Drawer")
+      "o P" '(treemacs-projectile :wk "Import Projectile project to treemacs")
+
+      "w r" '(writeroom-mode :wk "focus mode for writing")
+
+      ;; Applications
       "o" '(:ignore t :wk "Open application")
       "o t" '(vterm :wk "Terminal")
       "o e" '(eshell :wk "Elisp Interpreter")
       "o m" '(mu4e :wk "Email")
       "o M" '(matrix-org :wk "Connect to matrix")
+      "o r s" '(elfeed :wk "rss feed")
+      "o a" '(org-agenda :wk "Open agenda")
+      "o w" '(eww :wk "web browser")
+      "m m" '(emms :wk "Music player")
+      "s m" '(proced :wk "System Manager")
+      "l p" '(list-processes :wk "List Emacs Processes")
 
-      "e w w" '(eww :wk "web browser")
-      "e c c" '(ellama-chat :wk "Chat with Ollama")
-      "e a b" '(ellama-ask-about :wk "Ask Ollama")
-      "e s" '(ellama-summarize :wk "Summarize text with Ollama")
-      "e c r" '(ellama-code-review :wk "Review code with Ollama")
-      "e c C" '(ellama-code-complete :wk "Complete code with Ollama")
-      "e c a" '(ellama-code-add :wk "Add code with Ollama")
-      "e c e" '(ellama-code-edit :wk "Edit code with Ollama")
-      "e w i" '(ellama-improve-wording :wk "Improve wording with Ollama")
-      "e g i" '(ellama-improve-grammar :wk "Improve grammar with Ollama")
-
-      "c" '(:ignore t :wk "Counsel commands")
-      "c g" '(counsel-git :wk "Search file in git project")
-      "c f" '(counsel-git-grep :wk "Find string in git project")
-
-      "g s" '(gptel-send :wk "Send to Ollama")
-      "g e" '(gptel :wk "Ollama interface")
       "m P p" '(org-publish :wk "Publish website components")
       "s e" '(sudo-edit :wk "Edit file with sudo")
-      "m m" '(emms :wk "Music player")
-      "m l" '(lyrics-fetcher-show-lyrics :wk "Music lyrics")
-      "o p" '(treemacs :wk "Project Drawer")
-      "o P" '(treemacs-projectile :wk "Import Projectile project to treemacs")
+
       ;; "f f" '(eglot-format :wk "Format code buffer")
       "i p c" '(prestonpan :wk "Connect to my IRC server")
       "i l c" '(liberachat :wk "Connect to libera chat server")
       "i e c" '(efnet :wk "Connect to efnet chat server")
       "i g c" '(gimp-org :wk "Connect to gimp chat server")
+
+      ;; Documentation
       "h" '(:ignore t :wk "Documentation")
       "h v" '(counsel-describe-variable :wk "Describe variable")
       "h f" '(counsel-describe-function :wk "Describe function")
       "h h" '(help :wk "Help")
       "h m" '(woman :wk "Manual")
       "h i" '(info :wk "Info")
-      "s m" '(proced :wk "System Manager")
-      "l p" '(list-processes :wk "List Emacs Processes")
-      "m I" '(org-id-get-create :wk "Make org id")
-      "w r" '(writeroom-mode :wk "focus mode for writing")
-      "y n s" '(yas-new-snippet :wk "Create new snippet")
+
       "u w" '((lambda () (interactive) (shell-command "rsync -azvP ~/website_html/ root@nullring.xyz:/usr/share/nginx/ret2pop/")) :wk "rsync website update")
+
       "h r r" '(lambda () (interactive) (org-babel-load-file (expand-file-name "~/monorepo/config/emacs.org")))))
 #+end_src
 ** LLM
@@ -564,6 +590,31 @@ competitive LLM that doesn't cost money.
     (setopt ellama-provider (make-llm-ollama
   	     :host "localhost"
   	     :chat-model "qwen2.5:14b")))
+#+end_src
+*** Minuet
+Minuet does my code completion, showing the potential code completion as a ghost and automatically completing the code when my cursor is
+still. It is kind of like copilot but it works with local LLMs, which is better. Though, it's obviously not always the most accurate.
+#+begin_src emacs-lisp
+  (use-package minuet
+      :bind
+      (("M-y" . #'minuet-complete-with-minibuffer)
+       ("C-c m" . #'minuet-show-suggestion)
+       :map minuet-active-mode-map
+       ("C-c r" . #'minuet-dismiss-suggestion)
+       ("TAB" . #'minuet-accept-suggestion))
+      :init
+      (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
+
+      :config
+      (setq minuet-provider 'openai-fim-compatible)
+      (setq minuet-n-completions 1)
+      (setq minuet-context-window 512)
+      (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:11434/v1/completions")
+      (plist-put minuet-openai-fim-compatible-options :name "Ollama")
+      (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
+      (plist-put minuet-openai-fim-compatible-options :model "qwen2.5-coder:latest")
+
+      (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 120))
 #+end_src
 ** RSS Feed
 I use really simple syndication (RSS) in order to read news. As a result, I use

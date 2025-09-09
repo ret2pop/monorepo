@@ -348,6 +348,8 @@ under ~default.nix~ in the ~systems~ folder.
   	    man-pages
   	    man-pages-posix
         iproute2
+        silver-searcher
+        ripgrep
       ]);
       boot.loader.grub = lib.mkIf config.monorepo.profiles.grub.enable {
         enable = true;
@@ -1540,7 +1542,6 @@ I have many imports that we'll go through next.
   			                kdePackages.kdenlive
   			                # kicad
                         murmur
-                        silver-searcher
   					          ]) else []);
 
       monorepo.profiles = {
@@ -1920,6 +1921,7 @@ as an org file which gets automatically tangled to an emacs-lisp file.
           epkgs.magit
           epkgs.magit-delta
           epkgs.mu4e
+          epkgs.minuet
           epkgs.nix-mode
           epkgs.org-fragtog
           epkgs.org-journal
@@ -1947,6 +1949,7 @@ as an org file which gets automatically tangled to an emacs-lisp file.
           epkgs.unicode-fonts
           epkgs.use-package
           epkgs.vterm
+          epkgs.wgrep
           epkgs.web-mode
           epkgs.websocket
           epkgs.which-key

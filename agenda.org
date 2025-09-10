@@ -60,11 +60,13 @@ something.
 These are some habits I want to track. They are repeated according to a calendar schedule in
 general.
 ** TODO Supplements
-SCHEDULED: <2025-09-09 Tue .+1d>
+SCHEDULED: <2025-09-11 Thu .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-09-08 Mon 15:39]
+:LAST_REPEAT: [2025-09-10 Wed 03:23]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2025-09-10 Wed 03:23]
+- State "DONE"       from "TODO"       [2025-09-09 Tue 02:39]
 - State "DONE"       from "TODO"       [2025-09-08 Mon 15:39]
 - State "DONE"       from "TODO"       [2025-09-08 Mon 04:35]
 - State "DONE"       from "TODO"       [2025-08-27 Wed 21:46]
@@ -79,11 +81,13 @@ Current stack:
 - Vitamin D3
 - EPA/DHA
 ** TODO Pushups
-SCHEDULED: <2025-09-09 Tue .+1d>
+SCHEDULED: <2025-09-11 Thu .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-09-08 Mon 04:35]
+:LAST_REPEAT: [2025-09-10 Wed 03:23]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2025-09-10 Wed 03:23]
+- State "DONE"       from "TODO"       [2025-09-09 Tue 02:42]
 - State "DONE"       from "TODO"       [2025-09-08 Mon 04:35]
 - State "DONE"       from "TODO"       [2025-08-27 Wed 21:46]
 - State "DONE"       from "TODO"       [2025-08-25 Mon 21:16]
@@ -99,21 +103,23 @@ SCHEDULED: <2025-08-26 Tue .+1d>
 - State "DONE"       from "TODO"       [2025-06-26 Thu 23:22]
 I want to be able to run or bike every day so that I get my exercise in.
 ** TODO Stretch
-SCHEDULED: <2025-09-09 Tue .+1d>
+SCHEDULED: <2025-09-10 Wed .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-09-08 Mon 04:47]
+:LAST_REPEAT: [2025-09-09 Tue 02:42]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2025-09-09 Tue 02:42]
 - State "DONE"       from "TODO"       [2025-09-08 Mon 04:47]
 - State "DONE"       from "TODO"       [2025-02-11 Tue 04:01]
 - State "DONE"       from "TODO"       [2025-01-11 Sat 02:26]
 I want to stretch every day so that I can become more flexible.
 ** TODO Journal
-SCHEDULED: <2025-09-09 Tue .+1d>
+SCHEDULED: <2025-09-10 Wed .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-09-08 Mon 04:35]
+:LAST_REPEAT: [2025-09-09 Tue 02:40]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2025-09-09 Tue 02:40]
 - State "DONE"       from "TODO"       [2025-09-08 Mon 04:35]
 - State "DONE"       from "TODO"       [2025-07-20 Sun 21:28]
 - State "DONE"       from "TODO"       [2025-06-26 Thu 23:21]

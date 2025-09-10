@@ -404,22 +404,28 @@
   (leader-key 'normal
     "o c" '(org-capture :wk "Capture")
 
+    ;; Org Mode
     "n" '(:ignore t :wk "Org mode plugins")
     "n j j" '(org-journal-new-entry :wk "Make new journal entry")
     "n r f" '(org-roam-node-find :wk "Find roam node")
     "n r i" '(org-roam-node-insert :wk "Insert roam node")
     "n r a" '(org-roam-alias-add :wk "Add alias to org roam node")
     "n r g" '(org-roam-graph :wk "Graph roam database")
-    "r s s" '(elfeed :wk "rss feed")
+    "m I" '(org-id-get-create :wk "Make org id")
 
+    ;; Programming Projects
     "." '(counsel-find-file :wk "find file")
-    "p i" '(projectile-add-known-project :wk "Add to project list")
+    "p I" '(projectile-add-known-project :wk "Add to project list")
+    
+    "N f" '(nix-flake :wk "nix flake menu")
+    "f" '(:ignore t :wk "file operations")
     "f p" '(projectile-switch-project :wk "find project to switch to")
     "f f" '(projectile-find-file :wk "find file in project")
     "f s" '(counsel-rg :wk "find string in project")
-    "y n s" '(yas-new-snippet :wk "Create new snippet")
-    "g" '(:ignore t :wk "Magit")
 
+    "y n s" '(yas-new-snippet :wk "Create new snippet")
+
+    "g" '(:ignore t :wk "Magit")
     "g /" '(magit-dispatch :wk "git commands")
     "g P" '(magit-push :wk "git push")
     "g c" '(magit-commit :wk "git commit")
@@ -430,20 +436,23 @@
     "o p" '(treemacs :wk "Project Drawer")
     "o P" '(treemacs-projectile :wk "Import Projectile project to treemacs")
 
+    "w r" '(writeroom-mode :wk "focus mode for writing")
+
+    ;; Applications
     "o" '(:ignore t :wk "Open application")
     "o t" '(vterm :wk "Terminal")
     "o e" '(eshell :wk "Elisp Interpreter")
     "o m" '(mu4e :wk "Email")
     "o M" '(matrix-org :wk "Connect to matrix")
+    "o r s" '(elfeed :wk "rss feed")
     "o a" '(org-agenda :wk "Open agenda")
-
-    "n f" '(nix-flake :wk "nix flake menu")
-
-    "e w w" '(eww :wk "web browser")
+    "o w" '(eww :wk "web browser")
+    "m m" '(emms :wk "Music player")
+    "s m" '(proced :wk "System Manager")
+    "l p" '(list-processes :wk "List Emacs Processes")
 
     "m P p" '(org-publish :wk "Publish website components")
     "s e" '(sudo-edit :wk "Edit file with sudo")
-    "m m" '(emms :wk "Music player")
 
     ;; "f f" '(eglot-format :wk "Format code buffer")
     "i p c" '(prestonpan :wk "Connect to my IRC server")
@@ -451,19 +460,13 @@
     "i e c" '(efnet :wk "Connect to efnet chat server")
     "i g c" '(gimp-org :wk "Connect to gimp chat server")
 
+    ;; Documentation
     "h" '(:ignore t :wk "Documentation")
     "h v" '(counsel-describe-variable :wk "Describe variable")
     "h f" '(counsel-describe-function :wk "Describe function")
     "h h" '(help :wk "Help")
     "h m" '(woman :wk "Manual")
     "h i" '(info :wk "Info")
-
-    "s m" '(proced :wk "System Manager")
-    "l p" '(list-processes :wk "List Emacs Processes")
-
-    "m I" '(org-id-get-create :wk "Make org id")
-
-    "w r" '(writeroom-mode :wk "focus mode for writing")
 
     "u w" '((lambda () (interactive) (shell-command "rsync -azvP ~/website_html/ root@nullring.xyz:/usr/share/nginx/ret2pop/")) :wk "rsync website update")
 
@@ -485,19 +488,24 @@
      :map minuet-active-mode-map
      ("C-c r" . #'minuet-dismiss-suggestion)
      ("TAB" . #'minuet-accept-suggestion))
+
     :init
     (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
 
+    :custom
+    (minuet-request-timeout 40 "Max timeout in seconds")
+    (minuet-provider 'openai-fim-compatible "FIM compatible OpenAI-like API (Ollama)")
+    (minuet-n-completions 1 "I am using ghost text so I only need one possible completion")
+    (minuet-context-window 1024 "how much context do I want?")
+
     :config
-    (setq minuet-provider 'openai-fim-compatible)
-    (setq minuet-n-completions 1)
-    (setq minuet-context-window 512)
     (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:11434/v1/completions")
+
     (plist-put minuet-openai-fim-compatible-options :name "Ollama")
     (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
-    (plist-put minuet-openai-fim-compatible-options :model "qwen2.5-coder:latest")
+    (plist-put minuet-openai-fim-compatible-options :model "qwen2.5-coder:14b")
 
-    (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 120))
+    (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 50))
 
 (use-package elfeed
   :custom

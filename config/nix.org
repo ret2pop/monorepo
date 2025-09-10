@@ -694,8 +694,15 @@ Use ollama for serving large language models to my other computers.
   { config, lib, ... }:
   {
     services.ollama = {
-      enable = lib.mkDefault config.monorepo.profiles.workstation.enable;
-      acceleration = "cuda";
+      enable = lib.mkDefault (!config.monorepo.profiles.ttyonly.enable);
+      acceleration = if (config.monorepo.profiles.workstation.enable) then "cuda" else null;
+      loadModels = [
+        "qwen3:30b"
+        "qwen3-coder:latest"
+        "qwen2.5-coder:latest"
+        "qwen2.5-coder:3b"
+        "gemma3:12b-it-qat"
+      ];
       host = "0.0.0.0";
       openFirewall = true;
     };
@@ -3020,6 +3027,8 @@ for these configurations.
       packages = with pkgs; (if config.monorepo.profiles.graphics.enable then [
         # wikipedia
         # kiwix kiwix-tools
+        mupdf
+        zathura
 
         # passwords
         age sops
@@ -3032,7 +3041,7 @@ for these configurations.
 
         # Apps
         # octaveFull
-        vesktop grim swww vim telegram-desktop
+        vesktop grim swww vim telegram-desktop qwen-code
 
         # Sound/media
         pavucontrol alsa-utils imagemagick ffmpeg helvum

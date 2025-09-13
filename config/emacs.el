@@ -187,6 +187,18 @@
   :config
   (lyrics-fetcher-use-backend 'genius))
 
+(defun insert-urandom-password (&optional length)
+  (interactive "P")
+  (let ((length (or length 32))
+        (chars "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[]{};:,.<>?"))
+    (insert
+     (with-temp-buffer
+       (call-process "head" nil t nil "-c" (number-to-string length) "/dev/urandom")
+       (let ((bytes (buffer-string)))
+         (mapconcat (lambda (c)
+                      (string (elt chars (mod (string-to-char (char-to-string c)) (length chars)))))
+                    bytes ""))))))
+
 (use-package org-fragtog :hook (org-mode . org-fragtog-mode))
 
 (use-package yasnippet
@@ -415,12 +427,12 @@
 
     ;; Programming Projects
     "." '(counsel-find-file :wk "find file")
-    "p I" '(projectile-add-known-project :wk "Add to project list")
+    "p a" '(projectile-add-known-project :wk "Add to project list")
     
     "N f" '(nix-flake :wk "nix flake menu")
     "f" '(:ignore t :wk "file operations")
     "f p" '(projectile-switch-project :wk "find project to switch to")
-    "f f" '(projectile-find-file :wk "find file in project")
+    "f f" '(counsel-fzf :wk "find file in project")
     "f s" '(counsel-rg :wk "find string in project")
 
     "y n s" '(yas-new-snippet :wk "Create new snippet")
@@ -468,6 +480,7 @@
     "h m" '(woman :wk "Manual")
     "h i" '(info :wk "Info")
 
+    "s i p" '(insert-urandom-password :wk "insert random password to buffer (for sops)")
     "u w" '((lambda () (interactive) (shell-command "rsync -azvP ~/website_html/ root@nullring.xyz:/usr/share/nginx/ret2pop/")) :wk "rsync website update")
 
     "h r r" '(lambda () (interactive) (org-babel-load-file (expand-file-name "~/monorepo/config/emacs.org")))))
@@ -631,3 +644,8 @@
   (add-to-list 'emms-info-functions 'emms-info-mpd)
   (add-to-list 'emms-player-list 'emms-player-mpd)
   :config (emms-player-mpd-connect))
+
+(use-package lean4-mode
+  :commands lean4-mode
+  :vc (:url "https://github.com/leanprover-community/lean4-mode.git"
+       :rev "76895d8939111654a472cfc617cfd43fbf5f1eb6"))

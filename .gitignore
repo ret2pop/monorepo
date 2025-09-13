@@ -1,2 +1,3 @@
 ./website/**
 nix/result
+.env

@@ -258,6 +258,13 @@ largely self-documenting.
         description = "device that NixOS is installed to";
       };
 
+      fileSystem = lib.mkOption {
+        type = lib.types.str;
+        default = "ext4";
+        example = "btrfs";
+        description = "filesystem to install with disko";
+      };
+
       diskoSpec = lib.mkOption {
         type = lib.types.attrs;
         description = "retains a copy of the disko spec for reflection";
@@ -409,7 +416,6 @@ In order to run docker containers, I need this file:
     virtualisation.docker.enable = true;
   }
 #+end_src
-
 ** Pipewire
 My low latency pipewire configuration is used for music production, as well as for regular
 desktop usage. Pipewire is much better than pulseaudio because it supports jack with the same
@@ -511,7 +517,7 @@ distribution soon, and I'm waiting on that.
   };
 }
 #+end_src
-** Murmur
+** TODO Murmur
 #+begin_src nix :tangle ../nix/modules/murmur.nix
   { lib, config, ... }:
   {
@@ -528,7 +534,7 @@ distribution soon, and I'm waiting on that.
     };
   }
 #+end_src
-** i2pd
+** TODO i2pd
 I use i2p for some p2p connections. We enable it with the server profile:
 #+begin_src nix :tangle ../nix/modules/i2pd.nix
   { config, lib, ... }:
@@ -543,7 +549,7 @@ I use i2p for some p2p connections. We enable it with the server profile:
     };
   }
 #+end_src
-** Icecast
+** TODO Icecast
 This is an internet radio which will host a ton of music.
 #+begin_src nix :tangle ../nix/modules/icecast.nix
   { lib, config, ... }:
@@ -632,8 +638,6 @@ for users:
     Method = sha256
     Hash = d4abdd69aa24de69693885c5bd83a4a0e9ee989e1a69a905041b0dad9abc06ea
     Salt = sDY,?H5AxC-!gH3a.:)D
-    Hash = ${config.sops.secrets.znc_password_hash}
-    Salt = ${config.sops.secrets.znc_password_salt}
   </Pass>
   '';
         modules = [
@@ -672,7 +676,7 @@ still federating and hosting the same protocol.
         ];
         address = "0.0.0.0";
         port = 6167;
-        allow_registration = true;
+        allow_registration = false;
       };
     };
   }
@@ -864,14 +868,15 @@ world. This was the easiest frontend to set up on NixOS.
     ] else []);
   }
 #+end_src
-** Maddy
+** TODO Maddy
 #+begin_src nix :tangle ../nix/modules/maddy.nix
   { lib, config, options, ... }:
   {
     services.maddy = {
       enable = lib.mkDefault config.monorepo.profiles.server.enable;
       openFirewall = true;
-      primaryDomain = "ret2pop.net";
+      hostName = "${config.monorepo.vars.remoteHost}";
+      primaryDomain = "mail.${config.monorepo.vars.remoteHost}";
       tls = {
         loader = "acme";
       };
@@ -882,6 +887,11 @@ world. This was the easiest frontend to set up on NixOS.
         "imap tls://0.0.0.0:993 tcp://0.0.0.0:143"
         "submission tls://0.0.0.0:465 tcp://0.0.0.0:587"
       ] options.services.maddy.config.default;
+      ensureCredentials = {
+        "preston@localhost" = {
+          passwordFile = "/secrets/preston-localhost";
+        };
+      };
     };
   }
 #+end_src
@@ -1175,7 +1185,7 @@ because they enhance security.
 
     xdg.portal = {
       enable = (! config.monorepo.profiles.ttyonly.enable);
-      wlr.enable = true;
+      wlr.enable = (! config.monorepo.profiles.ttyonly.enable);
       extraPortals = with pkgs; if (! config.monorepo.profiles.ttyonly.enable) then [
     	  xdg-desktop-portal-gtk
     	  xdg-desktop-portal
@@ -1281,6 +1291,56 @@ because they enhance security.
 ** Disko
 This is the disko configuration for my continuity system. It features a boot and ext4 partition,
 with configurable disk.
+*** Btrfs
+#+begin_src nix :tangle ../nix/disko/btrfs-simple.nix
+  { lib, config, ... }:
+  let
+    spec = {
+    disko.devices = {
+      disk = {
+        main = {
+          type = "disk";
+          device = config.monorepo.vars.device;
+          content = {
+            type = "gpt";
+            partitions = {
+              ESP = {
+                priority = 1;
+                name = "ESP";
+                start = "1M";
+                end = "128M";
+                type = "EF00";
+                content = {
+                  type = "filesystem";
+                  format = "vfat";
+                  mountpoint = "/boot";
+                  mountOptions = [ "umask=0077" ];
+                };
+              };
+              root = {
+                size = "100%";
+                content = {
+                  type = "btrfs";
+                  extraArgs = [ "-f" ]; # Override existing partition
+                  mountpoint = "/";
+                  mountOptions = [
+                    "compress=zstd"
+                    "noatime"
+                  ];
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+  in
+  {
+    monorepo.vars.diskoSpec = spec;
+    disko.devices = spec.disko.devices;
+  }
+#+end_src
 *** Simple
 This configuration is used for simple partitioning schemes with EFI.
 #+begin_src nix :tangle ../nix/disko/drive-simple.nix
@@ -1999,30 +2059,33 @@ the timezone.
 My git configuration uses information set in the ~vars.nix~ in order to set configuration options.
 Make sure those are set correctly. I've set it to sign by default.
 #+begin_src nix :tangle ../nix/modules/home/git.nix
-{ lib, config, ... }:
-{
-  programs.git = {
-    enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
-    userName = config.monorepo.vars.fullName;
-    userEmail = config.monorepo.profiles.email.email;
-    signing = {
-      key = config.monorepo.vars.gpgKey;
-      signByDefault = true;
-    };
+  { lib, config, ... }:
+  {
+    programs.git = {
+      enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
+      userName = config.monorepo.vars.fullName;
+      userEmail = config.monorepo.profiles.email.email;
+      signing = {
+        key = config.monorepo.vars.gpgKey;
+        signByDefault = true;
+      };
 
-    extraConfig = {
-      init.defaultBranch = "main";
-    };
+      extraConfig = {
+        init.defaultBranch = "main";
+      };
 
-    aliases = {
-      co = "checkout";
-      c = "commit";
-      a = "add";
-      s = "switch";
-      b = "branch";
+      aliases = {
+        pl = "pull";
+        ps = "push";
+        co = "checkout";
+        c = "commit";
+        a = "add";
+        st = "status";
+        sw = "switch";
+        b = "branch";
+      };
     };
-  };
-}
+  }
 #+end_src
 *** Hyprland
 My compositor/window manager. This automatically starts on startup. Instructions on how
@@ -2952,6 +3015,9 @@ standard.
       };
 
       shellAliases = {
+        se = "sops edit";
+        f = "vim $(fzf)";
+        e = "cd $(find . -type d -print | fzf)";
         c = "clear";
         g = "git";
         v = "vim";
@@ -3030,6 +3096,7 @@ for these configurations.
         mupdf
         zathura
 
+        fzf
         # passwords
         age sops
 
@@ -3065,6 +3132,44 @@ for these configurations.
         pfetch
         libnotify
         htop
+
+        (pkgs.writeShellScriptBin "help"
+          ''
+  #!/usr/bin/env sh
+  # Portable, colored, nicely aligned alias list
+
+  # Generate uncolored alias pairs
+  aliases=$(cat <<'EOF'
+  ${let aliases = config.programs.zsh.shellAliases;
+    in lib.concatStringsSep "\n" (lib.mapAttrsToList (name: value:
+      "${name} -> ${value}"
+    ) aliases)}
+  EOF
+                                 )
+
+  # Align and color using awk
+  echo "$aliases" | awk '
+  BEGIN {
+      GREEN="\033[0;32m";
+      YELLOW="\033[0;33m";
+      RESET="\033[0m";
+      maxlen=0;
+                 }
+  {
+      # Split line on " -> "
+      split($0, parts, / -> /);
+      name[NR]=parts[1];
+      cmd[NR]=parts[2];
+      if(length(parts[1])>maxlen) maxlen=length(parts[1]);
+  }
+  END {
+      for(i=1;i<=NR;i++) {
+          # printf with fixed width for alias name
+          printf "%s%-*s%s -> %s%s%s\n", GREEN, maxlen, name[i], RESET, YELLOW, cmd[i], RESET;
+          }
+  }'
+  '')
+
         (writeShellScriptBin "remote-build"
           ''
   #!/bin/bash
@@ -3222,14 +3327,22 @@ Spontaneity is my VPS instance.
 
       boot.loader.grub.device = "nodev";
       networking = {
+        interfaces.ens3.ipv6.addresses = [
+          {
+            address = "2001:19f0:5401:10d0:5400:5ff:fe4a:7794";
+            prefixLength = 64;
+          }
+        ];
         firewall.allowedTCPPorts = [
           80
+          143
           443
           465
+          587
           993
-          8448
           6697
           6667
+          8448
         ];
         domains = {
           enable = true;
@@ -3247,7 +3360,9 @@ Spontaneity is my VPS instance.
             "${config.monorepo.vars.remoteHost}" = {};
             "matrix.${config.monorepo.vars.remoteHost}" = {};
             "www.${config.monorepo.vars.remoteHost}" = {};
-            "mail.${config.monorepo.vars.remoteHost}" = {};
+            "mail.${config.monorepo.vars.remoteHost}" = {
+              mx.data = "10 mail.${config.monorepo.vars.remoteHost}.";
+            };
 
             "nullring.xyz" = {};
             "git.nullring.xyz" = {};

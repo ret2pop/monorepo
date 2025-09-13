@@ -234,6 +234,21 @@ This currently doesn't work I'm pretty sure, but it's supposed to fetch lyrics f
     :config
     (lyrics-fetcher-use-backend 'genius))
 #+end_src
+* Passwords
+This is a function that inserts a random password into the buffer. I use this to manage sops-nix.
+#+begin_src emacs-lisp
+  (defun insert-urandom-password (&optional length)
+    (interactive "P")
+    (let ((length (or length 32))
+          (chars "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[]{};:,.<>?"))
+      (insert
+       (with-temp-buffer
+         (call-process "head" nil t nil "-c" (number-to-string length) "/dev/urandom")
+         (let ((bytes (buffer-string)))
+           (mapconcat (lambda (c)
+                        (string (elt chars (mod (string-to-char (char-to-string c)) (length chars)))))
+                      bytes ""))))))
+#+end_src
 * Fragtog
 This package is used to generate previews automatically when your cursor hovers over a latex
 snippet.
@@ -521,12 +536,12 @@ emacs keybindings.
 
       ;; Programming Projects
       "." '(counsel-find-file :wk "find file")
-      "p I" '(projectile-add-known-project :wk "Add to project list")
+      "p a" '(projectile-add-known-project :wk "Add to project list")
       
       "N f" '(nix-flake :wk "nix flake menu")
       "f" '(:ignore t :wk "file operations")
       "f p" '(projectile-switch-project :wk "find project to switch to")
-      "f f" '(projectile-find-file :wk "find file in project")
+      "f f" '(counsel-fzf :wk "find file in project")
       "f s" '(counsel-rg :wk "find string in project")
 
       "y n s" '(yas-new-snippet :wk "Create new snippet")
@@ -574,6 +589,7 @@ emacs keybindings.
       "h m" '(woman :wk "Manual")
       "h i" '(info :wk "Info")
 
+      "s i p" '(insert-urandom-password :wk "insert random password to buffer (for sops)")
       "u w" '((lambda () (interactive) (shell-command "rsync -azvP ~/website_html/ root@nullring.xyz:/usr/share/nginx/ret2pop/")) :wk "rsync website update")
 
       "h r r" '(lambda () (interactive) (org-babel-load-file (expand-file-name "~/monorepo/config/emacs.org")))))
@@ -775,3 +791,14 @@ Set up emms in order to play music from my music directory:
     (add-to-list 'emms-player-list 'emms-player-mpd)
     :config (emms-player-mpd-connect))
 #+end_src
+* Unpinned
+** Lean4
+For some reason, lean4-mode is not in MELPA currently so I have to do this ugly thing:
+#+begin_src emacs-lisp
+  (use-package lean4-mode
+    :commands lean4-mode
+    :vc (:url "https://github.com/leanprover-community/lean4-mode.git"
+         :rev "76895d8939111654a472cfc617cfd43fbf5f1eb6"))
+#+end_src
+and actually pull something from the internet instead of pinning. Thankfully this reproduction issue is probably localized to lean files. Also,
+we're pulling a specific commit so it is still pinned.

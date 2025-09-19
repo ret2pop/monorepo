@@ -482,12 +482,24 @@ Still, it is suitable for using Krita.
   }
 #+end_src
 You should add your own video drivers in a custom machine configuration.
-** Docker
-In order to run docker containers, I need this file:
+** Containers
+In order to run docker/podman containers, I need this file:
 #+begin_src nix :tangle ../nix/modules/docker.nix
   { lib, config, vars, ... }:
   {
-    virtualisation.docker.enable = true;
+    virtualisation = {
+      oci-containers = {
+        backend = "podman";
+        containers = {};
+      };
+      containers.enable = true;
+      docker.enable = true;
+      podman = {
+        enable = true;
+        dockerCompat = true;
+        defaultNetwork.settings.dns_enabled = true;
+      };
+    };
   }
 #+end_src
 ** Pipewire
@@ -1149,7 +1161,7 @@ This is my impermanence profile, which removes all files on reboot except for th
   {
     assertions = [
       {
-        assertion = ! (config.monorepo.profiles.impermanence.enable && (! (config.monorepo.vars.filesystem == "btrfs")));
+        assertion = (! config.monorepo.profiles.impermanence.enable && (! (config.monorepo.vars.fileSystem == "btrfs")));
         message = "Impermanence requires btrfs filesystem.";
       }
     ];
@@ -3699,6 +3711,7 @@ as several other useful services.
   }
 #+end_src
 *** Home
+I want cuda in home manager too.
 #+begin_src nix :tangle ../nix/systems/affinity/home.nix
   { lib, config, pkgs, ... }:
   {
@@ -3807,7 +3820,7 @@ work deterministically.
 #+begin_src nix :tangle ../nix/systems/installer/commits.nix
   {
     diskoCommitHash = "c8a0e78d86b12ea67be6ed0f7cae7f9bfabae75a";
-    monorepoCommitHash = "bb31a5a879154432e11a75e69070b58004ddc07b";
+    monorepoCommitHash = "e2fbfac7ad7c0b4d438179b31d2ed53d884313a0";
     monorepoUrl = "https://github.com/ret2pop/monorepo";
   }
 #+end_src

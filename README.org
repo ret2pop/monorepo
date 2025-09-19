@@ -16,7 +16,11 @@ as well as writing a lot of things with a literate config. To see more, see my
 ** So, where is this website of yours located?
 https://ret2pop.net, it is the road to enlightenment.
 * Wait, so where are your dotfiles?
-To use my dotfiles, download the ISO image for the installer, log in, and run:
+To use my dotfiles, download the [[file:nix-installer.iso][ISO image]] for the installer. Note that you can validate the ISO image with the [[file:nix-installer.iso.sha256][checksum file]] provided:
+#+begin_src bash
+  sha256sum -c nix-installer.iso.sha256
+#+end_src
+with the ISO in the same directory. This install installs a certain commit hash of my monorepo. Flash the image, log into the installer, and run:
 #+begin_src bash
   nix_installer
 #+end_src
@@ -28,7 +32,7 @@ That's all! Note that if you install with an encrypted disk, you will have to ru
 #+begin_src bash
   echo "password123" > /tmp/secret.key
 #+end_src
-first.
+before ~nix_installer~.
 ** Post-setup
 In emacs, run ~M-x all-the-icons-install-fonts, ~~M-x nerd-icons-install-fonts~, and ~M-x org-roam-db-sync~. Install your music to ~$HOME/music~ for
 emms. In firefox, go to the three-bar menu and enable all the add-ons that were automatically installed. Set up the ~mu~ program in order to

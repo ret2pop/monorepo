@@ -493,7 +493,6 @@ In order to run docker/podman containers, I need this file:
         containers = {};
       };
       containers.enable = true;
-      docker.enable = true;
       podman = {
         enable = true;
         dockerCompat = true;
@@ -1161,7 +1160,7 @@ This is my impermanence profile, which removes all files on reboot except for th
   {
     assertions = [
       {
-        assertion = (! config.monorepo.profiles.impermanence.enable && (! (config.monorepo.vars.fileSystem == "btrfs")));
+        assertion = (! (config.monorepo.profiles.impermanence.enable && (! (config.monorepo.vars.fileSystem == "btrfs"))));
         message = "Impermanence requires btrfs filesystem.";
       }
     ];
@@ -3887,6 +3886,13 @@ This contains the installation script I use to install my systems.
 
   ping -q -c1 google.com &>/dev/null && echo "online! Proceeding with the installation..." || nmtui
 
+  if [ ! -d "$HOME/monorepo/" ]; then
+    git clone ${commits.monorepoUrl}
+    cd "$HOME/monorepo"
+    git checkout "${commits.monorepoCommitHash}"
+    cd "$HOME"
+  fi
+
   gum style --border normal --margin "1" --padding "1 2" "Choose a system to install or select `new` in order to create a new system."
 
   SYSTEM="$(gum choose $(find "$HOME/monorepo/nix/systems" -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | grep -v -E 'installer'; printf "New"))"
@@ -3902,13 +3908,6 @@ This contains the installation script I use to install my systems.
       gum style --border normal --margin "1" --padding "1 2" "Choose a name to call your drive file."
       DRIVE="$(gum input --placeholder "drive file name (ex: partition_scheme.nix)")"
     fi
-  fi
-
-  if [ ! -d "$HOME/monorepo/" ]; then
-    git clone ${commits.monorepoUrl}
-    cd "$HOME/monorepo"
-    git checkout "${commits.monorepoCommitHash}"
-    cd "$HOME"
   fi
 
 

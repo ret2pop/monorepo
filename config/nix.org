@@ -86,6 +86,11 @@ and now for the main flake:
         url = "github:Janik-Haag/nixos-dns";
         inputs.nixpkgs.follows = "nixpkgs";
       };
+
+      nixpak = {
+        url = "github:nixpak/nixpak";
+        inputs.nixpkgs.follows = "nixpkgs";
+      };
     };
 
     outputs = {
@@ -100,6 +105,7 @@ and now for the main flake:
         nixos-dns,
         deep-research,
         impermanence,
+        nixpak,
         ...
     }
       @attrs:
@@ -569,26 +575,26 @@ My SSH daemon configuration.
 This is my tor configuration, used for my cryptocurrency wallets and whatever else I want
 it to do.
 #+begin_src nix :tangle ../nix/modules/tor.nix
-{ config, lib, ... }:
-{
-  services.tor = {
-    enable = lib.mkDefault config.monorepo.profiles.tor.enable;
-    openFirewall = true;
-    client = {
+  { config, lib, ... }:
+  {
+    services.tor = {
       enable = lib.mkDefault config.monorepo.profiles.tor.enable;
-      socksListenAddress = {
-        IsolateDestAddr = true;
-        addr = "127.0.0.1";
-        port = 9050;
+      openFirewall = true;
+      client = {
+        enable = lib.mkDefault config.monorepo.profiles.tor.enable;
+        socksListenAddress = {
+          IsolateDestAddr = true;
+          addr = "127.0.0.1";
+          port = 9050;
+        };
+        dns.enable = true;
       };
-      dns.enable = true;
+      torsocks = {
+        enable = lib.mkDefault config.monorepo.profiles.tor.enable;
+        server = "127.0.0.1:9050";
+      };
     };
-    torsocks = {
-      enable = lib.mkDefault config.monorepo.profiles.tor.enable;
-      server = "127.0.0.1:9050";
-    };
-  };
-}
+  }
 #+end_src
 ** Kubo IPFS
 I use IPFS for my website and also for my ISOs for truly declarative and deterministic
@@ -1190,6 +1196,10 @@ This is my impermanence profile, which removes all files on reboot except for th
       umount /btrfs_tmp
     '' else "");
 
+    boot.initrd.luks.devices = (if config.monorepo.profiles.impermanence.enable then [
+      { name = "crypted"; device = "/dev/disk/by-partlabel/disk-main-luks"; }
+    ] else []);
+
     fileSystems = if (config.monorepo.profiles.impermanence.enable) then {
       "/persistent" = {
         neededForBoot = true;
@@ -1513,6 +1523,12 @@ because they enhance security.
       apparmor = {
     	  enable = true;
     	  killUnconfinedConfinables = true;
+        packages = with pkgs; [
+          apparmor-profiles
+        ];
+        policies = {
+          firefox.path = "${pkgs.apparmor-profiles}/share/apparmor/extra-profiles/firefox";
+        };
       };
 
       pam.loginLimits = [

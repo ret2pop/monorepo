@@ -32,7 +32,6 @@ first.
 ** Post-setup
 In emacs, run ~M-x all-the-icons-install-fonts, ~~M-x nerd-icons-install-fonts~, and ~M-x org-roam-db-sync~. Install your music to ~$HOME/music~ for
 emms. In firefox, go to the three-bar menu and enable all the add-ons that were automatically installed. Set up the ~mu~ program in order to
-send and receive email, along with modifying the corresponding mbsync and msmtp commands. Change ~nix/flakevars.nix~ to your liking, and add
-new systems if you want.
+send and receive email, along with modifying the corresponding mbsync and msmtp commands. Change ~nix/flakevars.nix~ to your liking.
 * License
 See the [[file:LICENSE][license]] The style.css has its own license.

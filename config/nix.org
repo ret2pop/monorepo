@@ -13,10 +13,40 @@ emacs configuration is pinned to my flake.
 Hence, my monorepo serves a dual purpose, as do many of the files within my monorepo. They are
 often data files used in my configuration (i.e. emacs, elfeed, org-roam, agenda, journal, etc...)
 and they are webpages as well. This page is one such example of this concept.
+
+* Configurables
+We start with some configurable variables (you can change these if you want to use this configuration yourself):
+#+begin_src nix :tangle ../nix/flakevars.nix
+  let
+    # I'm ret2pop! What's your name?
+    internetName = "ret2pop";
+  in
+  {
+    # Name of spontaneity box
+    remoteHost = "${internetName}.net";
+
+    # Your internet name
+    internetName = internetName;
+
+    # Name of your organization
+    orgHost = "nullring.xyz";
+
+    # Hostnames of my systems
+    hostnames = [
+      "affinity"
+      "continuity"
+      "spontaneity"
+      "installer"
+    ];
+  }
+#+end_src
+
 * Flake.nix
 The flake is the entry point of the NixOS configuration. Here, I have a list of all the systems
 that I use with all the modules that they use. My NixOS configuration is heavily modularized,
 so that adding new configurations that add modifications is made simple.
+
+and now for the main flake:
 #+begin_src nix :tangle ../nix/flake.nix
   {
     description = "Emacs centric configurations for a complete networked system";
@@ -25,48 +55,58 @@ so that adding new configurations that add modifications is made simple.
       nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
       nur.url = "github:nix-community/NUR";
       sops-nix.url = "github:Mic92/sops-nix";
+
       scripts.url = "github:ret2pop/scripts";
       wallpapers.url = "github:ret2pop/wallpapers";
       sounds.url = "github:ret2pop/sounds";
+      deep-research.url = "github:ret2pop/ollama-deep-researcher";
+      impermanence.url = "github:nix-community/impermanence";
+
       nix-topology = {
         url = "github:oddlama/nix-topology";
         inputs.nixpkgs.follows = "nixpkgs";
       };
-      deep-research = {
-        url = "github:ret2pop/ollama-deep-researcher";
-      };
+
       home-manager = {
   	    url = "github:nix-community/home-manager/release-25.05";
   	    inputs.nixpkgs.follows = "nixpkgs";
       };
+
       disko = {
   	    url = "github:nix-community/disko";
   	    inputs.nixpkgs.follows = "nixpkgs";
       };
+
       lanzaboote = {
   	    url = "github:nix-community/lanzaboote/v0.4.1";
   	    inputs.nixpkgs.follows = "nixpkgs";
       };
+
       nixos-dns = {
         url = "github:Janik-Haag/nixos-dns";
         inputs.nixpkgs.follows = "nixpkgs";
       };
     };
 
-    outputs = { self, nixpkgs, home-manager, nur, disko, lanzaboote, sops-nix, nix-topology, nixos-dns, deep-research, ... }@attrs:
+    outputs = {
+      self,
+        nixpkgs,
+        home-manager,
+        nur,
+        disko,
+        lanzaboote,
+        sops-nix,
+        nix-topology,
+        nixos-dns,
+        deep-research,
+        impermanence,
+        ...
+    }
+      @attrs:
       let
-        hostnames = [
-          "affinity"
-          "continuity"
-          "installer"
-          "spontaneity"
-          # add hostnames here
-        ];
-
+        vars = import ./flakevars.nix;
         system = "x86_64-linux";
-
         pkgs = import nixpkgs { inherit system; };
-
         generate = nixos-dns.utils.generate nixpkgs.legacyPackages."${system}";
 
         dnsConfig = {
@@ -76,93 +116,94 @@ so that adding new configurations that add modifications is made simple.
 
         # function that generates all systems from hostnames
         mkConfigs = map (hostname: {name = "${hostname}";
-          value = nixpkgs.lib.nixosSystem {
-            inherit system;
-            specialArgs = attrs;
-            modules = if (hostname == "installer") then [
-              (./. + "/systems/${hostname}/default.nix")
-              { networking.hostName = "${hostname}"; }
-              nix-topology.nixosModules.default
-            ] else [
-              {
-                environment.systemPackages = with nixpkgs.lib; [
-                  deep-research.packages."${system}".deep-research
-                ];
-              }
-              nix-topology.nixosModules.default
-              lanzaboote.nixosModules.lanzaboote
-              disko.nixosModules.disko
-              home-manager.nixosModules.home-manager
-              sops-nix.nixosModules.sops
-              nixos-dns.nixosModules.dns
-              {
-                nixpkgs.overlays = [ nur.overlays.default ];
-                home-manager.extraSpecialArgs = attrs // { systemHostName = "${hostname}"; };
-                networking.hostName = "${hostname}";
-              }
-              (./. + "/systems/${hostname}/default.nix")
-            ];
-          };
-        });
+                                  value = nixpkgs.lib.nixosSystem {
+                                    inherit system;
+                                    specialArgs = attrs;
+                                    modules = if (hostname == "installer") then [
+                                      (./. + "/systems/${hostname}/default.nix")
+                                      { networking.hostName = "${hostname}"; }
+                                      nix-topology.nixosModules.default
+                                    ] else [
+                                      {
+                                        environment.systemPackages = with nixpkgs.lib; [
+                                          deep-research.packages."${system}".deep-research
+                                        ];
+                                      }
+                                      impermanence.nixosModules.impermanence
+                                      nix-topology.nixosModules.default
+                                      lanzaboote.nixosModules.lanzaboote
+                                      disko.nixosModules.disko
+                                      home-manager.nixosModules.home-manager
+                                      sops-nix.nixosModules.sops
+                                      nixos-dns.nixosModules.dns
+                                      {
+                                        nixpkgs.overlays = [ nur.overlays.default ];
+                                        home-manager.extraSpecialArgs = attrs // { systemHostName = "${hostname}"; };
+                                        networking.hostName = "${hostname}";
+                                      }
+                                      (./. + "/systems/${hostname}/default.nix")
+                                    ];
+                                  };
+                                 });
 
         mkDiskoFiles = map (hostname: {
           name = "${hostname}";
           value = self.nixosConfigurations."${hostname}".config.monorepo.vars.diskoSpec;
         });
+      in
+        {
+          nixosConfigurations = builtins.listToAttrs (mkConfigs vars.hostnames);
 
-      in {
-        nixosConfigurations = builtins.listToAttrs (mkConfigs hostnames);
+          evalDisko = builtins.listToAttrs (mkDiskoFiles (builtins.filter (x: x != "installer") vars.hostnames));
 
-        evalDisko = builtins.listToAttrs (mkDiskoFiles (builtins.filter (x: x != "installer") hostnames));
-
-        topology."${system}" = import nix-topology {
-          pkgs = import nixpkgs {
-            inherit system;
-            overlays = [ nix-topology.overlays.default ];
+          topology."${system}" = import nix-topology {
+            pkgs = import nixpkgs {
+              inherit system;
+              overlays = [ nix-topology.overlays.default ];
+            };
+            modules = [
+              ./topology/default.nix
+              { nixosConfigurations = self.nixosConfigurations; }
+            ];
           };
-          modules = [
-            ./topology/default.nix
-            { nixosConfigurations = self.nixosConfigurations; }
-          ];
-        };
 
-        devShell."${system}" = with pkgs; mkShell {
-          buildInputs = [
-            fira-code
-            python3
-            poetry
-            statix
-            deadnix
-          ];
-        };
+          devShell."${system}" = with pkgs; mkShell {
+            buildInputs = [
+              fira-code
+              python3
+              poetry
+              statix
+              deadnix
+            ];
+          };
 
-        packages."${system}" = {
-          zoneFiles = generate.zoneFiles dnsConfig;
-          octodns = generate.octodnsConfig {
-            inherit dnsConfig;
-            
-            config = {
-              providers = {
-                cloudflare = {
-                  class = "octodns_cloudflare.CloudflareProvider";
-                  token = "env/CLOUDFLARE_TOKEN";
-                };
-                config = {
-                  check_origin = false;
+          packages."${system}" = {
+            zoneFiles = generate.zoneFiles dnsConfig;
+            octodns = generate.octodnsConfig {
+              inherit dnsConfig;
+              
+              config = {
+                providers = {
+                  cloudflare = {
+                    class = "octodns_cloudflare.CloudflareProvider";
+                    token = "env/CLOUDFLARE_TOKEN";
+                  };
+                  config = {
+                    check_origin = false;
+                  };
                 };
               };
-            };
-            zones = {
-              "ret2pop.net." = nixos-dns.utils.octodns.generateZoneAttrs [ "cloudflare" ];
-              "nullring.xyz." = nixos-dns.utils.octodns.generateZoneAttrs [ "cloudflare" ];
+              zones = {
+                "${vars.remoteHost}." = nixos-dns.utils.octodns.generateZoneAttrs [ "cloudflare" ];
+                "${vars.orgHost}." = nixos-dns.utils.octodns.generateZoneAttrs [ "cloudflare" ];
+              };
             };
           };
         };
-      };
   }
 #+end_src
-Note that the configurations are automatically generated with he
-mkConfigs function.
+Note that the configurations are automatically generated with he mkConfigs function, and the final disko output is automatically generated
+with mkDiskoFiles.
 * Sops Configuration
 In order to use the sops configuration, you must change the age public key to the one that
 you own:
@@ -249,6 +290,9 @@ Variables used for regular configuration in your system ~default.nix~ file. The 
 largely self-documenting.
 #+begin_src nix :tangle ../nix/modules/vars.nix
   { lib, ... }:
+  let
+    vars = import ../flakevars.nix;
+  in
   {
     options.monorepo.vars = {
       device = lib.mkOption {
@@ -256,6 +300,20 @@ largely self-documenting.
         default = "/dev/sda";
         example = "/dev/nvme0n1";
         description = "device that NixOS is installed to";
+      };
+
+      internetName = lib.mkOption {
+        type = lib.types.str;
+        default = "${vars.internetName}";
+        example = "myinternetname";
+        description = "Internet name to be used for internet usernames";
+      };
+
+      repoName = lib.mkOption {
+        type = lib.types.str;
+        default = "monorepo";
+        example = "myreponame";
+        description = "Name of this repository";
       };
 
       fileSystem = lib.mkOption {
@@ -293,9 +351,16 @@ largely self-documenting.
 
       remoteHost = lib.mkOption {
         type = lib.types.str;
-        default = "ret2pop.net";
+        default = "${vars.remoteHost}";
         example = "example.com";
         description = "Address to push to and pull from for website and git repos";
+      };
+
+      orgHost = lib.mkOption {
+        type = lib.types.str;
+        default = "${vars.orgHost}";
+        example = "orgname.org";
+        description = "Domain name of your organization";
       };
 
       timeZone = lib.mkOption {
@@ -345,19 +410,27 @@ under ~default.nix~ in the ~systems~ folder.
           ttyonly.enable = lib.mkEnableOption "TTY only, no xserver";
           grub.enable = lib.mkEnableOption "Enables grub instead of systemd-boot";
           workstation.enable = lib.mkEnableOption "Enables workstation services";
+          impermanence.enable = lib.mkEnableOption "Enables imperamanence";
   	    };
       };
     };
 
     config = {
-      environment.systemPackages = lib.mkIf config.monorepo.profiles.documentation.enable (with pkgs; [
+      environment.systemPackages = lib.mkIf config.monorepo.profiles.documentation.enable ((with pkgs; [
   	    linux-manual
   	    man-pages
   	    man-pages-posix
         iproute2
         silver-searcher
         ripgrep
-      ]);
+      ]) ++
+      (if (config.monorepo.vars.fileSystem == "btrfs") then with pkgs; [
+        btrfs-progs
+        btrfs-snap
+        btrfs-list
+        btrfs-heatmap
+      ] else []));
+
       boot.loader.grub = lib.mkIf config.monorepo.profiles.grub.enable {
         enable = true;
       };
@@ -368,6 +441,7 @@ under ~default.nix~ in the ~systems~ folder.
   		    pipewire.enable = lib.mkDefault true;
   		    tor.enable = lib.mkDefault true;
   		    home.enable = lib.mkDefault true;
+          impermanence.enable = lib.mkDefault false;
   	    };
       };
     };
@@ -528,9 +602,9 @@ distribution soon, and I'm waiting on that.
       hostName = "0.0.0.0";
       welcometext = "Wecome to the Null Murmur instance!";
       registerName = "nullring";
-      registerHostname = "nullring.xyz";
-      sslCert = "/var/lib/acme/nullring.xyz/fullchain.pem";
-      sslKey = "/var/lib/acme/nullring.xyz/sslKey.pem";
+      registerHostname = "${config.monorepo.vars.orgHost}";
+      sslCert = "/var/lib/acme/${config.monorepo.vars.orgHost}/fullchain.pem";
+      sslKey = "/var/lib/acme/${config.monorepo.vars.orgHost}/sslKey.pem";
     };
   }
 #+end_src
@@ -586,7 +660,7 @@ I run my own IRC server to bridge with my Matrix server and my discord guild.
       enable = lib.mkDefault config.monorepo.profiles.server.enable;
       config = ''
   [Global]
-  	Name = nullring.xyz
+  	Name = ${config.monorepo.vars.orgHost}
   	Info = NullRing IRC Instance
     Listen = 0.0.0.0
     MotdFile = /etc/motd.txt
@@ -595,9 +669,9 @@ I run my own IRC server to bridge with my Matrix server and my discord guild.
   [Options]
   	PAM = no
   [SSL]
-  	CertFile = /var/lib/acme/nullring.xyz/fullchain.pem
+  	CertFile = /var/lib/acme/${config.monorepo.vars.orgHost}/fullchain.pem
   	CipherList = HIGH:!aNULL:@STRENGTH:!SSLv3
-  	KeyFile = /var/lib/acme/nullring.xyz/key.pem
+  	KeyFile = /var/lib/acme/${config.monorepo.vars.orgHost}/key.pem
   	Ports = 6697
   '';
     };
@@ -669,10 +743,11 @@ still federating and hosting the same protocol.
     services.matrix-conduit = {
       enable = lib.mkDefault config.monorepo.profiles.server.enable;
       settings.global = {
-        server_name = "matrix.${config.monorepo.vars.remoteHost}";
+        server_name = "matrix.${config.monorepo.vars.orgHost}";
         trusted_servers = [
           "matrix.org"
           "nixos.org"
+          "conduit.rs"
         ];
         address = "0.0.0.0";
         port = 6167;
@@ -681,8 +756,20 @@ still federating and hosting the same protocol.
     };
   }
 #+end_src
+** Honk
+In order to connect to activitypub:
+#+begin_src nix :tangle ../nix/modules/honk.nix
+  { lib, config, ... }:
+  {
+    services.honk = {
+      enable = config.monorepo.vars.ttyonly;
+      servername = "ret2pop.net";
+      username = "ret2pop";
+    };
+  }
+#+end_src
 ** Matterbridge
-Then I want to connect all these servers together with Matterbridge:
+I want to connect IRC to discord with matterbridge.
 #+begin_src nix :tangle ../nix/modules/matterbridge.nix
   { lib, config, ... }:
   {
@@ -692,20 +779,178 @@ Then I want to connect all these servers together with Matterbridge:
     };
   }
 #+end_src
+*** Mautrix
+I use this bridge to bridge myself from Matrix to Discord and vise versa, because Matterbridge is not maintained very well and therefore
+does not support conduit at the moment. Note that this is not fully declarative and requires that you add
+~/var/lib/mautrix-discord/discord-registration.yaml~ as an appservice to conduit.
+#+begin_src nix :tangle ../nix/modules/mautrix.nix
+  { lib, config, ... }:
+  {
+    services.mautrix-discord = {
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      environmentFile = "/etc/mautrix";
+      settings = {
+        bridge = {
+          animated_sticker = {
+            args = {
+              fps = 25;
+              height = 320;
+              width = 320;
+            };
+            target = "webp";
+          };
+          autojoin_thread_on_open = true;
+          avatar_proxy_key = "generate";
+          backfill = {
+            forward_limits = {
+              initial = {
+                channel = 0;
+                dm = 0;
+                thread = 0;
+              };
+              max_guild_members = -1;
+              missed = {
+                channel = 0;
+                dm = 0;
+                thread = 0;
+              };
+            };
+          };
+          cache_media = "unencrypted";
+          channel_name_template = "{{if or (eq .Type 3) (eq .Type 4)}}{{.Name}}{{else}}#{{.Name}}{{end}}";
+          command_prefix = "!discord";
+          custom_emoji_reactions = true;
+          delete_guild_on_leave = true;
+          delete_portal_on_channel_delete = false;
+          delivery_receipts = false;
+          direct_media = {
+            allow_proxy = true;
+            enabled = false;
+            server_key = "generate";
+          };
+          displayname_template = "{{if .Webhook}}Webhook{{else}}{{or .GlobalName .Username}}{{if .Bot}} (bot){{end}}{{end}}";
+          double_puppet_allow_discovery = true;
+          double_puppet_server_map = { };
+          embed_fields_as_tables = true;
+          enable_webhook_avatars = true;
+          encryption = {
+            allow = false;
+            allow_key_sharing = false;
+            appservice = false;
+            default = false;
+            delete_keys = {
+              delete_fully_used_on_decrypt = false;
+              delete_on_device_delete = false;
+              delete_outbound_on_ack = false;
+              delete_outdated_inbound = false;
+              delete_prev_on_new_session = false;
+              dont_store_outbound = false;
+              periodically_delete_expired = false;
+              ratchet_on_decrypt = false;
+            };
+            msc4190 = false;
+            plaintext_mentions = false;
+            require = false;
+            rotation = {
+              disable_device_change_key_rotation = false;
+              enable_custom = false;
+              messages = 100;
+              milliseconds = 604800000;
+            };
+            verification_levels = {
+              receive = "unverified";
+              send = "unverified";
+              share = "cross-signed-tofu";
+            };
+          };
+          federate_rooms = true;
+          guild_name_template = "{{.Name}}";
+          login_shared_secret_map = { };
+          management_room_text = {
+            additional_help = "";
+            welcome = "Hello, I'm a Discord bridge bot.";
+            welcome_connected = "Use `help` for help.";
+            welcome_unconnected = "Use `help` for help or `login` to log in.";
+          };
+          message_error_notices = true;
+          message_status_events = false;
+          mute_channels_on_create = false;
+          permissions = {
+            "@${config.monorepo.vars.internetName}:matrix.${config.monorepo.vars.orgHost}" = "admin";
+            "*" = "user";
+          };
+          portal_message_buffer = 128;
+          prefix_webhook_messages = true;
+          private_chat_portal_meta = "default";
+          provisioning = {
+            debug_endpoints = false;
+            prefix = "/_matrix/provision";
+            shared_secret = "generate";
+          };
+          public_address = null;
+          resend_bridge_info = false;
+          restricted_rooms = false;
+          startup_private_channel_create_limit = 5;
+          sync_direct_chat_list = false;
+          use_discord_cdn_upload = true;
+          username_template = "discord_{{.}}";
+        };
+
+        appservice = {
+          address = "http://localhost:29334";
+          hostname = "0.0.0.0";
+          port = 29334;
+          id = "discord";
+          bot = {
+            username = "discordbot";
+            displayname = "Discord bridge bot";
+            avatar = "mxc://maunium.net/nIdEykemnwdisvHbpxflpDlC";
+          };
+          ephemeral_events = true;
+          async_transactions = false;
+          database = {
+            type = "sqlite3";
+            uri = "file:${config.services.mautrix-discord.dataDir}/mautrix-discord.db?_txlock=immediate";
+            max_open_conns = 20;
+            max_idle_conns = 2;
+            max_conn_idle_time = null;
+            max_conn_lifetime = null;
+          };
+          as_token = "$MAUTRIX_DISCORD_APPSERVICE_AS_TOKEN";
+          hs_token = "$MAUTRIX_DISCORD_APPSERVICE_HS_TOKEN";
+        };
+
+        dataDir = "/var/lib/mautrix-discord";
+        homeserver = {
+          async_media = false;
+          message_send_checkpoint_endpoint = null;
+          ping_interval_seconds = 0;
+          software = "standard";
+          status_endpoint = null;
+          websocket = false;
+          domain = "matrix.${config.monorepo.vars.orgHost}";
+          address = "http://localhost:6167";
+        };
+      };
+    };
+  }
+#+end_src
 ** Ollama
 Use ollama for serving large language models to my other computers.
 #+begin_src nix :tangle ../nix/modules/ollama.nix
   { config, lib, ... }:
   {
     services.ollama = {
-      enable = lib.mkDefault (!config.monorepo.profiles.ttyonly.enable);
+      enable = lib.mkDefault (!config.monorepo.profiles.server.enable);
       acceleration = if (config.monorepo.profiles.workstation.enable) then "cuda" else null;
-      loadModels = [
+      loadModels = if (config.monorepo.profiles.workstation.enable) then [
         "qwen3:30b"
         "qwen3-coder:latest"
         "qwen2.5-coder:latest"
-        "qwen2.5-coder:3b"
         "gemma3:12b-it-qat"
+      ] else [
+        "qwen3:0.6b"
+        "qwen2.5-coder:0.5b"
       ];
       host = "0.0.0.0";
       openFirewall = true;
@@ -757,7 +1002,7 @@ to the outside world under a domain.
       };
 
       virtualHosts = {
-        "matrix.${config.monorepo.vars.remoteHost}" = {
+        "matrix.${config.monorepo.vars.orgHost}" = {
           enableACME = true;
           forceSSL = true;
           listen = [
@@ -796,14 +1041,14 @@ to the outside world under a domain.
         };
   	    "${config.monorepo.vars.remoteHost}" = {
           serverName = "${config.monorepo.vars.remoteHost}";
-          serverAliases = [ "ret2pop.nullring.xyz" ];
-  	      root = "/var/www/ret2pop-website/";
+          serverAliases = [ "${config.monorepo.vars.internetName}.${config.monorepo.vars.orgHost}" ];
+  	      root = "/var/www/${config.monorepo.vars.internetName}-website/";
   	      addSSL = true;
   	      enableACME = true;
   	    };
 
-        "nullring.xyz" = {
-          serverName = "nullring.xyz";
+        "${config.monorepo.vars.orgHost}" = {
+          serverName = "${config.monorepo.vars.orgHost}";
           root = "/var/www/nullring/";
           addSSL = true;
           enableACME = true;
@@ -832,6 +1077,7 @@ world. This was the easiest frontend to set up on NixOS.
   }
 #+end_src
 ** Nvidia
+I have an Nvidia GPU on my computer.
 #+begin_src nix :tangle ../nix/modules/nvidia.nix
   { config, lib, pkgs, ... }:
   {
@@ -857,6 +1103,7 @@ world. This was the easiest frontend to set up on NixOS.
   }
 #+end_src
 ** CUDA
+I need CUDA on some computers because I run local LLMs.
 #+begin_src nix :tangle ../nix/modules/cuda.nix
   { config, lib, pkgs, ... }:
   {
@@ -888,9 +1135,98 @@ world. This was the easiest frontend to set up on NixOS.
         "submission tls://0.0.0.0:465 tcp://0.0.0.0:587"
       ] options.services.maddy.config.default;
       ensureCredentials = {
-        "preston@localhost" = {
-          passwordFile = "/secrets/preston-localhost";
+        "${config.monorepo.vars.userName}@localhost" = {
+          passwordFile = "/secrets/${config.monorepo.vars.userName}-localhost";
         };
+      };
+    };
+  }
+#+end_src
+** Impermanence
+This is my impermanence profile, which removes all files on reboot except for the ones listed below.
+#+begin_src nix :tangle ../nix/modules/impermanence.nix
+  { lib, config, ... }:
+  {
+    assertions = [
+      {
+        assertion = ! (config.monorepo.profiles.impermanence.enable && (! (config.monorepo.vars.filesystem == "btrfs")));
+        message = "Impermanence requires btrfs filesystem.";
+      }
+    ];
+
+    boot.initrd.postResumeCommands = (if config.monorepo.profiles.impermanence.enable then lib.mkAfter ''
+      mkdir /btrfs_tmp
+      mount /dev/root_vg/root /btrfs_tmp
+      if [[ -e /btrfs_tmp/root ]]; then
+          mkdir -p /btrfs_tmp/old_roots
+          timestamp=$(date --date="@$(stat -c %Y /btrfs_tmp/root)" "+%Y-%m-%-d_%H:%M:%S")
+          mv /btrfs_tmp/root "/btrfs_tmp/old_roots/$timestamp"
+      fi
+
+      delete_subvolume_recursively() {
+          IFS=$'\n'
+          for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' '); do
+              delete_subvolume_recursively "/btrfs_tmp/$i"
+          done
+          btrfs subvolume delete "$1"
+      }
+
+      for i in $(find /btrfs_tmp/old_roots/ -maxdepth 1 -mtime +30); do
+          delete_subvolume_recursively "$i"
+      done
+
+      btrfs subvolume create /btrfs_tmp/root
+      umount /btrfs_tmp
+    '' else "");
+    
+    environment.persistence."/persistent" = {
+      enable = config.monorepo.profiles.impermanence.enable;
+      hideMounts = true;
+      directories = [
+        "/var/log"
+        "/var/lib/bluetooth"
+        "/var/lib/nixos"
+        "/var/lib/systemd/coredump"
+        "/etc/NetworkManager/system-connections"
+      ];
+      files = [
+        "/etc/machine-id"
+        "/etc/matterbridge.toml"
+        { file = "/var/keys/secret_file"; parentDirectory = { mode = "u=rwx,g=,o="; }; }
+      ];
+      users."${config.monorepo.vars.userName}" = {
+        directories = [
+          "Downloads"
+          "music"
+          "Pictures"
+          "Documents"
+          "Videos"
+          "Monero"
+          "org"
+          "monorepo"
+          "soundfont"
+          "website_html"
+          "ardour"
+          "audacity"
+          "img"
+          "email"
+          "projects"
+          "secrets"
+
+          ".emacs.d"
+          ".elfeed"
+          ".electrum"
+          ".mozilla"
+          ".bitmonero"
+          ".config"
+          { directory = ".gnupg"; mode = "0700"; }
+          { directory = ".ssh"; mode = "0700"; }
+          { directory = ".local/share/keyrings"; mode = "0700"; }
+          ".local/share/direnv"
+        ];
+        files = [
+          ".emacs"
+        ];
       };
     };
   }
@@ -903,6 +1239,7 @@ because they enhance security.
   {
     imports = [
       ./matterbridge.nix
+      ./mautrix.nix
       ./xserver.nix
       ./ssh.nix
       ./pipewire.nix
@@ -921,6 +1258,7 @@ because they enhance security.
       ./ngircd.nix
       ./znc.nix
       ./docker.nix
+      ./impermanence.nix
     ];
 
     documentation = {
@@ -1063,7 +1401,7 @@ because they enhance security.
     	  "kernel.kptr_restrict" = 2;
 
     	  # madaidan
-              "kernel.smtcontrol" = "on";
+        "kernel.smtcontrol" = "on";
     	  "vm.swappiness" = 1;
     	  "vm.unprivileged_userfaultfd" = 0;
     	  "dev.tty.ldisc_autoload" = 0;
@@ -1296,37 +1634,68 @@ with configurable disk.
   { lib, config, ... }:
   let
     spec = {
-    disko.devices = {
-      disk = {
-        main = {
-          type = "disk";
-          device = config.monorepo.vars.device;
-          content = {
-            type = "gpt";
-            partitions = {
-              ESP = {
-                priority = 1;
-                name = "ESP";
-                start = "1M";
-                end = "128M";
-                type = "EF00";
-                content = {
-                  type = "filesystem";
-                  format = "vfat";
-                  mountpoint = "/boot";
-                  mountOptions = [ "umask=0077" ];
+      disko.devices = {
+        disk = {
+          main = {
+            type = "disk";
+            device = config.monorepo.vars.device;
+            content = {
+              type = "gpt";
+              partitions = {
+                ESP = {
+                  size = "512M";
+                  type = "EF00";
+                  content = {
+                    type = "filesystem";
+                    format = "vfat";
+                    mountpoint = "/boot";
+                    mountOptions = [ "umask=0077" ];
+                  };
                 };
-              };
-              root = {
-                size = "100%";
-                content = {
-                  type = "btrfs";
-                  extraArgs = [ "-f" ]; # Override existing partition
-                  mountpoint = "/";
-                  mountOptions = [
-                    "compress=zstd"
-                    "noatime"
-                  ];
+                luks = {
+                  size = "100%";
+                  content = {
+                    type = "luks";
+                    name = "crypted";
+                    passwordFile = "/tmp/secret.key";
+                    content = {
+                      type = "btrfs";
+                      extraArgs = [ "-f" ];
+                      subvolumes = {
+                        "/root" = {
+                          mountpoint = "/";
+                          mountOptions = [
+                            "compress=zstd"
+                            "noatime"
+                          ];
+                        };
+
+                        "/home" = {
+                          mountpoint = "/home";
+                          mountOptions = [
+                            "compress=zstd"
+                            "noatime"
+                          ];
+                        };
+
+                        "/nix" = {
+                          mountpoint = "/nix";
+                          mountOptions = [
+                            "compress=zstd"
+                            "noatime"
+                          ];
+                        };
+
+                        "/persistent" = {
+                          mountpoint = "/persistent";
+                          mountOptions = [
+                            "compress=zstd"
+                            "noatime"
+                          ];
+                        };
+                      };
+                    };
+                  };
                 };
               };
             };
@@ -1334,7 +1703,6 @@ with configurable disk.
         };
       };
     };
-  };
   in
   {
     monorepo.vars.diskoSpec = spec;
@@ -1469,6 +1837,8 @@ I have many imports that we'll go through next.
   	    lang-openscad.enable = lib.mkEnableOption "Enables openscad language support";
   	    lang-js.enable = lib.mkEnableOption "Enables javascript language support";
   	    lang-nix.enable = lib.mkEnableOption "Enables nix language support";
+  	    lang-idris.enable = lib.mkEnableOption "Enables idris language support";
+  	    lang-agda.enable = lib.mkEnableOption "Enables agda language support";
   	    lang-coq.enable = lib.mkEnableOption "Enables coq language support";
         lang-lean.enable = lib.mkEnableOption "Enables lean language support";
   	    lang-haskell.enable = lib.mkEnableOption "Enables haskell language support";
@@ -1514,6 +1884,7 @@ I have many imports that we'll go through next.
   						          gnumake
   						          bear
   						          clang-tools
+                        autotools-language-server
   					          ]) else [])
                       ++
                       (if config.monorepo.profiles.workstation.enable then (with pkgs; [
@@ -1567,6 +1938,15 @@ I have many imports that we'll go through next.
                       (if config.monorepo.profiles.lang-lean.enable then (with pkgs; [
                         lean4
                       ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-agda.enable then (with pkgs; [
+                        agda
+  					          ]) else [])
+  					          ++
+  					          (if config.monorepo.profiles.lang-idris.enable then (with pkgs; [
+                        idris
+                        idris2Packages.idris2Lsp
+  					          ]) else [])
   					          ++
   					          (if config.monorepo.profiles.lang-nix.enable then (with pkgs; [
   						          nil
@@ -1630,6 +2010,8 @@ I have many imports that we'll go through next.
   	    lang-coq.enable = lib.mkDefault config.monorepo.profiles.enable;
   	    lang-lean.enable = lib.mkDefault config.monorepo.profiles.enable;
   	    lang-haskell.enable = lib.mkDefault config.monorepo.profiles.enable;
+  	    lang-idris.enable = lib.mkDefault config.monorepo.profiles.enable;
+  	    lang-agda.enable = lib.mkDefault config.monorepo.profiles.enable;
 
   	    crypto.enable = lib.mkDefault config.monorepo.profiles.enable;
   	    art.enable = lib.mkDefault config.monorepo.profiles.enable;
@@ -1942,10 +2324,14 @@ as an org file which gets automatically tangled to an emacs-lisp file.
         enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
         package = pkgs.emacs-pgtk;
         extraConfig = ''
-        (setq debug-on-error t)
-        (org-babel-load-file
-          (expand-file-name "~/monorepo/config/emacs.org"))'';
+  (setq debug-on-error t)
+  (setq system-email "${config.monorepo.profiles.email.email}")
+  (setq system-username "${config.monorepo.vars.internetName}")
+  (setq system-fullname "${config.monorepo.vars.fullName}")
+  (org-babel-load-file
+    (expand-file-name "~/${config.monorepo.vars.repoName}/config/emacs.org"))'';
         extraPackages = epkgs: [
+          epkgs.agda2-mode
           epkgs.all-the-icons
           epkgs.auctex
           epkgs.catppuccin-theme
@@ -1954,6 +2340,7 @@ as an org file which gets automatically tangled to an emacs-lisp file.
           epkgs.company-solidity
           epkgs.counsel
           epkgs.dashboard
+          epkgs.doom-themes
           epkgs.doom-modeline
           epkgs.elfeed
           epkgs.elfeed-org
@@ -1976,6 +2363,7 @@ as an org file which gets automatically tangled to an emacs-lisp file.
           epkgs.gruvbox-theme
           epkgs.haskell-mode
           epkgs.htmlize
+          epkgs.idris-mode
           epkgs.irony-eldoc
           epkgs.ivy
           epkgs.ivy-pass
@@ -1985,6 +2373,7 @@ as an org file which gets automatically tangled to an emacs-lisp file.
           epkgs.lsp-mode
           epkgs.lsp-haskell
           epkgs.lyrics-fetcher
+          epkgs.mastodon
           epkgs.magit
           epkgs.magit-delta
           epkgs.mu4e
@@ -2157,6 +2546,7 @@ to use this component will come soon.
           "$mod, B, exec, bitcoin-qt"
           "$mod, M, exec, monero-wallet-gui"
           "$mod, V, exec, vesktop"
+          "$mod, C, exec, fluffychat"
           "$mod, D, exec, wofi --show run"
           "$mod, P, exec, bash ${scripts}/powermenu.sh"
           "$mod, Q, killactive"
@@ -2322,7 +2712,7 @@ encrypted. This module uses the ~vars.nix~ as well as the home ~default.nix~ opt
   programs.mbsync = {
     enable = lib.mkDefault config.monorepo.profiles.email.enable;
     extraConfig = ''
-      IMAPAccount ret2pop
+      IMAPAccount ${config.monorepo.vars.internetName}
       Host ${config.monorepo.profiles.email.imapsServer}
       User ${config.monorepo.profiles.email.email}
       PassCmd "cat ${config.sops.secrets.mail.path}"
@@ -2331,17 +2721,17 @@ encrypted. This module uses the ~vars.nix~ as well as the home ~default.nix~ opt
       AuthMechs *
       CertificateFile /etc/ssl/certs/ca-certificates.crt
 
-      IMAPStore ret2pop-remote
-      Account ret2pop
+      IMAPStore ${config.monorepo.vars.internetName}-remote
+      Account ${config.monorepo.vars.internetName}
 
-      MaildirStore ret2pop-local
-      Path ~/email/ret2pop/
-      Inbox ~/email/ret2pop/INBOX
+      MaildirStore ${config.monorepo.vars.internetName}-local
+      Path ~/email/${config.monorepo.vars.internetName}/
+      Inbox ~/email/${config.monorepo.vars.internetName}/INBOX
       SubFolders Verbatim
 
-      Channel ret2pop 
-      Far :ret2pop-remote:
-      Near :ret2pop-local:
+      Channel ${config.monorepo.vars.internetName} 
+      Far :${config.monorepo.vars.internetName}-remote:
+      Near :${config.monorepo.vars.internetName}-local:
       Patterns *
       Create Near
       Sync All
@@ -3015,6 +3405,7 @@ standard.
       };
 
       shellAliases = {
+        get-channel-id = "yt-dlp --print \"%(channel_id)s\" --playlist-end 1 \"$1\"";
         se = "sops edit";
         f = "vim $(fzf)";
         e = "cd $(find . -type d -print | fzf)";
@@ -3024,9 +3415,9 @@ standard.
         py = "python3";
         rb = "sudo nixos-rebuild switch --flake $HOME/monorepo/nix#${systemHostName}";
         nfu = "cd ~/monorepo/nix && git add . && git commit -m \"new flake lock\" &&  nix flake update";
-        usync =  "rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/website_html/ root@${config.monorepo.vars.remoteHost}:/var/www/ret2pop-website/";
+        usync =  "rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/website_html/ root@${config.monorepo.vars.remoteHost}:/var/www/${config.monorepo.vars.internetName}-website/";
         usite
-        = "cd ~/src/publish-org-roam-ui && bash local.sh && rm -rf ~/website_html/graph_view; cp -r ~/src/publish-org-roam-ui/out ~/website_html/graph_view && rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/website_html/ root@${config.monorepo.vars.remoteHost}:/var/www/ret2pop-website/";
+        = "cd ~/src/publish-org-roam-ui && bash local.sh && rm -rf ~/website_html/graph_view; cp -r ~/src/publish-org-roam-ui/out ~/website_html/graph_view && rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/website_html/ root@${config.monorepo.vars.remoteHost}:/var/www/${config.monorepo.vars.internetName}-website/";
         sai = "eval \"$(ssh-agent -s)\" && ssh-add ~/.ssh/id_ed25519 && ssh-add -l";
         i3 = "exec ${pkgs.i3-gaps}/bin/i3";
       };
@@ -3052,7 +3443,7 @@ matrix server while having encryption.
           SSL = true;
         };
         local-matrix = {
-          Homeserver = "https://social.nullring.xyz";
+          Homeserver = "https://matrix.${config.monorepo.vars.orgHost}";
           ListenAddress = "127.0.0.1";
           ListenPort = "8008";
         };
@@ -3069,8 +3460,8 @@ for these configurations.
   {
     home = {
       activation.startup-files = lib.hm.dag.entryAfter [ "installPackages" ] ''
-      if [ ! -d "/home/${config.monorepo.vars.userName}/email/ret2pop/" ]; then
-        mkdir -p /home/${config.monorepo.vars.userName}/email/ret2pop/
+      if [ ! -d "/home/${config.monorepo.vars.userName}/email/${config.monorepo.vars.internetName}/" ]; then
+        mkdir -p /home/${config.monorepo.vars.userName}/email/${config.monorepo.vars.internetName}/
       fi
       if [ ! -d "/home/${config.monorepo.vars.userName}/music" ]; then
         mkdir -p /home/${config.monorepo.vars.userName}/music
@@ -3108,7 +3499,7 @@ for these configurations.
 
         # Apps
         # octaveFull
-        vesktop grim swww vim telegram-desktop qwen-code
+        vesktop grim swww vim telegram-desktop qwen-code fluffychat
 
         # Sound/media
         pavucontrol alsa-utils imagemagick ffmpeg helvum
@@ -3120,7 +3511,7 @@ for these configurations.
         torsocks tor-browser
 
         # fonts
-        nerd-fonts.iosevka noto-fonts noto-fonts-cjk-sans noto-fonts-emoji fira-code font-awesome_6
+        nerd-fonts.iosevka noto-fonts noto-fonts-cjk-sans noto-fonts-emoji fira-code font-awesome_6 victor-mono
         (aspellWithDicts
           (dicts: with dicts; [ en en-computers en-science ]))
 
@@ -3221,7 +3612,6 @@ the path.
   { config, sops-nix, ... }:
   {
     home-manager = {
-
       sharedModules = [
         sops-nix.homeManagerModules.sops
       ];
@@ -3231,16 +3621,27 @@ the path.
     };
   }
 #+end_src
-** Includes
+** Common
 These are the common includes for each of my systems. This ensures that we don't have to duplicate includes every time we want to add a new
-system.
-#+begin_src nix :tangle ../nix/systems/includes.nix
+system. Also more common configuration can go here.
+#+begin_src nix :tangle ../nix/systems/common.nix
   { config, lib, ... }:
   {
     imports = [
       ./home.nix
       ../modules/default.nix
     ];
+    # Put configuration (e.g. monorepo variable configuration) common to all configs here
+  }
+#+end_src
+** Home Manager Common
+#+begin_src nix :tangle ../nix/systems/home-common.nix
+  { lib, config, ... }:
+  {
+    imports = [
+      ../modules/home/default.nix
+    ];
+    # Put configuration (e.g. monorepo variable configuration) common to all configs here
   }
 #+end_src
 ** Continuity
@@ -3250,11 +3651,16 @@ This is pretty understandable, if you understand all the above.
   {
     imports = [
       ../../disko/drive-simple.nix
-      ../includes.nix
+      ../common.nix
     ];
     config = {
-      # drive to install to
-      monorepo.vars.device = "/dev/sda";
+      monorepo = {
+        profiles.impermanence.enable = true;
+        vars = {
+          device = "/dev/sda";
+          fileSystem = "btrfs";
+        };
+      };
     };
   }
 #+end_src
@@ -3265,7 +3671,7 @@ monorepo home options.
   { lib, config, pkgs, ... }:
   {
     imports = [
-      ../../modules/home/default.nix
+      ../home-common.nix
     ];
     config.monorepo.profiles.workstation.enable = false;
   }
@@ -3277,7 +3683,7 @@ as several other useful services.
   { config, lib, home-manager, ... }:
   {
     imports = [
-      ../includes.nix
+      ../common.nix
       ../../disko/drive-simple.nix
     ];
     config = {
@@ -3297,7 +3703,7 @@ as several other useful services.
   { lib, config, pkgs, ... }:
   {
     imports = [
-      ../../modules/home/default.nix
+      ../home-common.nix
     ];
     config.monorepo = {
       profiles.cuda.enable = true;
@@ -3308,12 +3714,17 @@ as several other useful services.
 Spontaneity is my VPS instance.
 #+begin_src nix :tangle ../nix/systems/spontaneity/default.nix
   { config, lib, ... }:
+  let
+    ipv4addr = "66.42.84.130";
+    ipv6addr = "2001:19f0:5401:10d0:5400:5ff:fe4a:7794";
+  in
   {
     imports = [
-      ../includes.nix
+      ../common.nix
+      ../../disko/drive-bios.nix
+
       # nixos-anywhere generates this file
       ./hardware-configuration.nix
-      ../../disko/drive-bios.nix
     ];
     config = {
       monorepo = {
@@ -3329,7 +3740,7 @@ Spontaneity is my VPS instance.
       networking = {
         interfaces.ens3.ipv6.addresses = [
           {
-            address = "2001:19f0:5401:10d0:5400:5ff:fe4a:7794";
+            address = ipv6addr;
             prefixLength = 64;
           }
         ];
@@ -3348,12 +3759,12 @@ Spontaneity is my VPS instance.
           enable = true;
           baseDomains = {
             "${config.monorepo.vars.remoteHost}" = {
-              a.data = "66.42.84.130";
-              aaaa.data = "2001:19f0:5401:10d0:5400:5ff:fe4a:7794";
+              a.data = ipv4addr;
+              aaaa.data = ipv6addr;
             };
-            "nullring.xyz" = {
-              a.data = "66.42.84.130";
-              aaaa.data = "2001:19f0:5401:10d0:5400:5ff:fe4a:7794";
+            "${config.monorepo.vars.orgHost}" = {
+              a.data = ipv4addr;
+              aaaa.data = ipv6addr;
             };
           };
           subDomains = {
@@ -3364,12 +3775,12 @@ Spontaneity is my VPS instance.
               mx.data = "10 mail.${config.monorepo.vars.remoteHost}.";
             };
 
-            "nullring.xyz" = {};
-            "git.nullring.xyz" = {};
-            "matrix.nullring.xyz" = {};
-            "talk.nullring.xyz" = {};
-            "mail.nullring.xyz" = {};
-            "ret2pop.nullring.xyz" = {};
+            "${config.monorepo.vars.orgHost}" = {};
+            "git.${config.monorepo.vars.orgHost}" = {};
+            "matrix.${config.monorepo.vars.orgHost}" = {};
+            "talk.${config.monorepo.vars.orgHost}" = {};
+            "mail.${config.monorepo.vars.orgHost}" = {};
+            "${config.monorepo.vars.internetName}.${config.monorepo.vars.orgHost}" = {};
           };
         };
       };
@@ -3381,7 +3792,7 @@ Spontaneity is my VPS instance.
   { lib, config, pkgs, ... }:
   {
     imports = [
-      ../../modules/home/default.nix
+      ../home-common.nix
     ];
     config.monorepo.profiles.enable = false;
   }
@@ -3455,6 +3866,10 @@ This contains the installation script I use to install my systems.
     exit 1
   fi
 
+  gum style --border normal --margin "1" --padding "1 2" "Notice: if using full disk encryption, write to /tmp/secret.key first with your password."
+
+  sleep 3
+
   cd "$HOME"
 
   ping -q -c1 google.com &>/dev/null && echo "online! Proceeding with the installation..." || nmtui
@@ -3507,7 +3922,7 @@ This contains the installation script I use to install my systems.
     gum input --placeholder "Press Enter to continue" >/dev/null
     vim "$HOME/monorepo/nix/systems/$SYSTEM/home.nix"
 
-    sed -i "/# add hostnames here/i \  \"$1\"" "$HOME/monorepo/nix/flake.nix"
+    sed -i "/hostnames = \[/,/];/ s/];/  \"$1\"\n    ];/" "$HOME/monorepo/nix/flake.nix"
 
     if [ ! -f "$HOME/monorepo/nix/disko/$DRIVE" ]; then
       cp "$HOME/monorepo/nix/disko/drive-simple.nix" "$HOME/monorepo/nix/disko/$DRIVE"
@@ -3557,27 +3972,3 @@ This contains the installation script I use to install my systems.
     };
   }
 #+end_src
-* Add System Script
-Here is a script to add a new system automatically:
-#+begin_src bash :tangle ../nix/add-system.sh
-  #!/usr/bin/env bash
-  sed -i "/# add hostnames here/i \  \"$1\"" "$HOME/monorepo/nix/flake.nix"
-  sed -i "/# add hostnames here/i \  \"$1\"" "$HOME/monorepo/config/nix.org"
-
-  mkdir -p "$HOME/monorepo/nix/systems/$1"
-
-  cat > "$HOME/monorepo/nix/systems/$1/default.nix" <<EOF
-  { ... }:
-  {
-    imports = [
-      ../includes.nix
-      ../../disko/drive-simple.nix
-    ];
-    # CHANGEME
-    config.monorepo.vars.drive = "/dev/sda";
-  }
-  EOF
-
-  cp "$HOME/monorepo/nix/systems/continuity/home.nix" "$HOME/monorepo/nix/systems/$1/home.nix"
-#+end_src
-note that one will have to add some files to this org file afterwards, but this is a fine short term solution.

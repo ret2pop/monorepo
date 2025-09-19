@@ -2,31 +2,18 @@
 #+author: Preston Pan
 #+date: <2023-06-09 Fri>
 #+description: My list of blogs, news sites, and channels.
-
 #+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 
 * Feed :elfeed:
 This is the feed I use for Elfeed, and the elfeed-org package allows me to publish
 them here in an automated fashion. This is why Emacs is so great!
-** Blogs :blog:
-Here are some interesting blogs, many of which are from substack.
-*** [[https://graymirror.substack.com/feed][Gray Mirror]]
-Curtis Yarvin is quite the interesting person.
-*** [[https://lukesmith.xyz/index.xml][Luke Smith]] :lukesmith:
-Luke Smith is quite the interesting person.
-*** [[https://terrytao.wordpress.com/feed/][Terence Tao]]
-I like math.
 ** News :news:
 These are the news articles that I subscribe to. Some of these are politics related
 but I mostly just want to inform myself about technology subjects.
-*** [[https://www.wired.com/feed/tag/ai/latest/rss][Wired AI News]]
-Wired isn't too bad at covering science and technology.
-*** [[https://www.wired.com/feed/category/science/latest/rss][Wired Science]]
-Look above.
-*** [[https://feeds.washingtonpost.com/rss/politics?itid=lk_inline_manual_2][Washington Post Politics]]
-Politics is almost useless, but it helps with understanding what people are saying around me.
 *** [[https://news.ycombinator.com/rss][Hacker News]]
 Hacker News!
+*** [[https://www.propublica.org/feeds/propublica/main][Propublica]]
+Free news! 
 *** [[https://api.quantamagazine.org/feed/][Quanta Magazine]]
 Credibility: misreported on ER EPR correspondence
 ** Podcasts :podcast:
@@ -37,10 +24,18 @@ This is a podcast by Luke Smith that talks about anything that he wants to.
 I like to get new information about recent studies related to technology.
 *** [[http://www.nature.com/nmat/current_issue/rss/][Nature]]
 Nature is a prestigious journal with a good bit of good content.
+*** NASA :nasa:
+This is a list of NASA feeds:
+**** [[https://www.nasa.gov/technology/feed/][NASA Tech]]
+**** [[https://www.nasa.gov/aeronautics/feed/][NASA Aeronautics]]
+**** [[https://www.nasa.gov/missions/station/feed/][NASA Station]]
+**** [[https://www.nasa.gov/missions/artemis/feed/][NASA Artemis]]
 ** YouTube :youtube:
 These are YouTube channels that I find interesting enough to keep up with. Note that I keep
 up with a variety of thinkers that I may or may not disagree with, but they are nonetheless
 the most intellectual version of what their general cohort say:
+*** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC1yNl2E66ZzKApQdRuTQ4tw][Sabine Hossenfelder]]
+Youtube channel about mostly physics related content (I do not endorse her views on string theory).
 *** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC7_gcs09iThXybpVgjHZ_7g][PBS Space Time]]
 PBS space time is a channel that discusses various (sometimes cutting edge) topics in Physics in an expert manner.
 I find that they are highly accurate, and the host is highly educated in Physics.
@@ -71,6 +66,13 @@ Videos about NRx.
 Linux videos.
 *** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCU1oodg2ptN51N5rwevwnng][Unlearning Economics]]
 Videos about economics from a Marxist perspective.
-** Misc.
-This is a section dedicated to everything that does not fit the above categories
-or is newly added from [[file:qutebrowser.org][Qutebrowser]] with the xr keybinding.
+** Blogs :blog:
+Here are some interesting blogs, many of which are from substack.
+*** [[https://terrytao.wordpress.com/feed/][Terence Tao]]
+I like math.
+*** [[https://graymirror.substack.com/feed][Gray Mirror]]
+Curtis Yarvin is quite the interesting person.
+*** [[https://www.richardhanania.com/feed][Richard Hanania]]
+Richard is a political commentator.
+*** [[https://lukesmith.xyz/index.xml][Luke Smith]] :lukesmith:
+Luke Smith is quite the interesting person.

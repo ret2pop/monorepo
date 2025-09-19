@@ -53,6 +53,22 @@ I want to make an analogue computer.
 * Scheduled tasks
 These are one-time tasks that are scheduled at a particular date, and that don't require regular
 schedules.
+** Appointments
+These are tasks related to my appointments which have to be at a specific time.
+*** TODO Appointment Call
+I have an appointment in a couple days.
+SCHEDULED: <2025-09-16 Tue 15:45>
+*** TODO Friends Stay a Night
+SCHEDULED: <2025-09-23 Tue>
+*** TODO Covet Concert
+SCHEDULED: <2025-10-10 Fri>
+Exciting!
+*** TODO Optometry appointment
+SCHEDULED: <2025-09-29 Mon 16:45>
+For eye health @ Mount Pleasant Optometry.
+*** TODO Magbay Concert
+SCHEDULED: <2025-09-30 Tue>
+Exciting!
 ** Friends
 These are tasks related to seeing my friends. There will be tasks listed here when I schedule
 something.
@@ -60,11 +76,17 @@ something.
 These are some habits I want to track. They are repeated according to a calendar schedule in
 general.
 ** TODO Supplements
-SCHEDULED: <2025-09-11 Thu .+1d>
+SCHEDULED: <2025-09-18 Thu .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-09-10 Wed 03:23]
+:LAST_REPEAT: [2025-09-17 Wed 03:40]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2025-09-17 Wed 03:40]
+- State "DONE"       from "TODO"       [2025-09-16 Tue 03:13]
+- State "DONE"       from "TODO"       [2025-09-14 Sun 18:33]
+- State "DONE"       from "TODO"       [2025-09-14 Sun 02:17]
+- State "DONE"       from "TODO"       [2025-09-12 Fri 23:48]
+- State "DONE"       from "TODO"       [2025-09-12 Fri 23:47]
 - State "DONE"       from "TODO"       [2025-09-10 Wed 03:23]
 - State "DONE"       from "TODO"       [2025-09-09 Tue 02:39]
 - State "DONE"       from "TODO"       [2025-09-08 Mon 15:39]
@@ -80,12 +102,15 @@ Current stack:
 - Iron
 - Vitamin D3
 - EPA/DHA
-** TODO Pushups
-SCHEDULED: <2025-09-11 Thu .+1d>
+- Creatine Monohydrate
+** TODO Strength Training
+SCHEDULED: <2025-09-18 Thu .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-09-10 Wed 03:23]
+:LAST_REPEAT: [2025-09-17 Wed 03:40]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2025-09-17 Wed 03:40]
+- State "DONE"       from "TODO"       [2025-09-14 Sun 02:26]
 - State "DONE"       from "TODO"       [2025-09-10 Wed 03:23]
 - State "DONE"       from "TODO"       [2025-09-09 Tue 02:42]
 - State "DONE"       from "TODO"       [2025-09-08 Mon 04:35]
@@ -103,22 +128,29 @@ SCHEDULED: <2025-08-26 Tue .+1d>
 - State "DONE"       from "TODO"       [2025-06-26 Thu 23:22]
 I want to be able to run or bike every day so that I get my exercise in.
 ** TODO Stretch
-SCHEDULED: <2025-09-10 Wed .+1d>
+SCHEDULED: <2025-09-18 Thu .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-09-09 Tue 02:42]
+:LAST_REPEAT: [2025-09-17 Wed 03:40]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2025-09-17 Wed 03:40]
+- State "DONE"       from "TODO"       [2025-09-16 Tue 03:14]
+- State "DONE"       from "TODO"       [2025-09-14 Sun 02:20]
 - State "DONE"       from "TODO"       [2025-09-09 Tue 02:42]
 - State "DONE"       from "TODO"       [2025-09-08 Mon 04:47]
 - State "DONE"       from "TODO"       [2025-02-11 Tue 04:01]
 - State "DONE"       from "TODO"       [2025-01-11 Sat 02:26]
 I want to stretch every day so that I can become more flexible.
 ** TODO Journal
-SCHEDULED: <2025-09-10 Wed .+1d>
+SCHEDULED: <2025-09-18 Thu .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-09-09 Tue 02:40]
+:LAST_REPEAT: [2025-09-17 Wed 03:40]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2025-09-17 Wed 03:40]
+- State "DONE"       from "TODO"       [2025-09-16 Tue 03:14]
+- State "DONE"       from "TODO"       [2025-09-14 Sun 02:18]
+- State "DONE"       from "TODO"       [2025-09-12 Fri 23:47]
 - State "DONE"       from "TODO"       [2025-09-09 Tue 02:40]
 - State "DONE"       from "TODO"       [2025-09-08 Mon 04:35]
 - State "DONE"       from "TODO"       [2025-07-20 Sun 21:28]

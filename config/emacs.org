@@ -7,13 +7,6 @@ This is my Vanilla Emacs configuration, made to work with my NixOS configuration
 reason, you will not see :ensure t inside any use-package declaration, for emacs packages
 are all compiled natively and reproducibly on the NixOS side. This configuration uses the
 emacs-lisp language only to configure variables for said packages, for the most part.
-** User
-Change these variables:
-#+begin_src emacs-lisp
-(setq system-email "ret2pop@gmail.com")
-(setq system-username "ret2pop")
-(setq system-fullname "Preston Pan")
-#+end_src
 ** Emacs
 These are all the options that need to be set at the start of the program. Because use-package
 is largely declarative, the order of many of these options should not matter. However, there
@@ -119,7 +112,6 @@ Emacs is self documenting, after all!
 
       ;; load theme, fonts, and transparency. Prettify symbols.
       (global-prettify-symbols-mode 1)
-      (load-theme 'catppuccin :no-confirm)
       (set-face-attribute 'default nil :font "Iosevka Nerd Font" :height 130)
       (set-frame-parameter nil 'alpha-background 90)
       (add-to-list 'default-frame-alist '(alpha-background . 90)))
@@ -169,39 +161,31 @@ This is my org mode configuration, which also configures latex.
     (org-agenda-files (list "~/monorepo/agenda.org" "~/org/notes.org" "~/org/agenda.org") "set default org files")
     (org-default-notes-file (concat org-directory "/notes.org") "Notes file")
     (org-publish-project-alist
-  	'(("website-org"
-  	   :base-directory "~/monorepo"
-  	   :base-extension "org"
-  	   :publishing-directory "~/website_html"
-  	   :recursive t
-  	   :publishing-function org-html-publish-to-html
-  	   :headline-levels 4
-  	   :html-preamble t
-  	   :html-preamble-format (("en" "<p class=\"preamble\"><a href=\"/index.html\">home</a> | <a href=\"./index.html\">section main page</a></p><hr>")))
-  	  ("website-static"
-  	   :base-directory "~/monorepo"
-  	   :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|ico\\|asc\\|pub\\|webmanifest\\|xml\\|svg"
-  	   :publishing-directory "~/website_html/"
-  	   :recursive t
-  	   :publishing-function org-publish-attachment)
-  	  ("website" :auto-sitemap t :components ("website-org" "website-static"))) "functions to publish website")
-    (org-html-postamble "Copyright © 2024 Preston Pan" "set copyright notice on bottom of site")
+     '(("website-org"
+        :base-directory "~/monorepo"
+        :base-extension "org"
+        :publishing-directory "~/website_html"
+        :recursive t
+        :publishing-function org-html-publish-to-html
+        :headline-levels 4
+        :html-preamble t
+        :html-preamble-format (("en" "<p class=\"preamble\"><a href=\"/index.html\">home</a> | <a href=\"./index.html\">section main page</a></p><hr>")))
+       ("website-static"
+        :base-directory "~/monorepo"
+        :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|ico\\|asc\\|pub\\|webmanifest\\|xml\\|svg"
+        :publishing-directory "~/website_html/"
+        :recursive t
+        :publishing-function org-publish-attachment)
+       ("website" :auto-sitemap t :components ("website-org" "website-static"))) "functions to publish website")
+    (org-html-postamble (concat "Copyright © 2024 " system-fullname) "set copyright notice on bottom of site")
     :config
     (require 'ox-publish)
     (require 'org-tempo)
     (require 'org-habit)
     (org-babel-do-load-languages 'org-babel-load-languages
-  			       '((shell . t)
-  				 (python . t)
-  				 (latex . t))))
-
-  ;; (with-eval-after-load 'org
-  ;;   ;; stop electric-pair from pairing < in org-mode
-  ;;   (add-hook 'org-mode-hook
-  ;;             (lambda ()
-  ;;               (setq-local electric-pair-inhibit-predicate
-  ;;                           (lambda (c)
-  ;;                             (if (eq c ?<) t (electric-pair-default-inhibit c)))))))
+                                 '((shell . t)
+                                   (python . t)
+                                   (latex . t))))
 #+end_src
 As you can see, I only have one real entry in config here (I don't count requires even though
 they have to be on the top)
@@ -220,19 +204,10 @@ what electric-pair does based on the mode.
            (org-mode . (lambda () (setq-local electric-pair-inhibit-predicate (lambda (c) (if (eq c ?<) t (electric-pair-default-inhibit c))))))))
 #+end_src
 * Search and Replace
+wgrep is a program that allows you to do more intelligent search and replace.
 #+begin_src emacs-lisp
   (use-package wgrep
     :after grep)
-#+end_src
-* Lyrics
-This currently doesn't work I'm pretty sure, but it's supposed to fetch lyrics from mpd.
-#+begin_src emacs-lisp
-  (use-package lyrics-fetcher
-    :after (emms)
-    :custom
-    (lyrics-fetcher-genius-access-token (password-store-get "genius_api") "Use genius for backend")
-    :config
-    (lyrics-fetcher-use-backend 'genius))
 #+end_src
 * Passwords
 This is a function that inserts a random password into the buffer. I use this to manage sops-nix.
@@ -358,6 +333,23 @@ The default modeline is ugly. I replace it with the doom modeline because it's b
   (use-package doom-modeline
     :config
     (doom-modeline-mode 1))
+#+end_src
+*** Doom Theme
+I used to use catppuccin, but the doom themes are so good that I am willing to break some theme consistency with my desktop in order
+to use doom themes. I mean it looks better anyways if emacs is a distinct theme.
+#+begin_src emacs-lisp
+  (use-package doom-themes
+    :ensure t
+    :custom
+    (doom-themes-enable-bold t)
+    (doom-themes-enable-italic t)
+    (doom-themes-treemacs-theme "doom-rouge")
+    :config
+    (load-theme 'doom-rouge t)
+
+    (doom-themes-visual-bell-config)
+    (doom-themes-treemacs-config)
+    (doom-themes-org-config))
 #+end_src
 ** Grammar
 I want to write good! I grammar good too.
@@ -491,8 +483,8 @@ Configure IRC to use my username.
 #+begin_src emacs-lisp
   (use-package erc
     :custom
-    (erc-nick system-username "Set erc nick to username")
-    (erc-user-full-name system-fullname "Use real name for full name"))
+    (erc-nick system-username "sets erc username to the one set in nix config")
+    (erc-user-full-name system-fullname "sets erc fullname to the one set in nix config"))
 #+end_src
 ** Keybindings
 Global keybindings for everything that I care about globally. It's all here! I use general
@@ -590,7 +582,6 @@ emacs keybindings.
       "h i" '(info :wk "Info")
 
       "s i p" '(insert-urandom-password :wk "insert random password to buffer (for sops)")
-      "u w" '((lambda () (interactive) (shell-command "rsync -azvP ~/website_html/ root@nullring.xyz:/usr/share/nginx/ret2pop/")) :wk "rsync website update")
 
       "h r r" '(lambda () (interactive) (org-babel-load-file (expand-file-name "~/monorepo/config/emacs.org")))))
 #+end_src
@@ -766,7 +757,7 @@ Email in emacs can be done with Mu4e.
     (message-kill-buffer-on-exit t "Kill buffer when I exit mu4e")
     (mu4e-compose-dont-reply-to-self t "Don't include self in replies")
     (mu4e-change-filenames-when-moving t)
-    (mu4e-get-mail-command "mbsync ret2pop" "Use mbsync for imap")
+    (mu4e-get-mail-command (concat "mbsync " system-username) "Use mbsync for imap")
     (mu4e-compose-reply-ignore-address (list "no-?reply" system-email) "ignore my own address and noreply")
     (mu4e-html2text-command "w3m -T text/html" "Use w3m to convert html to text")
     (mu4e-update-interval 300 "Update duration")
@@ -801,4 +792,4 @@ For some reason, lean4-mode is not in MELPA currently so I have to do this ugly 
          :rev "76895d8939111654a472cfc617cfd43fbf5f1eb6"))
 #+end_src
 and actually pull something from the internet instead of pinning. Thankfully this reproduction issue is probably localized to lean files. Also,
-we're pulling a specific commit so it is still pinned.
+we're pulling a specific commit so it is still pinned. If it fails to fetch, lean4 is broken I guess.

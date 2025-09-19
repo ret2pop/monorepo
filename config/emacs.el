@@ -1,7 +1,3 @@
-(setq system-email "ret2pop@gmail.com")
-(setq system-username "ret2pop")
-(setq system-fullname "Preston Pan")
-
 (use-package emacs
 :custom
 ;; global defaults
@@ -99,7 +95,6 @@
 
     ;; load theme, fonts, and transparency. Prettify symbols.
     (global-prettify-symbols-mode 1)
-    (load-theme 'catppuccin :no-confirm)
     (set-face-attribute 'default nil :font "Iosevka Nerd Font" :height 130)
     (set-frame-parameter nil 'alpha-background 90)
     (add-to-list 'default-frame-alist '(alpha-background . 90)))
@@ -136,39 +131,31 @@
   (org-agenda-files (list "~/monorepo/agenda.org" "~/org/notes.org" "~/org/agenda.org") "set default org files")
   (org-default-notes-file (concat org-directory "/notes.org") "Notes file")
   (org-publish-project-alist
-	'(("website-org"
-	   :base-directory "~/monorepo"
-	   :base-extension "org"
-	   :publishing-directory "~/website_html"
-	   :recursive t
-	   :publishing-function org-html-publish-to-html
-	   :headline-levels 4
-	   :html-preamble t
-	   :html-preamble-format (("en" "<p class=\"preamble\"><a href=\"/index.html\">home</a> | <a href=\"./index.html\">section main page</a></p><hr>")))
-	  ("website-static"
-	   :base-directory "~/monorepo"
-	   :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|ico\\|asc\\|pub\\|webmanifest\\|xml\\|svg"
-	   :publishing-directory "~/website_html/"
-	   :recursive t
-	   :publishing-function org-publish-attachment)
-	  ("website" :auto-sitemap t :components ("website-org" "website-static"))) "functions to publish website")
-  (org-html-postamble "Copyright © 2024 Preston Pan" "set copyright notice on bottom of site")
+   '(("website-org"
+      :base-directory "~/monorepo"
+      :base-extension "org"
+      :publishing-directory "~/website_html"
+      :recursive t
+      :publishing-function org-html-publish-to-html
+      :headline-levels 4
+      :html-preamble t
+      :html-preamble-format (("en" "<p class=\"preamble\"><a href=\"/index.html\">home</a> | <a href=\"./index.html\">section main page</a></p><hr>")))
+     ("website-static"
+      :base-directory "~/monorepo"
+      :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|ico\\|asc\\|pub\\|webmanifest\\|xml\\|svg"
+      :publishing-directory "~/website_html/"
+      :recursive t
+      :publishing-function org-publish-attachment)
+     ("website" :auto-sitemap t :components ("website-org" "website-static"))) "functions to publish website")
+  (org-html-postamble (concat "Copyright © 2024 " system-fullname) "set copyright notice on bottom of site")
   :config
   (require 'ox-publish)
   (require 'org-tempo)
   (require 'org-habit)
   (org-babel-do-load-languages 'org-babel-load-languages
-			       '((shell . t)
-				 (python . t)
-				 (latex . t))))
-
-;; (with-eval-after-load 'org
-;;   ;; stop electric-pair from pairing < in org-mode
-;;   (add-hook 'org-mode-hook
-;;             (lambda ()
-;;               (setq-local electric-pair-inhibit-predicate
-;;                           (lambda (c)
-;;                             (if (eq c ?<) t (electric-pair-default-inhibit c)))))))
+                               '((shell . t)
+                                 (python . t)
+                                 (latex . t))))
 
 (use-package unicode-fonts
   :init (unicode-fonts-setup))
@@ -179,13 +166,6 @@
 
 (use-package wgrep
   :after grep)
-
-(use-package lyrics-fetcher
-  :after (emms)
-  :custom
-  (lyrics-fetcher-genius-access-token (password-store-get "genius_api") "Use genius for backend")
-  :config
-  (lyrics-fetcher-use-backend 'genius))
 
 (defun insert-urandom-password (&optional length)
   (interactive "P")
@@ -285,6 +265,19 @@
 (use-package doom-modeline
   :config
   (doom-modeline-mode 1))
+
+(use-package doom-themes
+  :ensure t
+  :custom
+  (doom-themes-enable-bold t)
+  (doom-themes-enable-italic t)
+  (doom-themes-treemacs-theme "doom-rouge")
+  :config
+  (load-theme 'doom-rouge t)
+
+  (doom-themes-visual-bell-config)
+  (doom-themes-treemacs-config)
+  (doom-themes-org-config))
 
 (use-package writegood-mode
   :hook (text-mode . writegood-mode))
@@ -387,8 +380,8 @@
 
 (use-package erc
   :custom
-  (erc-nick system-username "Set erc nick to username")
-  (erc-user-full-name system-fullname "Use real name for full name"))
+  (erc-nick system-username "sets erc username to the one set in nix config")
+  (erc-user-full-name system-fullname "sets erc fullname to the one set in nix config"))
 
 (use-package general
   :init
@@ -481,7 +474,6 @@
     "h i" '(info :wk "Info")
 
     "s i p" '(insert-urandom-password :wk "insert random password to buffer (for sops)")
-    "u w" '((lambda () (interactive) (shell-command "rsync -azvP ~/website_html/ root@nullring.xyz:/usr/share/nginx/ret2pop/")) :wk "rsync website update")
 
     "h r r" '(lambda () (interactive) (org-babel-load-file (expand-file-name "~/monorepo/config/emacs.org")))))
 
@@ -623,7 +615,7 @@
   (message-kill-buffer-on-exit t "Kill buffer when I exit mu4e")
   (mu4e-compose-dont-reply-to-self t "Don't include self in replies")
   (mu4e-change-filenames-when-moving t)
-  (mu4e-get-mail-command "mbsync ret2pop" "Use mbsync for imap")
+  (mu4e-get-mail-command (concat "mbsync " system-username) "Use mbsync for imap")
   (mu4e-compose-reply-ignore-address (list "no-?reply" system-email) "ignore my own address and noreply")
   (mu4e-html2text-command "w3m -T text/html" "Use w3m to convert html to text")
   (mu4e-update-interval 300 "Update duration")

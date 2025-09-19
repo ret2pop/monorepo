@@ -1190,7 +1190,7 @@ This is my impermanence profile, which removes all files on reboot except for th
       umount /btrfs_tmp
     '' else "");
 
-    filesystems = if (config.monorepo.profiles.impermanence.enable) then {
+    fileSystems = if (config.monorepo.profiles.impermanence.enable) then {
       "/persistent" = {
         neededForBoot = true;
       };

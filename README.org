@@ -28,11 +28,7 @@ then reboot, and run:
 #+begin_src bash
   cd $HOME/monorepo && git pull
 #+end_src
-That's all! Note that if you install with an encrypted disk, you will have to run:
-#+begin_src bash
-  echo "password123" > /tmp/secret.key
-#+end_src
-before ~nix_installer~.
+That's all!
 ** Post-setup
 In emacs, run ~M-x all-the-icons-install-fonts, ~~M-x nerd-icons-install-fonts~, and ~M-x org-roam-db-sync~. Install your music to ~$HOME/music~ for
 emms. In firefox, go to the three-bar menu and enable all the add-ons that were automatically installed. Set up the ~mu~ program in order to

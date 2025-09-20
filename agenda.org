@@ -55,7 +55,7 @@ These are one-time tasks that are scheduled at a particular date, and that don't
 schedules.
 ** Appointments
 These are tasks related to my appointments which have to be at a specific time.
-*** TODO Appointment Call
+*** DONE Appointment Call
 I have an appointment in a couple days.
 SCHEDULED: <2025-09-16 Tue 15:45>
 *** TODO Friends Stay a Night

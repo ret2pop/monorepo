@@ -1247,6 +1247,7 @@ This is my impermanence profile, which removes all files on reboot except for th
           ".mozilla"
           ".bitmonero"
           ".config"
+          ".crypto"
           { directory = ".gnupg"; mode = "0700"; }
           { directory = ".ssh"; mode = "0700"; }
           { directory = ".local/share/keyrings"; mode = "0700"; }
@@ -3509,6 +3510,7 @@ standard.
       };
 
       shellAliases = {
+        clone-secrets = "git clone ssh://\"$1\"/home/preston/secrets \"$HOME/secrets\"";
         get-channel-id = "yt-dlp --print \"%(channel_id)s\" --playlist-end 1 \"$1\"";
         se = "sops edit";
         f = "vim $(fzf)";
@@ -3616,7 +3618,8 @@ for these configurations.
         torsocks tor-browser
 
         # For transfering secrets onto new system
-        magic-wormhole
+        magic-wormhole stow
+
         # fonts
         nerd-fonts.iosevka noto-fonts noto-fonts-cjk-sans noto-fonts-emoji fira-code font-awesome_6 victor-mono
         (aspellWithDicts
@@ -3678,6 +3681,14 @@ for these configurations.
           ''
   #!/bin/bash
   nix run github:nix-community/nixos-anywhere -- --generate-hardware-config nixos-generate-config $HOME/monorepo/nix/systems/spontaneity/hardware-configuration.nix --flake $HOME/monorepo/nix#spontaneity --target-host "$1"
+          '')
+        (writeShellScriptBin "secrets"
+          ''
+  #!/bin/bash
+  cd "$HOME/secrets"
+  git pull # repo is over LAN
+  stow */ # manage secrets with gnu stow
+  cd "$HOME"
           '')
       ] else [
         pfetch
@@ -3763,7 +3774,10 @@ This is pretty understandable, if you understand all the above.
     ];
     config = {
       monorepo = {
-        profiles.impermanence.enable = true;
+        profiles = {
+          impermanence.enable = true;
+          secureBoot = true;
+        };
         vars = {
           device = "/dev/sda";
           fileSystem = "btrfs";
@@ -3975,10 +3989,6 @@ This contains the installation script I use to install my systems.
     echo "ERROR! $(basename "$0") should be run as a regular user"
     exit 1
   fi
-
-  gum style --border normal --margin "1" --padding "1 2" "Notice: if using full disk encryption, write to /tmp/secret.key first with your password."
-
-  sleep 3
 
   cd "$HOME"
 

@@ -76,11 +76,12 @@ something.
 These are some habits I want to track. They are repeated according to a calendar schedule in
 general.
 ** TODO Supplements
-SCHEDULED: <2025-09-18 Thu .+1d>
+SCHEDULED: <2025-09-22 Mon .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-09-17 Wed 03:40]
+:LAST_REPEAT: [2025-09-21 Sun 06:57]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2025-09-21 Sun 06:57]
 - State "DONE"       from "TODO"       [2025-09-17 Wed 03:40]
 - State "DONE"       from "TODO"       [2025-09-16 Tue 03:13]
 - State "DONE"       from "TODO"       [2025-09-14 Sun 18:33]
@@ -104,11 +105,12 @@ Current stack:
 - EPA/DHA
 - Creatine Monohydrate
 ** TODO Strength Training
-SCHEDULED: <2025-09-18 Thu .+1d>
+SCHEDULED: <2025-09-22 Mon .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-09-17 Wed 03:40]
+:LAST_REPEAT: [2025-09-21 Sun 06:57]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2025-09-21 Sun 06:57]
 - State "DONE"       from "TODO"       [2025-09-17 Wed 03:40]
 - State "DONE"       from "TODO"       [2025-09-14 Sun 02:26]
 - State "DONE"       from "TODO"       [2025-09-10 Wed 03:23]
@@ -128,11 +130,12 @@ SCHEDULED: <2025-08-26 Tue .+1d>
 - State "DONE"       from "TODO"       [2025-06-26 Thu 23:22]
 I want to be able to run or bike every day so that I get my exercise in.
 ** TODO Stretch
-SCHEDULED: <2025-09-18 Thu .+1d>
+SCHEDULED: <2025-09-22 Mon .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-09-17 Wed 03:40]
+:LAST_REPEAT: [2025-09-21 Sun 06:57]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2025-09-21 Sun 06:57]
 - State "DONE"       from "TODO"       [2025-09-17 Wed 03:40]
 - State "DONE"       from "TODO"       [2025-09-16 Tue 03:14]
 - State "DONE"       from "TODO"       [2025-09-14 Sun 02:20]

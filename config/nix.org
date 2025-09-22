@@ -3776,7 +3776,7 @@ This is pretty understandable, if you understand all the above.
       monorepo = {
         profiles = {
           impermanence.enable = true;
-          secureBoot = true;
+          secureBoot.enable = true;
         };
         vars = {
           device = "/dev/sda";

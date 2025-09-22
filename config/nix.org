@@ -1374,7 +1374,7 @@ because they enhance security.
 
       lanzaboote = {
     	  enable = config.monorepo.profiles.secureBoot.enable;
-    	  pkiBundle = "/etc/secureboot";
+    	  pkiBundle = "/var/lib/sbctl";
       };
 
       loader = {
@@ -3776,7 +3776,6 @@ This is pretty understandable, if you understand all the above.
       monorepo = {
         profiles = {
           impermanence.enable = true;
-          secureBoot.enable = true;
         };
         vars = {
           device = "/dev/sda";

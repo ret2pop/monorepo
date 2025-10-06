@@ -96,8 +96,8 @@
     ;; load theme, fonts, and transparency. Prettify symbols.
     (global-prettify-symbols-mode 1)
     (set-face-attribute 'default nil :font "Iosevka Nerd Font" :height 130)
-    (set-frame-parameter nil 'alpha-background 90)
-    (add-to-list 'default-frame-alist '(alpha-background . 90)))
+    (set-frame-parameter nil 'alpha-background 70)
+    (add-to-list 'default-frame-alist '(alpha-background . 70)))
 
 (use-package org
   :hook

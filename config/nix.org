@@ -1260,31 +1260,6 @@ This is my impermanence profile, which removes all files on reboot except for th
     };
   }
 #+end_src
-** Firejail
-I know there are some security issues with firejail, but it's probably better than nothing. I'm looking to replace this with bubblewrap in the
-future. Note that I am also going to use AppArmor more often.
-#+begin_src nix :tangle ../nix/modules/firejail.nix
-  { pkgs, lib, ... }:
-  {
-    programs.firejail = {
-      enable = true;
-      wrappedBinaries = {
-        firefox = {
-          executable = "${lib.getBin pkgs.firefox-bin}/bin/firefox";
-          profile = "${pkgs.firejail}/etc/firejail/firefox.profile";
-        };
-        emacs = {
-          executable = "${lib.getBin pkgs.emacs-pgtk}/bin/emacs";
-          profile = "${pkgs.firejail}/etc/firejail/emacs.profile";
-        };
-        zathura = {
-          executable = "${lib.getBin pkgs.zathura}/bin/zathura";
-          profile = "${pkgs.firejail}/etc/firejail/zathura.profile";
-        };
-      };
-    };
-  }
-#+end_src
 ** Main Configuration
 This is the backbone of the all the NixOS configurations, with all these options being shared
 because they enhance security.
@@ -1313,7 +1288,6 @@ because they enhance security.
       ./znc.nix
       ./docker.nix
       ./impermanence.nix
-      ./firejail.nix
     ];
 
     documentation = {
@@ -1378,7 +1352,7 @@ because they enhance security.
       };
 
       loader = {
-    	  systemd-boot.enable = lib.mkForce ((! config.monorepo.profiles.grub.enable) || (! config.monorepo.profiles.secureBoot.enable));
+    	  systemd-boot.enable = lib.mkForce ((! config.monorepo.profiles.grub.enable) && (! config.monorepo.profiles.secureBoot.enable));
     	  efi.canTouchEfiVariables = lib.mkForce (! config.monorepo.profiles.grub.enable);
       };
 
@@ -1480,12 +1454,8 @@ because they enhance security.
     };
 
     networking = {
-      useDHCP = false;
-      dhcpcd.enable = false;
-      nameservers = [
-        "1.1.1.1"
-        "8.8.8.8"
-      ];
+      nameservers = [ "8.8.8.8" "1.1.1.1"];
+      dhcpcd.enable = (! config.monorepo.profiles.server.enable);
       networkmanager = {
     	  enable = true;
         wifi.powersave = false;
@@ -1927,6 +1897,7 @@ I have many imports that we'll go through next.
       ./mpd.nix
       ./mako.nix
       ./user.nix
+      ./gtk.nix
     ];
 
     options = {
@@ -2603,7 +2574,7 @@ to use this component will come soon.
         exec-once = [
           "waybar"
           "swww-daemon --format xrgb"
-          "swww img ${wallpapers}/imagination.png"
+          "sh -c 'swww img \"$(find ${wallpapers} -type f \\( -iname \"*.jpg\" -o -iname \"*.png\" \\) | shuf -n1)\"'"
           "fcitx5-remote -r"
           "fcitx5 -d --replace"
           "fcitx5-remote -r"
@@ -2617,8 +2588,8 @@ to use this component will come soon.
           "__GLX_VENDOR_LIBRARY_NAME,nvidia"
           "ELECTRON_OZONE_PLATFORM_HINT,auto"
         ];
-        blurls = [
-          "waybar"
+        layerrule = [
+          "blur,waybar"
         ];
         monitor = [
           "Unknown-1,disable"
@@ -2634,6 +2605,7 @@ to use this component will come soon.
           "workspace 3, title:^(.*fluffychat.*)$"
           "workspace 3, class:^(.*element-desktop.*)$"
           "workspace 4, class:^(.*qpwgraph.*)$"
+          "workspace 4, class:^(.*pavucontrol.*)$"
           "workspace 4, class:^(.*mpv.*)$"
           "workspace 5, title:^(.*Monero.*)$"
           "workspace 5, title:^(.*org\.bitcoin\..*)$"
@@ -2645,10 +2617,10 @@ to use this component will come soon.
         ];
         bind = [
           "$mod, F, exec, firefox"
-          "$mod, T, exec, tor-browser"
           "$mod, Return, exec, kitty"
           "$mod, E, exec, emacs"
           "$mod, B, exec, bitcoin-qt"
+          "$mod, S, exec, pavucontrol"
           "$mod, M, exec, monero-wallet-gui"
           "$mod, V, exec, vesktop"
           "$mod, C, exec, fluffychat"
@@ -2659,12 +2631,18 @@ to use this component will come soon.
           "$mod SHIFT, L, movewindow, r"
           "$mod SHIFT, K, movewindow, u"
           "$mod SHIFT, J, movewindow, d"
+          "$mod, T, togglefloating"
           "$mod, H, movefocus, l"
           "$mod, L, movefocus, r"
           "$mod, K, movefocus, u"
           "$mod, J, movefocus, d"
           ", XF86AudioPlay, exec, mpc toggle"
           ", Print, exec, grim"
+
+          "$mod, right, resizeactive, 30 0"
+          "$mod, left, resizeactive, -30 0"
+          "$mod, up, resizeactive, 0 -30"
+          "$mod, down, resizeactive, 0 30"
         ]
         ++ (
           builtins.concatLists (builtins.genList
@@ -2700,8 +2678,14 @@ to use this component will come soon.
         decoration = {
           blur = {
             enabled = true;
-            size = 5;
-            passes = 2;
+            size = 9;
+            passes = 4;
+            contrast = 0.8;
+            brightness = 1.1;
+            noise = 0.02;
+            new_optimizations = true;
+            ignore_opacity = true;
+            xray = false;
           };
           rounding = 5;
         };
@@ -2734,59 +2718,59 @@ to use this component will come soon.
 *** Kitty
 I've set my terminal, kitty, to use catppuccin colors.
 #+begin_src nix :tangle ../nix/modules/home/kitty.nix
-{ lib, config, ... }:
-{
-  programs.kitty = {
-    enable = lib.mkDefault (config.monorepo.profiles.hyprland.enable && config.monorepo.profiles.graphics.enable);
-    settings = {
-      enable_audio_bell = false;
-      font_family = "Iosevka Nerd Font";
-      font_size = 14;
-      confirm_os_window_close = 0;
-      background_opacity = "0.9";
-      # Catppuccin theme
-      foreground = "#cdd6f4";
-      background = "#1e1e2e";
-      selection_foreground = "#1e1e2e";
-      selection_background = "#f5e0dc";
-      cursor = "#f5e0dc";
-      cursor_text_color = "#1e1e2e";
-      url_color = "#f5e0dc";
-      active_border_color = "#B4BEFE";
-      inactive_border_color = "#6C7086";
-      bell_border_color = "#F9E2AF";
-      wayland_titlebar_color = "#1E1E2E";
-      macos_titlebar_color = "#1E1E2E";
-      active_tab_foreground = "#11111B";
-      active_tab_background = "#CBA6F7";
-      inactive_tab_foreground = "#CDD6F4";
-      inactive_tab_background = "#181825";
-      tab_bar_background = "#11111B";
-      mark1_foreground = "#1E1E2E";
-      mark1_background = "#B4BEFE";
-      mark2_foreground = "#1E1E2E";
-      mark2_background = "#CBA6F7";
-      mark3_foreground = "#1E1E2E";
-      mark3_background = "#74C7EC";
-      color0 = "#45475A";
-      color8 = "#585B70";
-      color1 = "#F38BA8";
-      color9 = "#F38BA8";
-      color2 = "#A6E3A1";
-      color10 = "#A6E3A1";
-      color3 = "#F9E2AF";
-      color11 = "#F9E2AF";
-      color4 = "#89B4FA";
-      color12 = "#89B4FA";
-      color5 = "#F5C2E7";
-      color13 = "#F5C2E7";
-      color6 = "#94E2D5";
-      color14 = "#94E2D5";
-      color7 = "#BAC2DE";
-      color15 = "#A6ADC8";
+  { lib, config, ... }:
+  {
+    programs.kitty = {
+      enable = lib.mkDefault (config.monorepo.profiles.hyprland.enable && config.monorepo.profiles.graphics.enable);
+      settings = {
+        enable_audio_bell = false;
+        font_family = "Iosevka Nerd Font";
+        font_size = 14;
+        confirm_os_window_close = 0;
+        background_opacity = "0.7";
+        # Catppuccin theme
+        foreground = "#cdd6f4";
+        background = "#1e1e2e";
+        selection_foreground = "#1e1e2e";
+        selection_background = "#f5e0dc";
+        cursor = "#f5e0dc";
+        cursor_text_color = "#1e1e2e";
+        url_color = "#f5e0dc";
+        active_border_color = "#B4BEFE";
+        inactive_border_color = "#6C7086";
+        bell_border_color = "#F9E2AF";
+        wayland_titlebar_color = "#1E1E2E";
+        macos_titlebar_color = "#1E1E2E";
+        active_tab_foreground = "#11111B";
+        active_tab_background = "#CBA6F7";
+        inactive_tab_foreground = "#CDD6F4";
+        inactive_tab_background = "#181825";
+        tab_bar_background = "#11111B";
+        mark1_foreground = "#1E1E2E";
+        mark1_background = "#B4BEFE";
+        mark2_foreground = "#1E1E2E";
+        mark2_background = "#CBA6F7";
+        mark3_foreground = "#1E1E2E";
+        mark3_background = "#74C7EC";
+        color0 = "#45475A";
+        color8 = "#585B70";
+        color1 = "#F38BA8";
+        color9 = "#F38BA8";
+        color2 = "#A6E3A1";
+        color10 = "#A6E3A1";
+        color3 = "#F9E2AF";
+        color11 = "#F9E2AF";
+        color4 = "#89B4FA";
+        color12 = "#89B4FA";
+        color5 = "#F5C2E7";
+        color13 = "#F5C2E7";
+        color6 = "#94E2D5";
+        color14 = "#94E2D5";
+        color7 = "#BAC2DE";
+        color15 = "#A6ADC8";
+      };
     };
-  };
-}
+  }
 #+end_src
 *** Mako
 This is my notification system. My flake automatically fetches the notification sound, so you
@@ -2942,6 +2926,17 @@ here:
     };
   };
 }
+#+end_src
+*** GTK
+#+begin_src nix :tangle ../nix/modules/home/gtk.nix
+  { lib, config, pkgs, ... }:
+  {
+    gtk = {
+      theme = {
+        package = pkgs.catppuccin-gtk;
+      };
+    };
+  }
 #+end_src
 *** Secrets
 This uses sops in order to declaratively create the secrets on my system by unencrypting
@@ -3865,6 +3860,12 @@ Spontaneity is my VPS instance.
 
       boot.loader.grub.device = "nodev";
       networking = {
+        interfaces.ens3.ipv4.addresses = [
+          {
+            address = ipv4addr;
+            prefixLength = 24;
+          }
+        ];
         interfaces.ens3.ipv6.addresses = [
           {
             address = ipv6addr;

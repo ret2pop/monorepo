@@ -113,8 +113,8 @@ Emacs is self documenting, after all!
       ;; load theme, fonts, and transparency. Prettify symbols.
       (global-prettify-symbols-mode 1)
       (set-face-attribute 'default nil :font "Iosevka Nerd Font" :height 130)
-      (set-frame-parameter nil 'alpha-background 90)
-      (add-to-list 'default-frame-alist '(alpha-background . 90)))
+      (set-frame-parameter nil 'alpha-background 70)
+      (add-to-list 'default-frame-alist '(alpha-background . 70)))
 #+end_src
 As you can see, the config (and sometimes the init section) of most of these use-package blocks
 contain most of the imperative commands. In fact, most of the configurations are completely

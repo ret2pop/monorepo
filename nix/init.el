@@ -103,62 +103,62 @@
     (add-to-list 'default-frame-alist '(alpha-background . 70)))
 
 (use-package org
-  :hook
-  ((org-mode-hook . (lambda () (remove-hook 'post-self-insert-hook #'yaml-electric-bar-and-angle t))))
-  :custom
-  (org-confirm-babel-evaluate nil "Don't ask to evaluate code block")
-  (org-export-with-broken-links t "publish website even with broken links")
-  (org-src-fontify-natively t "Colors!")
-  (org-latex-preview-image-directory (expand-file-name "~/.cache/ltximg/") "don't use weird cache location")
-  (org-preview-latex-image-directory (expand-file-name "~/.cache/ltximg/") "don't use weird cache location")
-  (TeX-PDF-mode t)
-  (org-latex-compiler "xelatex" "Use latex as default")
-  (org-latex-pdf-process '("xelatex -interaction=nonstopmode -output-directory=%o %f") "set xelatex as default")
-  (TeX-engine 'xetex "set xelatex as default engine")
-  (preview-default-option-list '("displaymath" "textmath" "graphics") "preview latex")
-  (preview-image-type 'png "Use PNGs")
-  (org-format-latex-options (plist-put org-format-latex-options :scale 1.5) "space latex better")
-  (org-return-follows-link t "be able to follow links without mouse")
-  (org-habit-preceding-days 7 "See org habit entries")
-  (org-habit-following-days 35 "See org habit entries")
-  (org-habit-show-habits t "See org habit entries")
-  (org-habit-show-habits-only-for-today nil "See org habit entries")
-  (org-habit-show-all-today t "Show org habit graph")
-  (org-startup-indented t "Indent the headings")
-  (org-image-actual-width '(300) "Cap width") 
-  (org-startup-with-latex-preview t "see latex previews on opening file")
-  (org-startup-with-inline-images t "See images on opening file")
-  (org-hide-emphasis-markers t "prettify org mode")
-  (org-use-sub-superscripts "{}" "Only display superscripts and subscripts when enclosed in {}")
-  (org-pretty-entities t "prettify org mode")
-  (org-agenda-files (list "~/monorepo/agenda.org" "~/org/notes.org" "~/org/agenda.org") "set default org files")
-  (org-default-notes-file (concat org-directory "/notes.org") "Notes file")
-  (org-publish-project-alist
-   '(("website-org"
-      :base-directory "~/monorepo"
-      :base-extension "org"
-      :publishing-directory "~/website_html"
-      :recursive t
-      :publishing-function org-html-publish-to-html
-      :headline-levels 4
-      :html-preamble t
-      :html-preamble-format (("en" "<p class=\"preamble\"><a href=\"/index.html\">home</a> | <a href=\"./index.html\">section main page</a></p><hr>")))
-     ("website-static"
-      :base-directory "~/monorepo"
-      :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|ico\\|asc\\|pub\\|webmanifest\\|xml\\|svg"
-      :publishing-directory "~/website_html/"
-      :recursive t
-      :publishing-function org-publish-attachment)
-     ("website" :auto-sitemap t :components ("website-org" "website-static"))) "functions to publish website")
-  (org-html-postamble (concat "Copyright © 2024 " system-fullname) "set copyright notice on bottom of site")
-  :config
-  (require 'ox-publish)
-  (require 'org-tempo)
-  (require 'org-habit)
-  (org-babel-do-load-languages 'org-babel-load-languages
-                               '((shell . t)
-                                 (python . t)
-                                 (latex . t))))
+    :hook
+    ((org-mode-hook . (lambda () (remove-hook 'post-self-insert-hook #'yaml-electric-bar-and-angle t))))
+    :custom
+    (org-confirm-babel-evaluate nil "Don't ask to evaluate code block")
+    (org-export-with-broken-links t "publish website even with broken links")
+    (org-src-fontify-natively t "Colors!")
+    (org-latex-preview-image-directory (expand-file-name "~/.cache/ltximg/") "don't use weird cache location")
+    (org-preview-latex-image-directory (expand-file-name "~/.cache/ltximg/") "don't use weird cache location")
+    (TeX-PDF-mode t)
+    (org-latex-compiler "xelatex" "Use latex as default")
+    (org-latex-pdf-process '("xelatex -interaction=nonstopmode -output-directory=%o %f") "set xelatex as default")
+    (TeX-engine 'xetex "set xelatex as default engine")
+    (preview-default-option-list '("displaymath" "textmath" "graphics") "preview latex")
+    (preview-image-type 'png "Use PNGs")
+;;    (org-format-latex-options (plist-put org-format-latex-options :scale 1.5) "space latex better")
+    (org-return-follows-link t "be able to follow links without mouse")
+    (org-habit-preceding-days 7 "See org habit entries")
+    (org-habit-following-days 35 "See org habit entries")
+    (org-habit-show-habits t "See org habit entries")
+    (org-habit-show-habits-only-for-today nil "See org habit entries")
+    (org-habit-show-all-today t "Show org habit graph")
+    (org-startup-indented t "Indent the headings")
+    (org-image-actual-width '(300) "Cap width") 
+    (org-startup-with-latex-preview t "see latex previews on opening file")
+    (org-startup-with-inline-images t "See images on opening file")
+    (org-hide-emphasis-markers t "prettify org mode")
+    (org-use-sub-superscripts "{}" "Only display superscripts and subscripts when enclosed in {}")
+    (org-pretty-entities t "prettify org mode")
+    (org-agenda-files (list "~/monorepo/agenda.org" "~/org/notes.org" "~/org/agenda.org") "set default org files")
+    (org-default-notes-file (concat org-directory "/notes.org") "Notes file")
+    (org-publish-project-alist
+     '(("website-org"
+        :base-directory "~/monorepo"
+        :base-extension "org"
+        :publishing-directory "~/website_html"
+        :recursive t
+        :publishing-function org-html-publish-to-html
+        :headline-levels 4
+        :html-preamble t
+        :html-preamble-format (("en" "<p class=\"preamble\"><a href=\"/index.html\">home</a> | <a href=\"./index.html\">section main page</a></p><hr>")))
+       ("website-static"
+        :base-directory "~/monorepo"
+        :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|ico\\|asc\\|pub\\|webmanifest\\|xml\\|svg"
+        :publishing-directory "~/website_html/"
+        :recursive t
+        :publishing-function org-publish-attachment)
+       ("website" :auto-sitemap t :components ("website-org" "website-static"))) "functions to publish website")
+    (org-html-postamble (concat "Copyright © 2024 " system-fullname) "set copyright notice on bottom of site")
+    :config
+    (require 'ox-publish)
+    (require 'org-tempo)
+    (require 'org-habit)
+    (org-babel-do-load-languages 'org-babel-load-languages
+                                 '((shell . t)
+                                   (python . t)
+                                   (latex . t))))
 
 (use-package unicode-fonts
   :init (unicode-fonts-setup))
@@ -519,6 +519,10 @@
 (use-package elfeed
   :custom
   (elfeed-search-filter "@1-month-ago +unread" "Only display unread articles from a month ago")
+
+  :config
+  (run-with-timer 0 (* 60 60 4) 'elfeed-update)
+
   :hook ((elfeed-search-mode . elfeed-update)))
 
 (use-package elfeed-org
@@ -639,6 +643,18 @@
   (add-to-list 'emms-info-functions 'emms-info-mpd)
   (add-to-list 'emms-player-list 'emms-player-mpd)
   :config (emms-player-mpd-connect))
+
+(use-package centaur-tabs
+  :custom
+  (centaur-tabs-set-icons t "use icons for centaur-tabs")
+  (centaur-tabs-set-modified-marker t "show when buffer modified")
+  (centaur-tabs-icon-type 'all-the-icons "use all-the-icons for icons")
+  :demand
+  :config
+  (centaur-tabs-mode t)
+  :bind
+  ("C-<prior>" . centaur-tabs-backward)
+  ("C-<next>" . centaur-tabs-forward))
 
 (use-package lean4-mode
   :commands lean4-mode

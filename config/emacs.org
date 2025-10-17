@@ -14,7 +14,7 @@ is some imperative programming that must be done. Hooks are also largely declara
 configuration as they are also defined using the use-package macros. Some of these options will
 have documentation strings attached, so it is easy to follow what the individual options do.
 Emacs is self documenting, after all!
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package emacs
   :custom
   ;; global defaults
@@ -26,6 +26,9 @@ Emacs is self documenting, after all!
   (warning-minimum-level :emergency "Supress emacs warnings")
   (confirm-kill-processes nil "Don't ask to quit")
   (debug-ignored-errors (cons 'remote-file-error debug-ignored-errors) "Remove annoying error from debug errors")
+  (browse-url-generic-program "firefox")
+  (browse-url-secondary-browser-function 'browse-url-generic)
+  (browse-url-browser-function 'browse-url-generic)
 
   ;; Mouse wheel
   (mouse-wheel-scroll-amount '(1 ((shift) . 1)) "Nicer scrolling")
@@ -128,7 +131,7 @@ little in config as possible. I hardly consider most of this configuration to be
 of course Emacs was not designed to be fully imperative.
 ** Org Mode
 This is my org mode configuration, which also configures latex.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package org
     :hook
     ((org-mode-hook . (lambda () (remove-hook 'post-self-insert-hook #'yaml-electric-bar-and-angle t))))
@@ -144,7 +147,7 @@ This is my org mode configuration, which also configures latex.
     (TeX-engine 'xetex "set xelatex as default engine")
     (preview-default-option-list '("displaymath" "textmath" "graphics") "preview latex")
     (preview-image-type 'png "Use PNGs")
-    (org-format-latex-options (plist-put org-format-latex-options :scale 1.5) "space latex better")
+;;    (org-format-latex-options (plist-put org-format-latex-options :scale 1.5) "space latex better")
     (org-return-follows-link t "be able to follow links without mouse")
     (org-habit-preceding-days 7 "See org habit entries")
     (org-habit-following-days 35 "See org habit entries")
@@ -191,27 +194,27 @@ As you can see, I only have one real entry in config here (I don't count require
 they have to be on the top)
 * Unicode
 I want emacs to have unicode fonts.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package unicode-fonts
     :init (unicode-fonts-setup))
 #+end_src
 * Autopair
 Use electric-pair to automatically complete pairs of things. We need to change
 what electric-pair does based on the mode.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package electric-pair
     :hook ((prog-mode . electric-pair-mode)
            (org-mode . (lambda () (setq-local electric-pair-inhibit-predicate (lambda (c) (if (eq c ?<) t (electric-pair-default-inhibit c))))))))
 #+end_src
 * Search and Replace
 wgrep is a program that allows you to do more intelligent search and replace.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package wgrep
     :after grep)
 #+end_src
 * Passwords
 This is a function that inserts a random password into the buffer. I use this to manage sops-nix.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (defun insert-urandom-password (&optional length)
     (interactive "P")
     (let ((length (or length 32))
@@ -227,12 +230,12 @@ This is a function that inserts a random password into the buffer. I use this to
 * Fragtog
 This package is used to generate previews automatically when your cursor hovers over a latex
 snippet.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package org-fragtog :hook (org-mode . org-fragtog-mode))
 #+end_src
 * Snippets
 Yasnippets are useful for macros that automatically complete to an arbitrary form.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package yasnippet
     :config
     (add-to-list 'yas-snippet-dirs "~/monorepo/yasnippet/")
@@ -241,7 +244,7 @@ Yasnippets are useful for macros that automatically complete to an arbitrary for
 #+end_src
 * Completion
 Company-mode! We need this to do autocomplete stuff.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package company
     :config
     '(add-to-list 'company-backends '(company-ispell company-capf company-yasnippet company-files))
@@ -250,7 +253,7 @@ Company-mode! We need this to do autocomplete stuff.
 * Spelling
 This loads a dictionary so that I can save certain words to be not misspelled and also have
 this spellcheck during org mode.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package ispell
     :custom
     (ispell-program-name "aspell" "use aspell")
@@ -263,7 +266,7 @@ this spellcheck during org mode.
 #+end_src
 * Packages
 First, some small configurations and some evil-mode initilaization because I like vim keybindings:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package evil
     :custom
     (evil-want-keybinding nil "Don't load a whole bunch of default keybindings")
@@ -308,7 +311,7 @@ First, some small configurations and some evil-mode initilaization because I lik
 #+end_src
 ** Journal
 I use org-journal to journal about my life, and it's a part of my website:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package org-journal
     :after (org)
     :custom
@@ -329,7 +332,7 @@ I use org-journal to journal about my life, and it's a part of my website:
 #+end_src
 ** Doom Modeline
 The default modeline is ugly. I replace it with the doom modeline because it's better.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package doom-modeline
     :config
     (doom-modeline-mode 1))
@@ -337,7 +340,7 @@ The default modeline is ugly. I replace it with the doom modeline because it's b
 *** Doom Theme
 I used to use catppuccin, but the doom themes are so good that I am willing to break some theme consistency with my desktop in order
 to use doom themes. I mean it looks better anyways if emacs is a distinct theme.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package doom-themes
     :ensure t
     :custom
@@ -350,23 +353,24 @@ to use doom themes. I mean it looks better anyways if emacs is a distinct theme.
     (doom-themes-visual-bell-config)
     (doom-themes-treemacs-config)
     (doom-themes-org-config))
+  ;; (load-theme 'catppuccin :no-confirm)
 #+end_src
 ** Grammar
 I want to write good! I grammar good too.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
 (use-package writegood-mode
   :hook (text-mode . writegood-mode))
 #+end_src
 ** Make Org Look Better
 Org superstar adds those nice looking utf-8 bullets:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package org-superstar
     :after (org)
     :hook (org-mode . (lambda () (org-superstar-mode 1))))
 #+end_src
 ** LSP
 We set up eglot, the LSP manager for emacs, now built in:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
    ;; (use-package eglot
    ;;   :hook
    ;;   (prog-mode . eglot-ensure)
@@ -396,7 +400,7 @@ We set up eglot, the LSP manager for emacs, now built in:
 #+end_src
 *** C/C++
 Specific configuration for C (I also use the clangd lsp):
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package irony-mode
     :hook (
     (c++-mode . irony-mode)
@@ -409,7 +413,7 @@ Specific configuration for C (I also use the clangd lsp):
 #+end_src
 *** Solidity
 For writing solidity:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package solidity-mode)
   (use-package company-solidity)
   (use-package solidity-flycheck
@@ -418,7 +422,7 @@ For writing solidity:
 #+end_src
 ** Projectile
 Manages projects and shit.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package projectile
     :custom
     (projectile-project-search-path '("~/org" "~/src" "~/monorepo" "~/projects") "search path for projects")
@@ -427,7 +431,7 @@ Manages projects and shit.
 #+end_src
 ** Dashboard
 We want our emacs initialization to be pretty and display useful things.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package dashboard
     :after (projectile)
     :custom
@@ -446,7 +450,7 @@ We want our emacs initialization to be pretty and display useful things.
 #+end_src
 ** Ivy
 Ivy is a pretty cool general program for displaying stuff:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package counsel)
 
   (use-package ivy
@@ -475,12 +479,12 @@ Ivy is a pretty cool general program for displaying stuff:
 I use it for an M-x replacement and a dired replacement, among other things.
 ** Magit
 I use magit in order to do all my git management in emacs.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
 (use-package magit)
 #+end_src
 ** IRC
 Configure IRC to use my username.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package erc
     :custom
     (erc-nick system-username "sets erc username to the one set in nix config")
@@ -490,7 +494,7 @@ Configure IRC to use my username.
 Global keybindings for everything that I care about globally. It's all here! I use general
 to manage my global keybindings in a declarative way. These are in part inspired by the doom
 emacs keybindings.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package general
     :init
     (defun prestonpan ()
@@ -588,7 +592,7 @@ emacs keybindings.
 ** LLM
 I use LLMs in order to help me come up with ideas. I use a local LLM so that I can have a
 competitive LLM that doesn't cost money.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package ellama
     :custom
     (ellama-sessions-directory "~/org/ellama/" "Set org directory for LLM sessions")
@@ -601,7 +605,7 @@ competitive LLM that doesn't cost money.
 *** Minuet
 Minuet does my code completion, showing the potential code completion as a ghost and automatically completing the code when my cursor is
 still. It is kind of like copilot but it works with local LLMs, which is better. Though, it's obviously not always the most accurate.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package minuet
       :bind
       (("M-y" . #'minuet-complete-with-minibuffer)
@@ -631,10 +635,14 @@ still. It is kind of like copilot but it works with local LLMs, which is better.
 ** RSS Feed
 I use really simple syndication (RSS) in order to read news. As a result, I use
 elfeed to fetch feeds found on my website:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package elfeed
     :custom
     (elfeed-search-filter "@1-month-ago +unread" "Only display unread articles from a month ago")
+
+    :config
+    (run-with-timer 0 (* 60 60 4) 'elfeed-update)
+
     :hook ((elfeed-search-mode . elfeed-update)))
 
   (use-package elfeed-org
@@ -646,7 +654,7 @@ elfeed to fetch feeds found on my website:
 *** Youtube
 Then we set up elfeed-tube for Youtube video RSS feeds (so I don't ever have to use the web
 interface and can control it from emacs):
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package elfeed-tube
     :after elfeed
     :demand t
@@ -670,7 +678,7 @@ interface and can control it from emacs):
 ** Project Drawer
 I use treemacs as my sidebar for projects, so that I can easily navigate to any file in the
 project directory.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package treemacs)
   (use-package treemacs-evil
     :after (treemacs evil))
@@ -682,7 +690,7 @@ project directory.
 ** Eww
 Used only for the purpose of viewing RSS feed items in emacs if I can, only resorting
 to Chromium if I have to:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package eww
     :custom
     (search-engines
@@ -694,12 +702,11 @@ to Chromium if I have to:
 
     (search-engine-default "google" "Use google as default")
     (eww-search-prefix "https://google.com/search?q=" "Google prefix")
-    (browse-url-secondary-browser-function 'browse-url-generic browse-url-generic-program "firefox" "Use firefox as secondary browser")
     :hook ((eww-mode . (lambda () (local-set-key (kbd "y Y") #'eww-copy-page-url)))))
 #+end_src
 ** Org Roam
 For all my mathematics and programming notes:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package org-roam
     :after (org)
     :custom
@@ -727,14 +734,14 @@ For all my mathematics and programming notes:
 
 ** Pinentry
 Set up pinentry so that I can use emacs as my pinentry frontend:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package pinentry
     :custom (epa-pinentry-mode `loopback "Set this option to match gpg-agent.conf")
     :config (pinentry-start))
 #+end_src
 ** Email
 Email in emacs can be done with Mu4e.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package smtpmail
     :custom
     (user-mail-address system-email "Use our email")
@@ -768,7 +775,7 @@ Email in emacs can be done with Mu4e.
 #+end_src
 ** Music
 Set up emms in order to play music from my music directory:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package emms
     :custom
     (emms-source-file-default-directory (expand-file-name "~/music/") "Use directory specified in Nix")
@@ -782,10 +789,25 @@ Set up emms in order to play music from my music directory:
     (add-to-list 'emms-player-list 'emms-player-mpd)
     :config (emms-player-mpd-connect))
 #+end_src
+** Tabs
+I use tabs because sometimes I like using the mouse (it's actually more efficient to have the option for both, trust me. Keyboards aren't all it).
+#+begin_src emacs-lisp :tangle ../nix/init.el
+  (use-package centaur-tabs
+    :custom
+    (centaur-tabs-set-icons t "use icons for centaur-tabs")
+    (centaur-tabs-set-modified-marker t "show when buffer modified")
+    (centaur-tabs-icon-type 'all-the-icons "use all-the-icons for icons")
+    :demand
+    :config
+    (centaur-tabs-mode t)
+    :bind
+    ("C-<prior>" . centaur-tabs-backward)
+    ("C-<next>" . centaur-tabs-forward))
+#+end_src
 * Unpinned
 ** Lean4
 For some reason, lean4-mode is not in MELPA currently so I have to do this ugly thing:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle ../nix/init.el
   (use-package lean4-mode
     :commands lean4-mode
     :vc (:url "https://github.com/leanprover-community/lean4-mode.git"

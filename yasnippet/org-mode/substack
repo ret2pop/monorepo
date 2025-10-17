@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: substack
+# key: substack
+# --
+[[https://$1.substack.com/feed][$0]]

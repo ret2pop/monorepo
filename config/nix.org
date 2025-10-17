@@ -601,12 +601,26 @@ I use IPFS for my website and also for my ISOs for truly declarative and determi
 configuration. NixOS might be moving to IPFS for binary cache distribution and package
 distribution soon, and I'm waiting on that.
 #+begin_src nix :tangle ../nix/modules/kubo.nix
-{ config, pkgs, lib, ... }:
-{
-  services.kubo = {
-    enable = lib.mkDefault config.monorepo.profiles.workstation.enable;
-  };
-}
+  { config, pkgs, lib, ... }:
+  {
+    services.kubo = {
+      enable = lib.mkDefault config.monorepo.profiles.workstation.enable;
+      autoMount = false;
+      enableGC = true;
+      settings = {
+        Addresses.API = [
+          "/ip4/127.0.0.1/tcp/5001"
+        ];
+        Bootstrap = [
+          "/ip4/128.199.219.111/tcp/4001/ipfs/QmSoLSafTMBsPKadTEgaXctDQVcqN88CNLHXMkTNwMKPnu"
+          "/ip4/162.243.248.213/tcp/4001/ipfs/QmSoLueR4xBeUbY9WZ9xGUUxunbKWcrNFTDAadQJmocnWm"
+        ];
+        Datastore = {
+          StorageMax = "20GB";
+        };
+      };
+    };
+  }
 #+end_src
 ** TODO Murmur
 #+begin_src nix :tangle ../nix/modules/murmur.nix
@@ -1692,7 +1706,7 @@ because they enhance security.
 
     nix = {
       settings = {
-        experimental-features = "nix-command flakes";
+        experimental-features = "nix-command flakes ca-derivations";
         trusted-users = [ "@wheel" ];
       };
     };
@@ -2404,17 +2418,18 @@ as an org file which gets automatically tangled to an emacs-lisp file.
   (setq system-email "${config.monorepo.profiles.email.email}")
   (setq system-username "${config.monorepo.vars.internetName}")
   (setq system-fullname "${config.monorepo.vars.fullName}")
-  (org-babel-load-file
-    (expand-file-name "~/${config.monorepo.vars.repoName}/config/emacs.org"))'';
+  (load "${pkgs.writeText "init.el" (builtins.readFile ../../init.el)}")
+  '';
+
         extraPackages = epkgs: [
           epkgs.agda2-mode
           epkgs.all-the-icons
           epkgs.auctex
           epkgs.catppuccin-theme
-          epkgs.chatgpt-shell
           epkgs.company
           epkgs.company-solidity
           epkgs.counsel
+          epkgs.centaur-tabs
           epkgs.dashboard
           epkgs.doom-themes
           epkgs.doom-modeline
@@ -2631,7 +2646,10 @@ to use this component will come soon.
           "$mod SHIFT, L, movewindow, r"
           "$mod SHIFT, K, movewindow, u"
           "$mod SHIFT, J, movewindow, d"
-          "$mod, T, togglefloating"
+
+          "$mod SHIFT, T, togglefloating"
+          "$mod SHIFT, F, fullscreen"
+
           "$mod, H, movefocus, l"
           "$mod, L, movefocus, r"
           "$mod, K, movefocus, u"
@@ -2933,8 +2951,25 @@ here:
   {
     gtk = {
       theme = {
-        package = pkgs.catppuccin-gtk;
+        name = "catppuccin-mocha-pink-standard";
+        package = pkgs.catppuccin-gtk.override {
+          variant = "mocha";
+          accents = [ "pink" ];
+        };
       };
+    };
+    xdg.configFile = {
+      "gtk-4.0/assets".source = "${config.gtk.theme.package}/share/themes/${config.gtk.theme.name}/gtk-4.0/assets";
+      "gtk-4.0/gtk.css".source = "${config.gtk.theme.package}/share/themes/${config.gtk.theme.name}/gtk-4.0/gtk.css";
+      "gtk-4.0/gtk-dark.css".source = "${config.gtk.theme.package}/share/themes/${config.gtk.theme.name}/gtk-4.0/gtk-dark.css";
+
+      "gtk-3.0/gtk.css".source = "${config.gtk.theme.package}/share/themes/${config.gtk.theme.name}/gtk-3.0/gtk.css";
+      "gtk-3.0/gtk-dark.css".source = "${config.gtk.theme.package}/share/themes/${config.gtk.theme.name}/gtk-3.0/gtk-dark.css";
+      "gtk-3.0/settings.ini".text = ''
+        [Settings]
+        gtk-theme-name=${config.gtk.theme.name}
+        gtk-application-prefer-dark-theme=1
+      '';
     };
   }
 #+end_src
@@ -3605,13 +3640,13 @@ for these configurations.
 
         # Apps
         # octaveFull
-        vesktop grim swww vim telegram-desktop qwen-code fluffychat
+        vesktop grim swww vim telegram-desktop qwen-code fluffychat jami
 
         # Sound/media
         pavucontrol alsa-utils imagemagick ffmpeg helvum
 
         # Net
-        curl rsync git iamb
+        curl rsync git iamb ungoogled-chromium
 
         # Tor
         torsocks tor-browser
@@ -3711,13 +3746,6 @@ for these configurations.
     };
 
     programs.bash.enable = true;
-
-    gtk = {
-      enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
-      theme = null;
-      iconTheme = null;
-    };
-
     fonts.fontconfig.enable = true;
   }
 #+end_src

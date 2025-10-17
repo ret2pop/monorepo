@@ -34,6 +34,14 @@ This is a list of NASA feeds:
 These are YouTube channels that I find interesting enough to keep up with. Note that I keep
 up with a variety of thinkers that I may or may not disagree with, but they are nonetheless
 the most intellectual version of what their general cohort say:
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UCKGCof63C6pLCFT4R6YPEtQ][Jred]]
+This youtube channel is about existential dread apparently. I don't have such a thing but it's fun to watch anyways.
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UCwVevVbti5Uuxj6Mkl5NHRA][Lemonade Stand]]
+Podcast channel that talks about modern day economics.
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UCSHZKyawb77ixDdsGog4iWA][Lex Fridman]]
+He has some good guests on sometimes.
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UCXl4i9dYBrFOabk0xGmbkRA][Dwarkesh Patel]]
+Makes podcasts whose guests are usually AI researchers of some kind.
 *** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC1yNl2E66ZzKApQdRuTQ4tw][Sabine Hossenfelder]]
 Youtube channel about mostly physics related content (I do not endorse her views on string theory).
 *** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC7_gcs09iThXybpVgjHZ_7g][PBS Space Time]]
@@ -56,6 +64,8 @@ Makes good videos about basically anything.
 Makes good videos about Linux and life stuff.
 *** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCSNBahoyPlMUz-3U2e_Czcw][Bridges]] :podcast:
 This podcast is run by Destiny, and it features good guests.
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UCgv4dPk_qZNAbUW9WkuLPSA][Atrioc]]
+Features some good marketing and economics content. Big A is his secondary channel.
 *** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCdBXOyqr8cDshsp7kcKDAkg][Big A]]
 Marketing Monday features good economics content.
 *** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCTpmmkp1E4nmZqWPS-dl5bg][Quanta Magazine]]
@@ -66,13 +76,23 @@ Videos about NRx.
 Linux videos.
 *** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCU1oodg2ptN51N5rwevwnng][Unlearning Economics]]
 Videos about economics from a Marxist perspective.
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UCHnyfMqiRRG1u-2MsSQLbXA][Veritasium]]
+Makes good educational videos.
 ** Blogs :blog:
 Here are some interesting blogs, many of which are from substack.
 *** [[https://terrytao.wordpress.com/feed/][Terence Tao]]
 I like math.
-*** [[https://graymirror.substack.com/feed][Gray Mirror]]
-Curtis Yarvin is quite the interesting person.
-*** [[https://www.richardhanania.com/feed][Richard Hanania]]
-Richard is a political commentator.
 *** [[https://lukesmith.xyz/index.xml][Luke Smith]] :lukesmith:
 Luke Smith is quite the interesting person.
+*** Substack :substack:
+These are a list of all the substack blogs that exist.
+**** [[https://graymirror.substack.com/feed][Gray Mirror]]
+Curtis Yarvin is quite the interesting person.
+**** [[https://www.richardhanania.com/feed][Richard Hanania]]
+Richard is a political commentator.
+**** [[https://paulkrugman.substack.com/feed][Paul Krugman]]
+He makes good economics blogs as he used to be a professional economist.
+**** [[https://www.overcomingbias.com/feed][Overcoming Bias]]
+Makes the case for the glorious reign of Futarchy!! (Not what you think it is).
+**** [[https://betonit.ai/feed][Bryan Caplan]]
+Anarcho Capitalist person.

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: yt-feed
+# key: yt-feed
+# --
+[[https://youtube.com/feeds/videos.xml?channel_id=$1][$0]]

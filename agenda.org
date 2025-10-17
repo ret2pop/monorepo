@@ -55,28 +55,23 @@ These are one-time tasks that are scheduled at a particular date, and that don't
 schedules.
 ** Appointments
 These are tasks related to my appointments which have to be at a specific time.
-*** DONE Appointment Call
-I have an appointment in a couple days.
-SCHEDULED: <2025-09-16 Tue 15:45>
-*** DONE Friends Stay a Night
-SCHEDULED: <2025-09-23 Tue>
-*** DONE Optometry appointment
-SCHEDULED: <2025-09-29 Mon 16:45>
-For eye health @ Mount Pleasant Optometry.
-*** DONE Magbay Concert
-SCHEDULED: <2025-09-30 Tue>
-Exciting!
-*** TODO Covet Concert
-SCHEDULED: <2025-10-10 Fri>
-Exciting!
-*** TODO BCID
-SCHEDULED: <2025-10-04 Fri 03:40>
 ** Friends
 These are tasks related to seeing my friends. There will be tasks listed here when I schedule
 something.
 * Habits
 These are some habits I want to track. They are repeated according to a calendar schedule in
 general.
+** TODO Skincare
+SCHEDULED: <2025-10-17 Fri .+1d>
+:PROPERTIES:
+:LAST_REPEAT: [2025-10-16 Thu 18:06]
+:END:
+- State "DONE"       from "TODO"       [2025-10-16 Thu 18:06]
+Current stack:
+- Retinol (2x/day)
+- Salicylic acid Cleanser (2x/day)
+- Hyaluronic acid (2x/day)
+- Glycerin for hands
 ** TODO Supplements
 SCHEDULED: <2025-10-01 Wed .+1d>
 :PROPERTIES:
@@ -109,12 +104,14 @@ Current stack:
 - Vitamin D3
 - EPA/DHA
 - Creatine Monohydrate
+- Coffee
 ** TODO Strength Training
-SCHEDULED: <2025-09-29 Mon .+1d>
+SCHEDULED: <2025-10-17 Fri .+2d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-09-28 Sun 20:52]
+:LAST_REPEAT: [2025-10-16 Thu 18:08]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2025-10-16 Thu 18:08]
 - State "DONE"       from "TODO"       [2025-09-28 Sun 20:52]
 - State "DONE"       from "TODO"       [2025-09-24 Wed 07:08]
 - State "DONE"       from "TODO"       [2025-09-21 Sun 06:57]
@@ -153,6 +150,14 @@ SCHEDULED: <2025-09-25 Thu .+1d>
 - State "DONE"       from "TODO"       [2025-02-11 Tue 04:01]
 - State "DONE"       from "TODO"       [2025-01-11 Sat 02:26]
 I want to stretch every day so that I can become more flexible.
+Stretches:
+- Splits attempt
+- Hands to floor
+- Calves
+- Butterfly
+- Arms in general i guess
+- Seal
+- Cat
 ** TODO Journal
 SCHEDULED: <2025-09-29 Mon .+1d>
 :PROPERTIES:
@@ -182,3 +187,9 @@ SCHEDULED: <2025-09-29 Mon .+1d>
 - State "DONE"       from "TODO"       [2025-01-16 Thu 19:19]
 - State "DONE"       from "TODO"       [2025-01-11 Sat 02:25]
 I want to journal every day, at least a little bit, about my life and track it with a git repo.
+** TODO Update Agenda
+If I didn't update the agenda today, take my agenda with a grain of salt.
+SCHEDULED: <2025-10-16 Thu .+1d>
+** TODO Start Vacuum Robot
+Start the vacuum robot so that it can clean the floor, every day.
+SCHEDULED: <2025-10-16 Thu .+1d>

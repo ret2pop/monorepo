@@ -1219,6 +1219,9 @@ This is my impermanence profile, which removes all files on reboot except for th
       "/persistent" = {
         neededForBoot = true;
       };
+      "/home" = {
+        neededForBoot = true;
+      };
     } else {};
 
     environment.persistence."/persistent" = {
@@ -3815,7 +3818,6 @@ This is pretty understandable, if you understand all the above.
           fileSystem = "btrfs";
         };
       };
-      networking.networkmanager.wifi.backend = "iwd";
     };
   }
 #+end_src

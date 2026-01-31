@@ -469,7 +469,6 @@ Still, it is suitable for using Krita.
       windowManager = {
   	    i3 = {
   	      enable = ! config.monorepo.profiles.ttyonly.enable;
-  	      package = pkgs.i3-gaps;
   	    };
       };
 
@@ -527,9 +526,9 @@ underlying interface and it breaks significantly less often.
         pipewire."92-low-latency" = {
           "context.properties" = {
             "default.clock.rate" = 48000;
-            "default.clock.quantum" = 256;
-            "default.clock.min-quantum" = 32;
-            "default.clock.max-quantum" = 512;
+            "default.clock.quantum" = 512;
+            "default.clock.min-quantum" = 512;
+            "default.clock.max-quantum" = 1024;
           };
           pipewire-pulse."92-low-latency" = {
             "context.properties" = [
@@ -692,7 +691,7 @@ I run my own IRC server to bridge with my Matrix server and my discord guild.
   [Global]
   	Name = ${config.monorepo.vars.orgHost}
   	Info = NullRing IRC Instance
-    Listen = 0.0.0.0
+    Listen = ::,0.0.0.0
     MotdFile = /etc/motd.txt
   	Network = NullRing
   	Ports = 6667
@@ -968,11 +967,12 @@ does not support conduit at the moment. Note that this is not fully declarative 
 ** Ollama
 Use ollama for serving large language models to my other computers.
 #+begin_src nix :tangle ../nix/modules/ollama.nix
-  { config, lib, ... }:
+  { config, lib, pkgs, ... }:
   {
+    # services.open-webui.enable = lib.mkDefault (!config.monorepo.profiles.server.enable);
     services.ollama = {
       enable = lib.mkDefault (!config.monorepo.profiles.server.enable);
-      acceleration = if (config.monorepo.profiles.workstation.enable) then "cuda" else null;
+      package = if (config.monorepo.profiles.workstation.enable) then pkgs.ollama-cuda else pkgs.ollama-vulkan;
       loadModels = if (config.monorepo.profiles.workstation.enable) then [
         "qwen3:30b"
         "qwen3-coder:latest"
@@ -1114,7 +1114,7 @@ I have an Nvidia GPU on my computer.
     hardware = {
       graphics.extraPackages = (if config.monorepo.profiles.cuda.enable
                                 then with pkgs; [
-                                  vaapiVdpau
+                                  libva-vdpau-driver
                                   libvdpau-va-gl
                                   nvidia-vaapi-driver
                                 ] else []);
@@ -1126,7 +1126,7 @@ I have an Nvidia GPU on my computer.
   		    finegrained = false;
   	    };
   	    nvidiaSettings = lib.mkDefault config.monorepo.profiles.cuda.enable;
-  	    open = lib.mkDefault false;
+  	    open = config.monorepo.profiles.cuda.enable;
   	    package = config.boot.kernelPackages.nvidiaPackages.stable;
       };
     };
@@ -1379,17 +1379,17 @@ because they enhance security.
 
       kernelParams = [
         "usbcore.autosuspend=-1"
-    	  "debugfs=off"
+    	  # "debugfs=off"
     	  "page_alloc.shuffle=1"
     	  "slab_nomerge"
-    	  "page_poison=1"
+    	  # "page_poison=1"
 
     	  # madaidan
     	  "pti=on"
     	  "randomize_kstack_offset=on"
     	  "vsyscall=none"
     	  "module.sig_enforce=1"
-    	  "lockdown=confidentiality"
+    	  # "lockdown=confidentiality"
 
     	  # cpu
     	  "spectre_v2=on"
@@ -1402,14 +1402,10 @@ because they enhance security.
     	  "extra_latent_entropy"
 
     	  # mineral
-    	  "init_on_alloc=1"
+    	  # "init_on_alloc=1"
     	  "random.trust_cpu=off"
     	  "random.trust_bootloader=off"
-    	  "intel_iommu=on"
-    	  "amd_iommu=force_isolation"
-    	  "iommu=force"
-    	  "iommu.strict=1"
-    	  "init_on_free=1"
+    	  # "init_on_free=1"
     	  "quiet"
     	  "loglevel=0"
       ];
@@ -1520,8 +1516,8 @@ because they enhance security.
       graphics.enable = ! config.monorepo.profiles.ttyonly.enable;
 
       bluetooth = {
-    	  enable = true;
-    	  powerOnBoot = true;
+    	  enable = lib.mkDefault (! config.monorepo.profiles.ttyonly.enable);
+    	  powerOnBoot = lib.mkDefault (! config.monorepo.profiles.ttyonly.enable);
       };
     };
 
@@ -1544,15 +1540,15 @@ because they enhance security.
       # Misc.
       udev = {
     	  extraRules = '''';
-    	  packages = with pkgs; [ 
+    	  packages = if config.monorepo.profiles.workstation.enable then with pkgs; [ 
     	    platformio-core
     	    platformio-core.udev
     	    openocd
-    	  ];
+    	  ] else [];
       };
 
-      printing.enable = true;
-      udisks2.enable = true;
+      printing.enable = lib.mkDefault config.monorepo.profiles.workstation.enable;
+      udisks2.enable = (! config.monorepo.profiles.ttyonly.enable);
     };
 
     programs = {
@@ -1701,11 +1697,20 @@ because they enhance security.
     };
 
     nixpkgs.config.permittedInsecurePackages = [
+      "python3.13-ecdsa-0.19.1"
       "olm-3.2.16"
     ];
 
     nix = {
       settings = {
+        max-jobs = 4; 
+        cores = 0;
+        substituters = [
+          "https://cache.nixos-cuda.org"
+        ];
+        trusted-public-keys = [
+          "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
+        ];
         experimental-features = "nix-command flakes ca-derivations";
         trusted-users = [ "@wheel" ];
       };
@@ -1999,7 +2004,7 @@ I have many imports that we'll go through next.
   					          (if config.monorepo.profiles.lang-python.enable then (with pkgs; [
                         poetry
   						          python3
-  						          python312Packages.jedi
+                        python314Packages.python-lsp-server
   					          ]) else [])
   					          ++
   					          (if config.monorepo.profiles.lang-sol.enable then (with pkgs; [
@@ -2041,13 +2046,13 @@ I have many imports that we'll go through next.
   					          (if config.monorepo.profiles.lang-nix.enable then (with pkgs; [
   						          nil
   						          nixd
-  						          nixfmt-rfc-style
+  						          nixfmt
                         nix-prefetch-scripts
   					          ]) else [])
   					          ++
   					          (if config.monorepo.profiles.crypto.enable then (with pkgs; [
   						          bitcoin
-  						          electrum
+  						          # electrum
   						          monero-cli
   						          monero-gui
   					          ]) else [])
@@ -2058,7 +2063,7 @@ I have many imports that we'll go through next.
   					          ]) else [])
   					          ++
   					          (if config.monorepo.profiles.music.enable then (with pkgs; [
-  						          mpc-cli
+  						          mpc
   						          sox
   					          ]) else [])
   					          ++
@@ -2392,8 +2397,8 @@ This is a virtual keyboard program for writing in multiple languages. I use this
       enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
       fcitx5.addons = with pkgs; [
         fcitx5-gtk
-        fcitx5-chinese-addons
-        fcitx5-configtool
+        qt6Packages.fcitx5-chinese-addons
+        qt6Packages.fcitx5-configtool
         fcitx5-mozc
         fcitx5-rime
       ];
@@ -2437,7 +2442,6 @@ as an org file which gets automatically tangled to an emacs-lisp file.
           epkgs.elfeed-org
           epkgs.elfeed-tube
           epkgs.elfeed-tube-mpv
-          epkgs.ellama
           epkgs.elpher
           epkgs.ement
           epkgs.emmet-mode
@@ -2581,10 +2585,12 @@ to use this component will come soon.
       settings = {
         "$mod" = "SUPER";
         bezier = [
-          "overshot,0,1,0,0.95"
+          "overshot, 0.05, 0.9, 0.1, 1.05"
         ];
         animation = [
-          "workspaces, 1, 10, overshot"
+          # "workspaces, 1, 10, overshot"
+          "windows, 1, 2, default"
+          "workspaces, 1, 2, default, slidefade 20%"
         ];
         exec-once = [
           "waybar"
@@ -2603,10 +2609,11 @@ to use this component will come soon.
           "__GLX_VENDOR_LIBRARY_NAME,nvidia"
           "ELECTRON_OZONE_PLATFORM_HINT,auto"
         ];
-        layerrule = [
-          "blur,waybar"
-        ];
+        # layerrule = [
+        #   "blur:top,waybar"
+        # ];
         monitor = [
+          "DP-4,2560x1440@165.000000,0x0,1"
           "Unknown-1,disable"
         ];
         windowrulev2 = [
@@ -2707,15 +2714,14 @@ to use this component will come soon.
           };
           rounding = 5;
         };
-        device = {
-          name = "beken-usb-gaming-mouse-1";
-          sensitivity = -0.5;
-        };
         input = {
+          scroll_method = "on_button_down";
+          scroll_button = 276;
+          sensitivity = -0.5;
           kb_options = "caps:swapescape";
           repeat_delay = 300;
           repeat_rate = 50;
-          natural_scroll = true;
+          natural_scroll = false;
           touchpad = {
             natural_scroll = true;
             disable_while_typing = true;
@@ -3556,7 +3562,7 @@ standard.
         usite
         = "cd ~/src/publish-org-roam-ui && bash local.sh && rm -rf ~/website_html/graph_view; cp -r ~/src/publish-org-roam-ui/out ~/website_html/graph_view && rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/website_html/ root@${config.monorepo.vars.remoteHost}:/var/www/${config.monorepo.vars.internetName}-website/";
         sai = "eval \"$(ssh-agent -s)\" && ssh-add ~/.ssh/id_ed25519 && ssh-add -l";
-        i3 = "exec ${pkgs.i3-gaps}/bin/i3";
+        i3 = "exec ${pkgs.i3}/bin/i3";
       };
       loginExtra = ''
         if [[ "$(tty)" = "/dev/tty1" ]]; then
@@ -3655,12 +3661,12 @@ for these configurations.
         magic-wormhole stow
 
         # fonts
-        nerd-fonts.iosevka noto-fonts noto-fonts-cjk-sans noto-fonts-emoji fira-code font-awesome_6 victor-mono
+        nerd-fonts.iosevka noto-fonts noto-fonts-cjk-sans noto-fonts-color-emoji fira-code font-awesome_6 victor-mono
         (aspellWithDicts
           (dicts: with dicts; [ en en-computers en-science ]))
 
         # Misc.
-        pinentry
+        pinentry-gnome3
         x11_ssh_askpass
         xdg-utils
         acpilight
@@ -3836,6 +3842,11 @@ as several other useful services.
       ../../disko/drive-simple.nix
     ];
     config = {
+      zramSwap = {
+        enable = true;
+        algorithm = "zstd";
+        memoryPercent = 50; # Creates ~16GB of compressed swap space
+      };
       monorepo = {
         vars.device = "/dev/nvme0n1";
         profiles = {
@@ -3863,87 +3874,90 @@ I want cuda in home manager too.
 ** Spontaneity
 Spontaneity is my VPS instance.
 #+begin_src nix :tangle ../nix/systems/spontaneity/default.nix
-  { config, lib, ... }:
-  let
-    ipv4addr = "66.42.84.130";
-    ipv6addr = "2001:19f0:5401:10d0:5400:5ff:fe4a:7794";
-  in
-  {
-    imports = [
-      ../common.nix
-      ../../disko/drive-bios.nix
+  { lib, ... }:
+    let
+      ipv4addr = "66.42.84.130";
+      ipv6addr = "2001:19f0:5401:10d0:5400:5ff:fe4a:7794";
+    in
+    {
+      imports = [
+        ../common.nix
+        ../../disko/drive-bios.nix
 
-      # nixos-anywhere generates this file
-      ./hardware-configuration.nix
-    ];
-    config = {
-      monorepo = {
-        vars.device = "/dev/vda";
-        profiles = {
-          server.enable = true;
-          ttyonly.enable = true;
-          grub.enable = true;
-        };
-      };
-
-      boot.loader.grub.device = "nodev";
-      networking = {
-        interfaces.ens3.ipv4.addresses = [
-          {
-            address = ipv4addr;
-            prefixLength = 24;
-          }
-        ];
-        interfaces.ens3.ipv6.addresses = [
-          {
-            address = ipv6addr;
-            prefixLength = 64;
-          }
-        ];
-        firewall.allowedTCPPorts = [
-          80
-          143
-          443
-          465
-          587
-          993
-          6697
-          6667
-          8448
-        ];
-        domains = {
-          enable = true;
-          baseDomains = {
-            "${config.monorepo.vars.remoteHost}" = {
-              a.data = ipv4addr;
-              aaaa.data = ipv6addr;
-            };
-            "${config.monorepo.vars.orgHost}" = {
-              a.data = ipv4addr;
-              aaaa.data = ipv6addr;
-            };
-          };
-          subDomains = {
-            "${config.monorepo.vars.remoteHost}" = {};
-            "matrix.${config.monorepo.vars.remoteHost}" = {};
-            "www.${config.monorepo.vars.remoteHost}" = {};
-            "mail.${config.monorepo.vars.remoteHost}" = {
-              mx.data = "10 mail.${config.monorepo.vars.remoteHost}.";
-            };
-
-            "${config.monorepo.vars.orgHost}" = {};
-            "git.${config.monorepo.vars.orgHost}" = {};
-            "matrix.${config.monorepo.vars.orgHost}" = {};
-            "talk.${config.monorepo.vars.orgHost}" = {};
-            "mail.${config.monorepo.vars.orgHost}" = {};
-            "${config.monorepo.vars.internetName}.${config.monorepo.vars.orgHost}" = {};
+        # nixos-anywhere generates this file
+        ./hardware-configuration.nix
+      ];
+      config = {
+        monorepo = {
+          vars.device = "/dev/vda";
+          profiles = {
+            server.enable = true;
+            ttyonly.enable = true;
+            grub.enable = true;
+            pipewire.enable = false;
+            tor.enable = false;
+            home.enable = false;
           };
         };
+
+        boot.loader.grub.device = "nodev";
+        networking = {
+          interfaces.ens3.ipv4.addresses = [
+            {
+              address = ipv4addr;
+              prefixLength = 24;
+            }
+          ];
+          interfaces.ens3.ipv6.addresses = [
+            {
+              address = ipv6addr;
+              prefixLength = 64;
+            }
+          ];
+          firewall.allowedTCPPorts = [
+            80
+            143
+            443
+            465
+            587
+            993
+            6697
+            6667
+            8448
+          ];
+          domains = {
+            enable = true;
+            baseDomains = {
+              "${config.monorepo.vars.remoteHost}" = {
+                a.data = ipv4addr;
+                aaaa.data = ipv6addr;
+              };
+              "${config.monorepo.vars.orgHost}" = {
+                a.data = ipv4addr;
+                aaaa.data = ipv6addr;
+              };
+            };
+            subDomains = {
+              "${config.monorepo.vars.remoteHost}" = {};
+              "matrix.${config.monorepo.vars.remoteHost}" = {};
+              "www.${config.monorepo.vars.remoteHost}" = {};
+              "mail.${config.monorepo.vars.remoteHost}" = {
+                mx.data = "10 mail.${config.monorepo.vars.remoteHost}.";
+              };
+
+              "${config.monorepo.vars.orgHost}" = {};
+              "git.${config.monorepo.vars.orgHost}" = {};
+              "matrix.${config.monorepo.vars.orgHost}" = {};
+              "talk.${config.monorepo.vars.orgHost}" = {};
+              "mail.${config.monorepo.vars.orgHost}" = {};
+              "${config.monorepo.vars.internetName}.${config.monorepo.vars.orgHost}" = {};
+            };
+          };
+        };
       };
-    };
-  }
+    }
 #+end_src
-*** Home
+** Home
 #+begin_src nix :tangle ../nix/systems/spontaneity/home.nix
   { lib, config, pkgs, ... }:
   {

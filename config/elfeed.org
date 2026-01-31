@@ -80,6 +80,8 @@ Videos about economics from a Marxist perspective.
 Makes good educational videos.
 ** Blogs :blog:
 Here are some interesting blogs, many of which are from substack.
+*** [[https://ollama.com/blog/rss.xml][Ollama]]
+For new updates to new LLM models that I can pull with ollama.
 *** [[https://terrytao.wordpress.com/feed/][Terence Tao]]
 I like math.
 *** [[https://lukesmith.xyz/index.xml][Luke Smith]] :lukesmith:

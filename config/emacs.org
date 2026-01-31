@@ -593,14 +593,14 @@ emacs keybindings.
 I use LLMs in order to help me come up with ideas. I use a local LLM so that I can have a
 competitive LLM that doesn't cost money.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package ellama
-    :custom
-    (ellama-sessions-directory "~/org/ellama/" "Set org directory for LLM sessions")
-    :init
-    (require 'llm-ollama)
-    (setopt ellama-provider (make-llm-ollama
-  	     :host "localhost"
-  	     :chat-model "qwen2.5:14b")))
+  ;; (use-package ellama
+  ;;   :custom
+  ;;   (ellama-sessions-directory "~/org/ellama/" "Set org directory for LLM sessions")
+  ;;   :init
+  ;;   (require 'llm-ollama)
+  ;;   (setopt ellama-provider (make-llm-ollama
+  ;; 	     :host "localhost"
+  ;; 	     :chat-model "qwen2.5:14b")))
 #+end_src
 *** Minuet
 Minuet does my code completion, showing the potential code completion as a ghost and automatically completing the code when my cursor is

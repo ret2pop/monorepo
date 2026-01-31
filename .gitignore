@@ -1,3 +1,6 @@
 ./website/**
 nix/result
 .env
+
+.gemini/
+gha-creds-*.json

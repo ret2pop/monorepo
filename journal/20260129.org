@@ -1,0 +1,18 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+options: broken-links:t
+* Thursday, 29 January 2026
+** 16:34 
+I think it's important to see some of the good in people. For example:
+- J.A.: to think about the greater good and their purpose in the world around them in relation to themselves.
+- K.S.: to never create abstractions one can't ground in the reality around them.
+- A.T.: to consider others and to adapt quickly to new situations and lessons.
+- A.S.: to be critical by default.
+- H.C.: to put deep thought into analyzing the motivations and character of others, and to be responsible to oneself by developing routine.
+- M.H.: to recognize dirty work is the most efficient option in most circumstances.
+- myself: to make holistic decisions based on information available, and to collect information, make models, and to try rather than give up.

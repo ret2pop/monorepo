@@ -16,8 +16,8 @@ Central fields have the following properties:
 4. If you draw a straight line between the two points, the force vector has to be parallel to that line.
 5. The force works in the same no matter where in the universe you are.
 
-Where these five properties are all common attributes of everyday forces. What these properties are basically saying is that we want
-a function only dependent on the vector between two particles \(P_{1}\) and \(P_{2}\) that are experiencing the force, and it is
+These five properties are all common attributes of everyday forces. What these properties are basically saying is that we want
+a function only depending on the vector between two particles \(P_{1}\) and \(P_{2}\) that are experiencing the force, and it is
 also parallel to this vector, as well as some symmetry constraints. Therefore, we can define a central force:
 
 * Definition

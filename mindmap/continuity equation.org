@@ -15,7 +15,7 @@ $Q_{enc} = \int_{V} \rho(r')d\tau$ or $Q_{enc}$ is the total amount of particles
 \begin{align*}
 \oint_{S} \vec{J} \cdot d\vec{a} = -\frac{\partial Q_{enc}}{\partial t},
 \end{align*}
-or in other words, the amount that the current goes through some closed surface must be proportional to the loss of particles
+or in other words, the current flowing through some closed surface must be proportional to the loss of particles
 inside of the enclosure. This is of course because of conservation of mass (which is in and of itself conservation of energy).
 Using the [[id:44e65b69-e5d5-464a-b1f3-8a914e1b7e9e][divergence theorem]]:
 \begin{align*}

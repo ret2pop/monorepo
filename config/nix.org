@@ -468,7 +468,7 @@ Still, it is suitable for using Krita.
 
       windowManager = {
   	    i3 = {
-  	      enable = ! config.monorepo.profiles.ttyonly.enable;
+  	      enable = (! config.monorepo.profiles.ttyonly.enable);
   	    };
       };
 
@@ -516,12 +516,12 @@ underlying interface and it breaks significantly less often.
     services.pipewire = {
       enable = lib.mkDefault config.monorepo.profiles.pipewire.enable;
       alsa = {
-        enable = true;
+        enable = lib.mkDefault config.monorepo.profiles.pipewire.enable;
         support32Bit = true;
       };
-      pulse.enable = true;
-      jack.enable = true;
-      wireplumber.enable = true;
+      pulse.enable = lib.mkDefault config.monorepo.profiles.pipewire.enable;
+      jack.enable = lib.mkDefault config.monorepo.profiles.pipewire.enable;
+      wireplumber.enable = lib.mkDefault config.monorepo.profiles.pipewire.enable;
       extraConfig = {
         pipewire."92-low-latency" = {
           "context.properties" = {
@@ -755,6 +755,12 @@ for users:
             port = 6697;
             useSSL = true;
             modules = [ "simple_away" ];
+          };
+          "nullring" = {
+            server = "nullring.xyz";
+            port = 6697;
+            useSSL = true;
+            modules = [ "simple_away" "log" ];
           };
         };
       };
@@ -1186,7 +1192,7 @@ This is my impermanence profile, which removes all files on reboot except for th
 
     boot.initrd.postResumeCommands = (if config.monorepo.profiles.impermanence.enable then lib.mkAfter ''
       mkdir /btrfs_tmp
-      mount /dev/mapper/crypted /btrfs_tmp
+      mount -t btrfs -n -o subvol=/ /dev/mapper/crypted /btrfs_tmp
       if [[ -e /btrfs_tmp/root ]]; then
           mkdir -p /btrfs_tmp/old_roots
           timestamp=$(date --date="@$(stat -c %Y /btrfs_tmp/root)" "+%Y-%m-%-d_%H:%M:%S")
@@ -1206,7 +1212,7 @@ This is my impermanence profile, which removes all files on reboot except for th
       done
 
       btrfs subvolume create /btrfs_tmp/root
-      umount /btrfs_tmp
+      umount -n /btrfs_tmp
     '' else "");
 
     boot.initrd.luks.devices = (if (config.monorepo.vars.fileSystem == "btrfs") then {
@@ -1323,11 +1329,10 @@ because they enhance security.
     };
 
     systemd = {
+      services.NetworkManager-wait-online.enable = false;
       coredump.enable = false;
       network.config.networkConfig.IPv6PrivacyExtensions = "kernel";
       tmpfiles.settings = {
-    	  "restricthome"."/home/*".Z.mode = "~0700";
-
     	  "restrictetcnixos"."/etc/nixos/*".Z = {
     	    mode = "0000";
     	    user = "root";
@@ -1391,7 +1396,6 @@ because they enhance security.
     	  "pti=on"
     	  "randomize_kstack_offset=on"
     	  "vsyscall=none"
-    	  "module.sig_enforce=1"
     	  # "lockdown=confidentiality"
 
     	  # cpu
@@ -1406,11 +1410,10 @@ because they enhance security.
 
     	  # mineral
     	  # "init_on_alloc=1"
-    	  "random.trust_cpu=off"
-    	  "random.trust_bootloader=off"
+    	  # "random.trust_bootloader=off"
     	  # "init_on_free=1"
     	  "quiet"
-    	  "loglevel=0"
+    	  # "loglevel=0"
       ];
 
       blacklistedKernelModules = [
@@ -1533,7 +1536,7 @@ because they enhance security.
       };
 
       jitterentropy-rngd.enable = true;
-      resolved.dnssec = true;
+      resolved.settings.Resolve.DNSSEC = true;
       # usbguard.enable = true;
       usbguard.enable = false;
       dbus.apparmor = "enabled";
@@ -2084,7 +2087,7 @@ I have many imports that we'll go through next.
   			                imagemagick
                         supercollider
   			                inkscape
-  			                kdePackages.kdenlive
+  			                # kdePackages.kdenlive
   			                # kicad
                         murmur
   					          ]) else []);
@@ -2398,13 +2401,13 @@ This is a virtual keyboard program for writing in multiple languages. I use this
     i18n.inputMethod = {
       type = "fcitx5";
       enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
-      fcitx5.addons = with pkgs; [
+      fcitx5.addons = if config.monorepo.profiles.graphics.enable then (with pkgs; [
         fcitx5-gtk
         qt6Packages.fcitx5-chinese-addons
         qt6Packages.fcitx5-configtool
         fcitx5-mozc
         fcitx5-rime
-      ];
+      ]) else [];
     };
   }
 #+end_src
@@ -2612,34 +2615,53 @@ to use this component will come soon.
           "__GLX_VENDOR_LIBRARY_NAME,nvidia"
           "ELECTRON_OZONE_PLATFORM_HINT,auto"
         ];
-        # layerrule = [
-        #   "blur:top,waybar"
-        # ];
+
         monitor = [
           "DP-4,2560x1440@165.000000,0x0,1"
           "Unknown-1,disable"
         ];
-        windowrulev2 = [
-          "workspace 1, class:^(emacs)$"
-          "workspace 2, class:^(firefox)$"
-          "workspace 2, title:^(.*Tor Browser.*)$"
-          "workspace 2, title:^(.*Chromium-browser.*)$"
-          "workspace 2, class:^(chromium)$"
-          "workspace 3, class:^(discord)$"
-          "workspace 3, class:^(vesktop)$"
-          "workspace 3, title:^(.*fluffychat.*)$"
-          "workspace 3, class:^(.*element-desktop.*)$"
-          "workspace 4, class:^(.*qpwgraph.*)$"
-          "workspace 4, class:^(.*pavucontrol.*)$"
-          "workspace 4, class:^(.*mpv.*)$"
-          "workspace 5, title:^(.*Monero.*)$"
-          "workspace 5, title:^(.*org\.bitcoin\..*)$"
-          "workspace 5, title:^(.*Bitcoin Core - preston.*)$"
-          "workspace 5, title:^(.*org\.getmonero\..*)$"
-          "workspace 5, title:^(.*Monero - preston.*)$"
-          "workspace 5, title:^(.*electrum.*)$"
-          "pseudo,title:fcitx"
+
+        layerrule = [
+          {
+            name = "waybar blur";
+            "match:namespace" = "waybar";
+            blur = "on";
+          }
         ];
+
+        windowrule = [ 
+          {
+            name = "emacs";
+            "match:class" = "emacs";
+            workspace = 1;
+          }
+          {
+            name = "firefox";
+            "match:class" = "firefox";
+            workspace = 2;
+          }
+          {
+            name = "vesktop";
+            "match:class" = "vesktop";
+            workspace = 3;
+          }
+          {
+            name = "pavucontrol";
+            "match:class" = "pavucontrol";
+            workspace = 4;
+          }
+          {
+            name = "qpwgraph";
+            "match:class" = "qpwgraph";
+            workspace = 4;
+          }
+          {
+            name = "mpv";
+            "match:class" = "mpv";
+            workspace = 4;
+          }
+        ];
+
         bind = [
           "$mod, F, exec, firefox"
           "$mod, Return, exec, kitty"
@@ -3565,7 +3587,6 @@ standard.
         usite
         = "cd ~/src/publish-org-roam-ui && bash local.sh && rm -rf ~/website_html/graph_view; cp -r ~/src/publish-org-roam-ui/out ~/website_html/graph_view && rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/website_html/ root@${config.monorepo.vars.remoteHost}:/var/www/${config.monorepo.vars.internetName}-website/";
         sai = "eval \"$(ssh-agent -s)\" && ssh-add ~/.ssh/id_ed25519 && ssh-add -l";
-        i3 = "exec ${pkgs.i3}/bin/i3";
       };
       loginExtra = ''
         if [[ "$(tty)" = "/dev/tty1" ]]; then
@@ -3771,7 +3792,7 @@ the path.
       ];
       useGlobalPkgs = true;
       useUserPackages = true;
-      users."${config.monorepo.vars.userName}" = import (./. + "/${config.networking.hostName}/home.nix");
+      users."${config.monorepo.vars.userName}" = (import (./. + "/${config.networking.hostName}/home.nix"));
     };
   }
 #+end_src
@@ -3876,7 +3897,7 @@ I want cuda in home manager too.
 ** Spontaneity
 Spontaneity is my VPS instance.
 #+begin_src nix :tangle ../nix/systems/spontaneity/default.nix
-  { lib, ... }:
+  { config, lib, ... }:
     let
       ipv4addr = "66.42.84.130";
       ipv6addr = "2001:19f0:5401:10d0:5400:5ff:fe4a:7794";
@@ -3916,6 +3937,7 @@ Spontaneity is my VPS instance.
               prefixLength = 64;
             }
           ];
+          defaultGateway = "66.42.84.1";
           firewall.allowedTCPPorts = [
             80
             143

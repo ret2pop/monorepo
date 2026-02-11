@@ -20,6 +20,8 @@ Credibility: misreported on ER EPR correspondence
 *** [[https://notrelated.xyz/rss][Not Related]] :lukesmith:
 This is a podcast by Luke Smith that talks about anything that he wants to.
 ** Forums :forum:
+*** [[http://lesserwrong.com/feed.xml][LessWrong]]
+The birthplace of bay area rationalism.
 ** Science Journals :journal:
 I like to get new information about recent studies related to technology.
 *** [[http://www.nature.com/nmat/current_issue/rss/][Nature]]
@@ -34,8 +36,14 @@ This is a list of NASA feeds:
 These are YouTube channels that I find interesting enough to keep up with. Note that I keep
 up with a variety of thinkers that I may or may not disagree with, but they are nonetheless
 the most intellectual version of what their general cohort say:
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UCFQMnBA3CS502aghlcr0_aw][CoffeeZilla]]
+Exposes scams.
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UC28n0tlcNSa1iPe5mettocg][VoidZilla]]
+Extras from coffezilla channel.
 *** [[https://youtube.com/feeds/videos.xml?channel_id=UCKGCof63C6pLCFT4R6YPEtQ][Jred]]
 This youtube channel is about existential dread apparently. I don't have such a thing but it's fun to watch anyways.
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UC1qIX2Ya5ErOrU9tv0GVUAw][CyberYamu]]
+A channel about the daily experience of a schizotypal girl.
 *** [[https://youtube.com/feeds/videos.xml?channel_id=UCwVevVbti5Uuxj6Mkl5NHRA][Lemonade Stand]]
 Podcast channel that talks about modern day economics.
 *** [[https://youtube.com/feeds/videos.xml?channel_id=UCSHZKyawb77ixDdsGog4iWA][Lex Fridman]]

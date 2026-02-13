@@ -40,7 +40,6 @@ We start with some configurable variables (you can change these if you want to u
     ];
   }
 #+end_src
-
 * Flake.nix
 The flake is the entry point of the NixOS configuration. Here, I have a list of all the systems
 that I use with all the modules that they use. My NixOS configuration is heavily modularized,

@@ -552,6 +552,10 @@ the yaml file specified. Yes, this is safe to include in the repo.
         livekit = {
           format = "yaml";
         };
+        mail_password = {
+          format = "yaml";
+          owner = "maddy";
+        };
         conduit_secrets = {
           format = "yaml";
         };
@@ -563,6 +567,10 @@ the yaml file specified. Yes, this is safe to include in the repo.
         };
         discord_token = {
           format = "yaml";
+        };
+        ntfy = {
+          format = "yaml";
+          owner = "ntfy-sh";
         };
       };
     };
@@ -871,7 +879,7 @@ is almost no point to cracking it with hashcat.
 ** Conduit
 This is a modern matrix server that is meant to be lightweight while
 still federating and hosting the same protocol. There is also a configuration
-for lk-jwt which is important for configuring p2p calls in matrix.
+for lk-jwt and livekit which is important for configuring p2p calls in matrix.
 #+begin_src nix :tangle ../nix/modules/conduit.nix
   { config, lib, ... }:
   {
@@ -1147,18 +1155,54 @@ I run my own git server in order to have a mirror in case github goes down.
     };
   }
 #+end_src
-** TODO Ntfy
+** Ntfy
 #+begin_src nix :tangle ../nix/modules/ntfy-sh.nix
-  { lib, config, ... }:
+  { pkgs, lib, config, ... }:
   {
     services.ntfy-sh = {
-  #    enable = lib.mkDefault config.monorepo.profiles.server.enable;
-      enable = false;
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
       settings = {
         base-url = "https://ntfy.${config.monorepo.vars.remoteHost}";
         listen-http = "127.0.0.1:2586";
         envrionmentFile = "/run/secrets/ntfy";
+        auth-file = "/var/lib/ntfy-sh/user.db";
+        auth-default-access = "deny-all";
+        enable-login = true;
       };
+    };
+    systemd.services.ntfy-sh = {
+      serviceConfig = {
+        EnvironmentFile = "/run/secrets/ntfy";
+      };
+      postStart = lib.mkForce ''
+        # 1. Wait for the server to initialize the database
+        echo "Waiting for ntfy auth database to appear..."
+        TIMEOUT=30
+        while [ ! -f /var/lib/ntfy-sh/user.db ]; do
+          sleep 1
+          TIMEOUT=$((TIMEOUT-1))
+          if [ $TIMEOUT -le 0 ]; then
+            echo "Timed out waiting for database creation!"
+            exit 1
+          fi
+        done
+        
+        echo "Database found. Configuring admin user..."
+
+        # 2. Define the username
+        ADMIN_USER="ret2pop"
+
+        # 3. Check if user exists, create if missing
+        # We pipe the password twice because 'ntfy user add' asks for confirmation
+        if ! ${pkgs.ntfy-sh}/bin/ntfy user list | grep -q "$ADMIN_USER"; then
+          echo "Creating admin user $ADMIN_USER..."
+          printf "$ADMIN_PASSWORD\n$ADMIN_PASSWORD" | \
+            ${pkgs.ntfy-sh}/bin/ntfy user add --role=admin "$ADMIN_USER"
+          echo "User created."
+        else
+          echo "Admin user already exists."
+        fi
+      '';
     };
   }
 #+end_src
@@ -1312,6 +1356,16 @@ to the outside world under a domain.
           };
         };
 
+        "ntfy.${config.monorepo.vars.remoteHost}" = {
+          serverName = "ntfy.${config.monorepo.vars.remoteHost}";
+          enableACME = true;
+          forceSSL = true;
+          locations."/" = {
+            proxyPass = "http://localhost:2586";
+            proxyWebsockets = true;
+          };
+        };
+
   	    "${config.monorepo.vars.remoteHost}" = {
           serverName = "${config.monorepo.vars.remoteHost}";
           serverAliases = [ "${config.monorepo.vars.internetName}.${config.monorepo.vars.orgHost}" ];
@@ -1348,6 +1402,8 @@ world. This was the easiest frontend to set up on NixOS.
       projectroot = "/srv/git/";
       extraConfig = ''
   our $export_ok = "git-daemon-export-ok";
+  our $site_name = "NullRing Git Server";
+  our $site_header = "NullRing Projects";
   '';
     };
   }
@@ -1391,16 +1447,22 @@ I need CUDA on some computers because I run local LLMs.
     ] else []);
   }
 #+end_src
-** TODO Maddy
+** Maddy
+There is a non declarative part of setting dkims and spf.
 #+begin_src nix :tangle ../nix/modules/maddy.nix
   { lib, config, options, ... }:
   {
     services.maddy = {
       enable = lib.mkDefault config.monorepo.profiles.server.enable;
       openFirewall = true;
-      hostName = "${config.monorepo.vars.remoteHost}";
+      hostname = "${config.monorepo.vars.orgHost}";
       primaryDomain = "mail.${config.monorepo.vars.orgHost}";
+      localDomains = [
+        "$(primary_domain)"
+        "${config.monorepo.vars.orgHost}"
+      ];
       tls = {
+        loader = "file";
         certificates = [
           {
             keyPath = "/var/lib/acme/mail.${config.monorepo.vars.orgHost}/key.pem";
@@ -1411,17 +1473,30 @@ I need CUDA on some computers because I run local LLMs.
       config = builtins.replaceStrings [
         "imap tcp://0.0.0.0:143"
         "submission tcp://0.0.0.0:587"
-        "smtp tcp://0.0.0.0:25"
       ] [
         "imap tls://0.0.0.0:993 tcp://0.0.0.0:143"
         "submission tls://0.0.0.0:465 tcp://0.0.0.0:587"
-        "smtps tls://0.0.0.0:465 smtp tcp://0.0.0.0:25"
       ] options.services.maddy.config.default;
       ensureCredentials = {
-        "${config.monorepo.vars.userName}@localhost" = {
+        "${config.monorepo.vars.internetName}@${config.monorepo.vars.orgHost}" = {
           passwordFile = "/run/secrets/mail_password";
         };
       };
+    };
+  }
+#+end_src
+** Fail2Ban
+This is a service that bans bots that try to sign in on my server.
+#+begin_src nix :tangle ../nix/modules/fail2ban.nix
+  { lib, config, ... }:
+  {
+    services.fail2ban = {
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      # Ban IP after 5 failures for 1 hour
+      maxretry = 5;
+      bantime = "1h";
+      banaction = "iptables-allports";
+      banaction-allports = "iptables-allports";
     };
   }
 #+end_src
@@ -1559,6 +1634,9 @@ because they enhance security.
       ./docker.nix
       ./impermanence.nix
       ./coturn.nix
+      ./maddy.nix
+      ./ntfy-sh.nix
+      ./fail2ban.nix
     ];
 
     environment.etc."wpa_supplicant.conf".text = ''
@@ -1741,38 +1819,38 @@ because they enhance security.
           powersave = false;
         };
         ensureProfiles = {
-          # profiles = {
-          #   home-wifi = {
-          #     connection = {
-          #       id = "TELUS6572";
-          #       permissions = "";
-          #       type = "wifi";
-          #     };
-          #     ipv4 = {
-          #       dns-search = "";
-          #       method = "auto";
-          #     };
-          #     ipv6 = {
-          #       addr-gen-mode = "stable-privacy";
-          #       dns-search = "";
-          #       method = "auto";
-          #     };
-          #     wifi = {
-          #       mac-address-blacklist = "";
-          #       mode = "infrastructure";
-          #       ssid = "TELUS6572";
-          #     };
-          #     wifi-security = {
-          #       auth-alg = "open";
-          #       key-mgmt = "wpa-psk";
-          #       # when someone actually steals my internet then I will be concerned.
-          #       # This password only matters if you actually show up to my house in real life.
-          #       # That would perhaps allow for some nasty networking related shenanigans.
-          #       # I guess we'll cross that bridge when I get there.
-          #       psk = "b4xnrv6cG6GX";
-          #     };
-          #   };
-          # };
+          profiles = {
+            home-wifi = {
+              connection = {
+                id = "TELUS6572";
+                permissions = "";
+                type = "wifi";
+              };
+              ipv4 = {
+                dns-search = "";
+                method = "auto";
+              };
+              ipv6 = {
+                addr-gen-mode = "stable-privacy";
+                dns-search = "";
+                method = "auto";
+              };
+              wifi = {
+                mac-address-blacklist = "";
+                mode = "infrastructure";
+                ssid = "TELUS6572";
+              };
+              wifi-security = {
+                auth-alg = "open";
+                key-mgmt = "wpa-psk";
+                # when someone actually steals my internet then I will be concerned.
+                # This password only matters if you actually show up to my house in real life.
+                # That would perhaps allow for some nasty networking related shenanigans.
+                # I guess we'll cross that bridge when I get there.
+                psk = "b4xnrv6cG6GX";
+              };
+            };
+          };
         };
       };
       firewall = {
@@ -1905,6 +1983,7 @@ because they enhance security.
       vim
       curl
       nmap
+      exiftool
       (writeShellScriptBin "new-repo"
         ''
     #!/bin/bash
@@ -1923,12 +2002,31 @@ because they enhance security.
     users.groups.conduit = lib.mkDefault {};
     users.groups.livekit = lib.mkDefault {};
     users.groups.matterbridge = lib.mkDefault {};
+    users.groups.maddy = lib.mkDefault {};
+    users.groups.ntfy-sh = lib.mkDefault {};
 
     users.users = {
+      conduit = {
+        isSystemUser = lib.mkDefault true;
+        group = "conduit";
+      };
       matterbridge = {
         isSystemUser = lib.mkDefault true;
         group = "matterbridge";
       };
+
+      maddy = {
+        isSystemUser = lib.mkDefault true;
+        group = "maddy";
+        extraGroups = [ "acme" "nginx" ];
+      };
+
+      ntfy-sh = {
+        isSystemUser = lib.mkDefault true;
+        group = "ntfy-sh";
+        extraGroups = [ "acme" "nginx" ];
+      };
+
       ngircd = {
         isSystemUser = lib.mkDefault true;
         group = "ngircd";
@@ -3868,28 +3966,6 @@ standard.
     };
   }
 #+end_src
-*** Pantalaimon
-This is used with ement as a proxy in order to connect to a remote
-matrix server while having encryption.
-#+begin_src nix :tangle ../nix/modules/home/pantalaimon.nix
-  { lib, config, ... }:
-  {
-    services.pantalaimon = {
-      enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
-      settings = {
-        Default = {
-          LogLevel = "Debug";
-          SSL = true;
-        };
-        local-matrix = {
-          Homeserver = "https://matrix.${config.monorepo.vars.orgHost}";
-          ListenAddress = "127.0.0.1";
-          ListenPort = "8008";
-        };
-      };
-    };
-  }
-#+end_src
 *** User
 This configuration is the backbone configuration for the default user. It specifies some
 generally useful packages and something every home should have, as well as some dependencies
@@ -3942,7 +4018,7 @@ for these configurations.
 
         # Apps
         # octaveFull
-        vesktop grim swww vim kotatogram-desktop tg qwen-code element-desktop jami
+        vesktop grim swww vim kotatogram-desktop tg qwen-code element-desktop thunderbird jami
 
         # Sound/media
         pavucontrol alsa-utils imagemagick ffmpeg helvum
@@ -4140,7 +4216,7 @@ as several other useful services.
       zramSwap = {
         enable = true;
         algorithm = "zstd";
-        memoryPercent = 50; # Creates ~16GB of compressed swap space
+        memoryPercent = 50;
       };
       monorepo = {
         vars.device = "/dev/nvme0n1";
@@ -4167,7 +4243,8 @@ I want cuda in home manager too.
   }
 #+end_src
 ** Spontaneity
-Spontaneity is my VPS instance.
+Spontaneity is my VPS instance. Note that much of this is not fully reproducible; you must change the IPs yourself and you must change
+some DNS records to match what you have on your system after deployment.
 #+begin_src nix :tangle ../nix/systems/spontaneity/default.nix
   { config, lib, ... }:
     let
@@ -4196,7 +4273,28 @@ Spontaneity is my VPS instance.
         };
 
         boot.loader.grub.device = "nodev";
+        boot.kernel.sysctl = {
+          "net.ipv6.conf.ens3.autoconf" = 0;
+          # Keep accept_ra = 1 so you still get the default gateway/route!
+          "net.ipv6.conf.ens3.accept_ra" = 1; 
+        };
+
+        systemd.network.enable = true;
+        systemd.network.networks."40-ens3" = {
+          matchConfig.Name = "ens3";
+          networkConfig = {
+            # This is the magic combo for Vultr:
+            IPv6AcceptRA = true;         # Accept routes (so we know where the internet is)
+            IPv6PrivacyExtensions = false; # No random privacy IPs
+          };
+          ipv6AcceptRAConfig = {
+            UseAutonomousPrefix = false; # Do NOT generate an IP address from the RA
+          };
+        };
         networking = {
+          useDHCP = lib.mkForce false;
+          networkmanager.enable = lib.mkForce false;
+          tempAddresses = "disabled";
           extraHosts = ''
       127.0.0.1 livekit.${config.monorepo.vars.orgHost}
       127.0.0.1 matrix.${config.monorepo.vars.orgHost}
@@ -4207,6 +4305,7 @@ Spontaneity is my VPS instance.
               prefixLength = 24;
             }
           ];
+          interfaces.ens3.useDHCP = lib.mkForce false;
           interfaces.ens3.ipv6.addresses = [
             {
               address = ipv6addr;
@@ -4247,6 +4346,16 @@ Spontaneity is my VPS instance.
               "${config.monorepo.vars.orgHost}" = {
                 a.data = ipv4addr;
                 aaaa.data = ipv6addr;
+
+                mx.data = [
+                  {
+                    preference = 10;
+                    exchange = "mail.${config.monorepo.vars.orgHost}";
+                  }
+                ];
+                txt = {
+                  data = "v=spf1 ip4:${ipv4addr} ip6:${ipv6addr} -all";
+                };
               };
             };
             subDomains = {
@@ -4254,9 +4363,24 @@ Spontaneity is my VPS instance.
               "notes.${config.monorepo.vars.remoteHost}" = {
                 a.data = "45.76.87.125";
               };
+
+              "_dmarc.${config.monorepo.vars.orgHost}" = {
+                txt = {
+                  data = "v=DMARC1; p=none";
+                };
+              };
+
+              "default._domainkey.${config.monorepo.vars.orgHost}" = {
+                txt = {
+                  data = "v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsC9GpfjvQlldPrHAC7Yt+ZF0aduUIVV4j2+KUkF0j6NsrpOgvU6COWKQSod/B/qyPBLWf+w5P5YiJ9XnOgw6Db/I9C67eusEHnV/cbvokXLQjSBvXee1OEdrT9i+6iUgDeGWP4CrD1DcwvXzAcCI9exy3yALHVlbkyYvi0KAYofs8dVQ3JCwSCMlol71lA6ULJ2zbCIWeSOv9/C6QZ5HOIeeoFLesX6O/YvF4FYxWbSHy244TXYuczQKuayjKgD6e8gIT5WJRQj8IAWOQ2podWw6hSuB3Ig+ekoOfnl5ivJGOMbAzFTj8FtbS4ncyidLU1kIOeuLfiILeDDLlIeYTwIDAQAB";
+                };
+              };
+
+              "ntfy.${config.monorepo.vars.remoteHost}" = {};
               "matrix.${config.monorepo.vars.remoteHost}" = {};
               "www.${config.monorepo.vars.remoteHost}" = {};
-              "mail.${config.monorepo.vars.remoteHost}" = {};
+              "mail.${config.monorepo.vars.remoteHost}" = {
+              };
 
               "livekit.${config.monorepo.vars.orgHost}" = {};
               "${config.monorepo.vars.orgHost}" = {};

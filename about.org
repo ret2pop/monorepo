@@ -33,13 +33,11 @@ Here are all the methods you should use to contact me:
 Here you can find [[file:resume.pdf][my resume]] in both pdf and [[file:resume.org][html]] which contains it all. I am always open for new job opportunities!
 *** IRC
 - ret2pop on nullring.xyz, 6697. Go to #nullring; this channel is the most active, probably.
-- ret2pop on libera.chat
-  - Note: I will not always be online and I don't use a bouncer on this server. Email me to coordinate a time if you really need to reach me this way.
 *** Matrix
-contact me on matrix at ~ret2pop:social.nullring.xyz~.
+contact me on matrix at ~@ret2pop:matrix.nullring.xyz~.
 *** Email
 - ret2pop@gmail.com
-- preston@nullring.xyz
+- ret2pop@nullring.xyz
 *** Amateur Radio (In case the world ends)
 My callsign is ~VE7PPN~.
 *** Linkedin

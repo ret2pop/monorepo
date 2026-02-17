@@ -52,7 +52,7 @@ can therefore publish them. So I did! Configurations include:
 - Qutebrowser
 …and many more!
 * [[https://git.nullring.xyz][Projects]]
-My programming projects can be found on my [[https://ret2pop.net/gitweb][git server]]; other projects that do not directly pertain
+My programming projects can be found on my [[https://nullring.xyz/gitweb][git server]]; other projects that do not directly pertain
 to my projects on git or need a more in-depth explanation are explained further in my blog.
 I also have a [[https://github.com/ret2pop][github]] for those interested.
 * [[https://youtube.com/@ret2pop][Music and Media]]
@@ -65,9 +65,11 @@ but of course that won't be kept in a public repository.
 
 I think that it's cool to automatically and transparently let people know what I'm up to, so you
 don't have to ask. Also, it gives me some motivation to do things if a part of my agenda is public.
+* [[https://list.nullring.xyz][Mailing List]]
+Here, I keep a mailing list which you can figure out how to mail to by emailing me first (I don't want spammers).
+It's meant to be a general purpose mailing list as well as a collaborative space for working on projects with others.
 * [[file:about.org][About]]
 Who is the man behind ret2pop? How do you contact him? So many mysteries await…
-
 ** About this Website
 I wrote this website in org mode. For more information, see the [[file:README.org][README]]. Here is how I upload my
 website:

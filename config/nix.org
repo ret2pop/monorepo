@@ -472,6 +472,15 @@ the yaml file specified. Yes, this is safe to include in the repo.
 
 
       templates = if config.monorepo.profiles.server.enable then {
+        "public-inbox-netrc" = {
+          owner = "public-inbox";
+          group = "public-inbox";
+          mode = "0400";
+          content = ''
+  machine mail.${config.monorepo.vars.orgHost} login monorepo@${config.monorepo.vars.orgHost} password ${config.sops.placeholder."mail_monorepo_password_pi"}
+  machine mail.${config.monorepo.vars.orgHost} login discussion@${config.monorepo.vars.orgHost} password ${config.sops.placeholder."mail_monorepo_password_pi"}
+      '';
+        };
         "matterbridge" = {
           owner = "matterbridge";
           content = ''
@@ -556,6 +565,17 @@ the yaml file specified. Yes, this is safe to include in the repo.
           format = "yaml";
           owner = "maddy";
         };
+
+        mail_monorepo_password = {
+          format = "yaml";
+          owner = "maddy";
+        };
+
+        mail_monorepo_password_pi = {
+          format = "yaml";
+          owner = "public-inbox";
+        };
+
         conduit_secrets = {
           format = "yaml";
         };
@@ -567,6 +587,10 @@ the yaml file specified. Yes, this is safe to include in the repo.
         };
         discord_token = {
           format = "yaml";
+        };
+        mpd_password = {
+          format = "yaml";
+          owner = "nginx";
         };
         ntfy = {
           format = "yaml";
@@ -901,7 +925,7 @@ for lk-jwt and livekit which is important for configuring p2p calls in matrix.
     services.lk-jwt-service = {
       enable = lib.mkDefault config.monorepo.profiles.server.enable;
       port = 6495;
-      livekitUrl = "wss://livekit.nullring.xyz";
+      livekitUrl = "wss://livekit.${config.monorepo.vars.orgHost}";
       keyFile = "/run/secrets/livekit_secret";
     };
     services.livekit = {
@@ -929,17 +953,21 @@ for lk-jwt and livekit which is important for configuring p2p calls in matrix.
     };
   }
 #+end_src
-** Coturn
-This is important for p2p calls in matrix as well.
-#+begin_src nix :tangle ../nix/modules/coturn.nix
+** GoToSocial
+This is a basic ActivityPub server.
+#+begin_src nix :tangle ../nix/modules/gotosocial.nix
   { lib, config, ... }:
   {
-    services.coturn = {
-      enable = false;
-      use-auth-secret = true;
-      listening-ips = [ "0.0.0.0" ];
-      cert = "/var/lib/acme/matrix.${config.monorepo.vars.orgHost}/fullchain.pem";
-      static-auth-secret-file = "/run/secrets/coturn_secret";
+    services.gotosocial = {
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      setupPostgresqlDB = true;
+      settings = {
+        application-name = "Nullring GoToSocial Instance";
+        host = "gotosocial.${config.monorepo.vars.orgHost}";
+        protocol = "https";
+        bind-address = "127.0.0.1";
+        port = 8080;
+      };
     };
   }
 #+end_src
@@ -951,6 +979,19 @@ I want to connect IRC to discord with matterbridge.
     services.matterbridge = {
       enable = lib.mkDefault config.monorepo.profiles.server.enable;
       configPath = "${config.sops.templates.matterbridge.path}";
+    };
+  }
+#+end_src
+** TODO matrix-appservice-irc
+#+begin_src nix :tangle ../nix/modules/matrix-appservice-irc.nix
+  { lib, config, ... }:
+  {
+    enable = lib.mkDefault config.monorepo.profiles.server.enable;
+    registrationUrl = "localhost";
+
+    settings = {
+      homeserver.url = "https://matrix.nullring.xyz";
+      homserver.domain = "matrix.nullring.xyz";
     };
   }
 #+end_src
@@ -1223,7 +1264,7 @@ to the outside world under a domain.
 
       gitweb = {
         enable = true;
-        virtualHost = "${config.monorepo.vars.remoteHost}";
+        virtualHost = "${config.monorepo.vars.orgHost}";
       };
 
       virtualHosts = {
@@ -1262,11 +1303,12 @@ to the outside world under a domain.
           };
           locations."= /.well-known/matrix/server" = {
             extraConfig = ''
+        default_type application/json;
         add_header Content-Type application/json;
         add_header Access-Control-Allow-Origin *;
       '';
             
-            return = ''200 '{"m.server": "matrix.nullring.xyz:443"}' ''; 
+            return = ''200 '{"m.server": "matrix.${config.monorepo.vars.orgHost}:443"}' ''; 
           };
           locations."/.well-known/matrix/client" = {
             extraConfig = ''
@@ -1328,8 +1370,8 @@ to the outside world under a domain.
               proxy_set_header X-Real-IP $remote_addr;
               proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
               proxy_set_header X-Forwarded-Proto $scheme;
-              # proxy_set_header Upgrade $http_upgrade;
-              # proxy_set_header Connection "upgrade";
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "upgrade";
 
               # --- CORS CONFIGURATION START ---
               # 1. Allow all origins (including app.element.io)
@@ -1373,6 +1415,39 @@ to the outside world under a domain.
   	      addSSL = true;
   	      enableACME = true;
   	    };
+
+        "list.${config.monorepo.vars.orgHost}" = {
+          forceSSL = true;
+          enableACME = true;
+          locations."/" = {
+            proxyPass = "http://localhost:9090";
+            extraConfig = ''
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+          '';
+          };
+        };
+
+        # the port comes from ssh tunnelling
+        "music.${config.monorepo.vars.remoteHost}" = {
+          addSSL = true;
+          enableACME = true;
+          basicAuthFile = config.sops.secrets."mpd_password".path;
+          locations."/" = {
+            proxyPass = "http://localhost:8000";
+            extraConfig = ''
+  proxy_buffering off;
+  proxy_http_version 1.1;
+  proxy_set_header Connection "";
+  proxy_set_header Host $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_read_timeout 36000s;
+  '';
+          };
+        };
 
         "${config.monorepo.vars.orgHost}" = {
           serverName = "${config.monorepo.vars.orgHost}";
@@ -1481,8 +1556,247 @@ There is a non declarative part of setting dkims and spf.
         "${config.monorepo.vars.internetName}@${config.monorepo.vars.orgHost}" = {
           passwordFile = "/run/secrets/mail_password";
         };
+        "monorepo@${config.monorepo.vars.orgHost}" = {
+          passwordFile = "/run/secrets/mail_monorepo_password";
+        };
+        "discussion@${config.monorepo.vars.orgHost}" = {
+          passwordFile = "/run/secrets/mail_monorepo_password";
+        };
       };
     };
+  }
+#+end_src
+*** Public Inbox
+This is my mailing list software that I will use to develop software.
+#+begin_src nix :tangle ../nix/modules/public_inbox.nix
+  { lib, config, ... }:
+  {
+    systemd.tmpfiles.rules = [
+      "C+ /var/lib/public-inbox/style.css 0644 public-inbox public-inbox - ${../data/public-inbox.css}"
+    ];
+    systemd.services.public-inbox-httpd = if config.monorepo.profiles.server.enable then {
+      preStart = ''
+      # Copy or link the file. 
+      # Using 'cp' is often safer for sandboxed services than linking to the store. Lol.
+      cp -f ${../data/public-inbox.css} /var/lib/public-inbox/style.css
+      chmod 644 /var/lib/public-inbox/style.css
+    '';
+      
+      serviceConfig = {
+        # Allow the service to see the file it just created
+        BindPaths = [ 
+          "/var/lib/public-inbox" 
+        ];
+        ReadOnlyPaths = [ "/var/lib/public-inbox/style.css" ];
+        # Ensure it can actually write to the directory during preStart
+        ReadWritePaths = [ "/var/lib/public-inbox" ];
+      };
+    } else {};
+
+    systemd.services.public-inbox-watch = if config.monorepo.profiles.server.enable then {
+      after = [ "sops-nix.service" ];
+      confinement.enable = lib.mkForce false;
+      preStart = ''
+        mkdir -p /var/lib/public-inbox/.tmp
+        chmod 0700 /var/lib/public-inbox/.tmp
+        ln -sfn ${config.sops.templates."public-inbox-netrc".path} /var/lib/public-inbox/.netrc
+      '';
+      environment = {
+        PUBLIC_INBOX_FORCE_IPV4 = "1";
+        NETRC = config.sops.templates."public-inbox-netrc".path;
+        HOME = "/var/lib/public-inbox";
+        TMPDIR = "/var/lib/public-inbox/.tmp";
+      };
+
+      serviceConfig = {
+        RestrictSUIDSGID = lib.mkForce false;
+        ReadWritePaths = [ "/var/lib/public-inbox" ];
+        RestrictAddressFamilies = lib.mkForce [ "AF_UNIX" "AF_INET" "AF_INET6" ];
+        PrivateNetwork = lib.mkForce false;
+        SystemCallFilter = lib.mkForce [];
+        RootDirectory = lib.mkForce "";
+
+        CapabilityBoundingSet = lib.mkForce [ "~" ];
+        UMask = lib.mkForce "0022";
+        ProtectSystem = lib.mkForce false;
+      };
+    } else {};
+
+    services.public-inbox = {
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      settings = {
+        publicinbox.css = ["/var/lib/public-inbox/style.css"];
+        publicinbox.wwwlisting = "all";
+      };
+      http = {
+        enable = true;
+        port = 9090;
+      };
+      inboxes = {
+        "monorepo" = {
+          description = "discussion of ret2pop's monorepo project and related work.";
+          address = [ "monorepo@${config.monorepo.vars.orgHost}" ];
+          inboxdir = "/var/lib/public-inbox/monorepo";
+          url = "https://list.${config.monorepo.vars.orgHost}/monorepo";
+          watch = [ "imaps://monorepo%40${config.monorepo.vars.orgHost}@mail.${config.monorepo.vars.orgHost}/INBOX" ];
+        };
+
+        "discussion" = {
+          description = "Main Nullring Discussion Mailing List";
+          address = [ "discussion@${config.monorepo.vars.orgHost}" ];
+          inboxdir = "/var/lib/public-inbox/discuss";
+          url = "https://list.${config.monorepo.vars.orgHost}/discussion";
+          watch = [ "imaps://discussion%40${config.monorepo.vars.orgHost}@mail.${config.monorepo.vars.orgHost}/INBOX" ];
+        };
+      };
+    };
+  }
+#+end_src
+*** Public Inbox CSS
+This is a minimal stylesheet for public inbox so that I don't get eye cancer while reading it.
+#+begin_src nix :tangle ../nix/data/public-inbox.css
+  :root {
+    --bg: #f8f9fa;
+    --fg: #2e3440;
+    --link: #5e81ac;
+    --link-hover: #81a1c1;
+    --border: #d8dee9;
+    --card-bg: #ffffff;
+    --meta-fg: #4c566a; /* Darker gray for better legibility */
+    --btn-fg: #ffffff;
+    --max-width: 780px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1b26;
+      --fg: #a9b1d6;
+      --link: #7aa2f7;
+      --link-hover: #bb9af7;
+      --border: #414868; /* Distinct border for dark mode */
+      --card-bg: #1f2335;
+      --meta-fg: #9aa5ce; /* Brighter gray for dark mode */
+      --btn-fg: #1a1b26;
+    }
+  }
+
+  span.q {
+    color: var(--meta-fg);
+    font-style: italic;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    line-height: 1.6;
+    max-width: var(--max-width);
+    margin: 3rem auto;
+    padding: 0 1.5rem;
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    
+    /* Keep this for smoother rendering on macOS/iOS */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 1. Global Link Fixes */
+  body a, body a:visited {
+    color: var(--link);
+  }
+
+  /* 2. Card Styling */
+  body pre {
+    white-space: pre-wrap;
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 2.5rem;
+  }
+
+  /* 3. Header Cleanup */
+  body pre b:first-of-type {
+    font-weight: 700;
+    color: var(--link);
+    font-size: 1.1rem;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  /* 4. Fixing the "Permalink" label on documentation */
+  /* We target links ending in / but EXCLUDE system paths like help or mirror */
+  body pre a[href$="/"]:not([href*="_/"]):not([href*="new.atom"]) {
+    font-size: 0;
+    text-decoration: none;
+    margin-right: 10px;
+  }
+
+  body pre a[href$="/"]:not([href*="_/"]):not([href*="new.atom"]):after {
+    content: "permalink";
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--fg); /* Use main text color for high contrast */
+    background: var(--bg);
+    border: 1px solid var(--link); /* Use link color for the border */
+    padding: 4px 10px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+
+  /* 5. Fixing the "Raw" button contrast */
+  body pre a[href$="/raw"] {
+    font-size: 0;
+    text-decoration: none;
+  }
+
+  body pre a[href$="/raw"]:after {
+    content: "raw";
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--fg);
+    background: var(--bg);
+    border: 1px solid var(--link);
+    padding: 4px 10px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+
+  /* Hover effect for ghost buttons: solid color shift */
+  body pre a[href$="/"]:hover:after,
+  body pre a[href$="/raw"]:hover:after {
+    background: var(--link);
+    color: var(--btn-fg);
+  }
+
+  /* 6. The Reply Button (Primary Action) */
+  body pre a[href$="#R"], body pre a[href$="#R"]:visited {
+    font-size: 0;
+    text-decoration: none;
+  }
+
+  body pre a[href$="#R"]:after {
+    content: "REPLY";
+    font-size: 12px;
+    font-weight: bold;
+    padding: 6px 20px;
+    background: var(--link);
+    color: var(--btn-fg);
+    border-radius: 6px;
+    display: inline-block;
+    margin-left: 10px;
+  }
+
+  /* 7. Hide clutter */
+  body pre a[href^="#r"], body pre a[href^="#r"] + b, body hr {
+    display: none;
+  }
+
+  /* Fix: Mathematically outscore the header rule to keep link text inline */
+  body pre a[href] b:first-of-type {
+    display: inline;
+    font-size: inherit;
+    margin-bottom: 0;
+    color: inherit;
   }
 #+end_src
 ** Fail2Ban
@@ -1611,6 +1925,7 @@ because they enhance security.
   { config, pkgs, lib, ... }:
   {
     imports = [
+      ./public_inbox.nix
       ./matterbridge.nix
       ./mautrix.nix
       ./xserver.nix
@@ -2014,6 +2329,7 @@ because they enhance security.
     users.groups.matterbridge = lib.mkDefault {};
     users.groups.maddy = lib.mkDefault {};
     users.groups.ntfy-sh = lib.mkDefault {};
+    users.groups.public-inbox = lib.mkDefault {};
 
     users.users = {
       conduit = {
@@ -2037,11 +2353,18 @@ because they enhance security.
         extraGroups = [ "acme" "nginx" ];
       };
 
+      public-inbox = {
+        isSystemUser = lib.mkDefault true;
+        group = "public-inbox";
+
+        extraGroups = [ "acme" "nginx" ];
+      };
       ngircd = {
         isSystemUser = lib.mkDefault true;
         group = "ngircd";
         extraGroups = [ "acme" "nginx" ];
       };
+
       livekit = {
         isSystemUser = lib.mkDefault true;
         group = "livekit";
@@ -2073,6 +2396,7 @@ because they enhance security.
         group = "git";
         openssh.authorizedKeys.keys = [
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICts6+MQiMwpA+DfFQxjIN214Jn0pCw/2BDvOzPhR/H2 preston@continuity-dell"
+          "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCedJm0yYB0qLah/Y7PqLVgNh6qp+yujssGtuR05KbZLzSnsLUjUMObMyjFB9xTKrSGDqyoMkNe2l5VXMBJ9wBKLbzqMWbkakAWOj7EC/qZ6dFWA075mniwAuWKY/Q8QYohAJbbeU4j0ObWrltd4ar2Ac9vsVyftYF5efg8PEqVdOxzrBn5taY1zCCRjee5ISeRDIovnBbq7x86jsx5VnXTjMN9FZCI2qmz992Sg/PPXpXat+O1YQlG0eBHEny2Ug9gaAYnGOVr6kZKE4lrjz47nrXVXO6lJsNXmuzTVnEgo30DAA3dV4fws/M5ptM5Pgg2qe94HyHWhhmtXOekWmGtP3YxpVe3M/SPl31UL570ZDuuCcpJTsbe90ZyXC3CiSJkLKbmFkfOgZ6DI2LT8KSp09/2NCtZYriLN/nXObn6gQzByGMxVyKNx2hh8ENt9hzTCAk5lYDK3g3wS8eLCY3EH/caEqT9mLZEZeRHtAhtfozo1VJL7sSZ0Zm7wiIxHylwOshh1sYI1gb1MgMqNnrr1t8+8UK+Q0NERQW3yiphG36HXWy/DdCG0EF+N850KbgH1FFur+m+3hZCZCFVp3tGCcOC+bxWMBT3+9yC6LARi5cFjLQaWLsNO5xEs4vqX3+s3QjJ0pAYDkgtoeY2Fbh+imN+JasWn/cSy5p3UdE4ZQ== andrei@kiss"
         ];
       };
       "${config.monorepo.vars.userName}" = {
@@ -2346,19 +2670,19 @@ I have many imports that we'll go through next.
   	    email = {
   		    email = lib.mkOption {
   			    type = lib.types.str;
-  			    default = "ret2pop@gmail.com";
+  			    default = "ret2pop@nullring.xyz";
   			    example = "john@example.com";
   			    description = "Email address and imaps/smtps account";
   		    };
   		    imapsServer = lib.mkOption {
   			    type = lib.types.str;
-  			    default = "imap.gmail.com";
+  			    default = "mail.nullring.xyz";
   			    example = "imap.example.com";
   			    description = "imaps server address";
   		    };
   		    smtpsServer = lib.mkOption {
   			    type = lib.types.str;
-  			    default = "smtp.gmail.com";
+  			    default = "mail.nullring.xyz";
   			    example = "smtp.example.com";
   			    description = "smtp server address";
   		    };
@@ -2858,6 +3182,7 @@ as an org file which gets automatically tangled to an emacs-lisp file.
   (setq system-email "${config.monorepo.profiles.email.email}")
   (setq system-username "${config.monorepo.vars.internetName}")
   (setq system-fullname "${config.monorepo.vars.fullName}")
+  (setq system-gpgkey "${config.monorepo.vars.gpgKey}")
   (load "${pkgs.writeText "init.el" (builtins.readFile ../../init.el)}")
   '';
 
@@ -3361,16 +3686,16 @@ in the ~~/music~ directory and then run ~mpc add /~ afterwards.
           type "pipewire"
           name "pipewire output"
         }
+
         audio_output {
           type		"httpd"
-          name		"My HTTP Stream"
+          name		"Ret2pop's Music Stream"
           encoder		"opus"		# optional
           port		"8000"
-       #	quality		"5.0"			# do not define if bitrate is defined
-          bitrate		"128000"			# do not define if quality is defined
+          bitrate		"128000"
           format		"48000:16:1"
-          always_on       "yes" # prevent MPD from disconnecting all listeners when playback is stopped.
-          tags            "yes" # httpd supports sending tags to listening streams.
+          always_on       "yes"
+          tags            "yes"
         }
 
   audio_output {
@@ -4013,6 +4338,8 @@ for these configurations.
       packages = with pkgs; (if config.monorepo.profiles.graphics.enable then [
         # wikipedia
         # kiwix kiwix-tools
+        gnupg
+        unzip
         mupdf
         zathura
 
@@ -4132,6 +4459,12 @@ for these configurations.
       '';
       };
     };
+    xdg.mimeApps = {
+      enable = true;
+      defaultApplications = {
+        "x-scheme-handler/mailto" = "emacsclient-mail.desktop";
+      };
+    };
 
     programs.bash.enable = true;
     fonts.fontconfig.enable = true;
@@ -4145,6 +4478,7 @@ the path.
   { config, sops-nix, ... }:
   {
     home-manager = {
+      backupFileExtension = "backup";
       sharedModules = [
         sops-nix.homeManagerModules.sops
       ];
@@ -4338,6 +4672,7 @@ some DNS records to match what you have on your system after deployment.
               7881
               8443
               8448
+              9418
             ];
             allowedUDPPorts = [
               3478 5349 7882
@@ -4389,6 +4724,7 @@ some DNS records to match what you have on your system after deployment.
               "ntfy.${config.monorepo.vars.remoteHost}" = {};
               "matrix.${config.monorepo.vars.remoteHost}" = {};
               "www.${config.monorepo.vars.remoteHost}" = {};
+              "music.${config.monorepo.vars.remoteHost}" = {};
               "mail.${config.monorepo.vars.remoteHost}" = {
               };
 
@@ -4396,6 +4732,8 @@ some DNS records to match what you have on your system after deployment.
               "${config.monorepo.vars.orgHost}" = {};
               "git.${config.monorepo.vars.orgHost}" = {};
               "matrix.${config.monorepo.vars.orgHost}" = {};
+              "social.${config.monorepo.vars.orgHost}" = {};
+              "list.${config.monorepo.vars.orgHost}" = {};
               "talk.${config.monorepo.vars.orgHost}" = {};
               "mail.${config.monorepo.vars.orgHost}" = {};
               "${config.monorepo.vars.internetName}.${config.monorepo.vars.orgHost}" = {};

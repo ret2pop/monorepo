@@ -22,6 +22,8 @@ This is a podcast by Luke Smith that talks about anything that he wants to.
 ** Forums :forum:
 *** [[http://lesserwrong.com/feed.xml][LessWrong]]
 The birthplace of bay area rationalism.
+*** [[https://list.nullring.xyz/discussion/new.atom][Nullring Discussion]]
+My own mailing list feed.
 ** Science Journals :journal:
 I like to get new information about recent studies related to technology.
 *** [[http://www.nature.com/nmat/current_issue/rss/][Nature]]

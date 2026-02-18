@@ -30,6 +30,8 @@
     packages = with pkgs; (if config.monorepo.profiles.graphics.enable then [
       # wikipedia
       # kiwix kiwix-tools
+      gnupg
+      unzip
       mupdf
       zathura
 
@@ -51,7 +53,7 @@
       pavucontrol alsa-utils imagemagick ffmpeg helvum
 
       # Net
-      curl rsync git iamb ungoogled-chromium
+      curl rsync gitFull iamb ungoogled-chromium
 
       # Tor
       torsocks tor-browser
@@ -147,6 +149,12 @@ cd "$HOME"
       allow-emacs-pinentry
       allow-loopback-pinentry
     '';
+    };
+  };
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "x-scheme-handler/mailto" = "emacsclient-mail.desktop";
     };
   };
 

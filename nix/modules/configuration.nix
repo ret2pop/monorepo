@@ -1,6 +1,22 @@
 { config, pkgs, lib, ... }:
+let
+  userGroups = [
+    "nginx"
+    "git"
+    "ircd"
+    "ngircd"
+    "conduit"
+    "livekit"
+    "matterbridge"
+    "maddy"
+    "ntfy-sh"
+    "public-inbox"
+  ];
+in
 {
   imports = [
+    ./cgit.nix
+    ./public_inbox.nix
     ./matterbridge.nix
     ./mautrix.nix
     ./xserver.nix
@@ -110,12 +126,16 @@ country=CA
   	  "snd-rawmidi"
   	  "xhci_hcd"
   	  "kvm_intel"
-      "crm"
+      "af_packet"
+      "ccm"
       "ctr"
       "cmac"
       "arc4"
       "ecb"
       "michael_mic"
+      "gcm"
+      "sha256"
+      "sha384"
     ];
 
     kernelParams = [
@@ -373,7 +393,7 @@ country=CA
   environment.systemPackages = with pkgs; [
     restic
     sbctl
-    git
+    gitFull
     git-lfs
     git-lfs-transfer
     vim
@@ -391,47 +411,29 @@ country=CA
     )
   ];
 
-  users.groups.nginx = lib.mkDefault {};
-  users.groups.git = lib.mkDefault {};
-  users.groups.ircd = lib.mkDefault {};
-  users.groups.ngircd = lib.mkDefault {};
-  users.groups.conduit = lib.mkDefault {};
-  users.groups.livekit = lib.mkDefault {};
-  users.groups.matterbridge = lib.mkDefault {};
-  users.groups.maddy = lib.mkDefault {};
-  users.groups.ntfy-sh = lib.mkDefault {};
+  users.groups = lib.genAttrs userGroups (name: lib.mkDefault {});
 
-  users.users = {
+  users.users = lib.genAttrs userGroups (name: {
+    isSystemUser = lib.mkDefault true;
+    group = "${name}";
+    extraGroups = [ "acme" "nginx" ];
+  }) // {
     conduit = {
       isSystemUser = lib.mkDefault true;
       group = "conduit";
+      extraGroups = [];
     };
     matterbridge = {
       isSystemUser = lib.mkDefault true;
       group = "matterbridge";
+      extraGroups = [];
     };
 
-    maddy = {
+    public-inbox = {
       isSystemUser = lib.mkDefault true;
-      group = "maddy";
-      extraGroups = [ "acme" "nginx" ];
-    };
+      group = "public-inbox";
 
-    ntfy-sh = {
-      isSystemUser = lib.mkDefault true;
-      group = "ntfy-sh";
-      extraGroups = [ "acme" "nginx" ];
-    };
-
-    ngircd = {
-      isSystemUser = lib.mkDefault true;
-      group = "ngircd";
-      extraGroups = [ "acme" "nginx" ];
-    };
-    livekit = {
-      isSystemUser = lib.mkDefault true;
-      group = "livekit";
-      extraGroups = [ "acme" "nginx" ];
+      extraGroups = [ "acme" "nginx" "git" ];
     };
 
     ircd = {
@@ -459,6 +461,7 @@ country=CA
       group = "git";
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICts6+MQiMwpA+DfFQxjIN214Jn0pCw/2BDvOzPhR/H2 preston@continuity-dell"
+        "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCedJm0yYB0qLah/Y7PqLVgNh6qp+yujssGtuR05KbZLzSnsLUjUMObMyjFB9xTKrSGDqyoMkNe2l5VXMBJ9wBKLbzqMWbkakAWOj7EC/qZ6dFWA075mniwAuWKY/Q8QYohAJbbeU4j0ObWrltd4ar2Ac9vsVyftYF5efg8PEqVdOxzrBn5taY1zCCRjee5ISeRDIovnBbq7x86jsx5VnXTjMN9FZCI2qmz992Sg/PPXpXat+O1YQlG0eBHEny2Ug9gaAYnGOVr6kZKE4lrjz47nrXVXO6lJsNXmuzTVnEgo30DAA3dV4fws/M5ptM5Pgg2qe94HyHWhhmtXOekWmGtP3YxpVe3M/SPl31UL570ZDuuCcpJTsbe90ZyXC3CiSJkLKbmFkfOgZ6DI2LT8KSp09/2NCtZYriLN/nXObn6gQzByGMxVyKNx2hh8ENt9hzTCAk5lYDK3g3wS8eLCY3EH/caEqT9mLZEZeRHtAhtfozo1VJL7sSZ0Zm7wiIxHylwOshh1sYI1gb1MgMqNnrr1t8+8UK+Q0NERQW3yiphG36HXWy/DdCG0EF+N850KbgH1FFur+m+3hZCZCFVp3tGCcOC+bxWMBT3+9yC6LARi5cFjLQaWLsNO5xEs4vqX3+s3QjJ0pAYDkgtoeY2Fbh+imN+JasWn/cSy5p3UdE4ZQ== andrei@kiss"
       ];
     };
     "${config.monorepo.vars.userName}" = {

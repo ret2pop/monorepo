@@ -479,6 +479,7 @@ the yaml file specified. Yes, this is safe to include in the repo.
           content = ''
   machine mail.${config.monorepo.vars.orgHost} login monorepo@${config.monorepo.vars.orgHost} password ${config.sops.placeholder."mail_monorepo_password_pi"}
   machine mail.${config.monorepo.vars.orgHost} login discussion@${config.monorepo.vars.orgHost} password ${config.sops.placeholder."mail_monorepo_password_pi"}
+  machine mail.${config.monorepo.vars.orgHost} login nullerbot@${config.monorepo.vars.orgHost} password ${config.sops.placeholder."mail_monorepo_password_pi"}
       '';
         };
         "matterbridge" = {
@@ -1416,6 +1417,10 @@ to the outside world under a domain.
   	      enableACME = true;
   	    };
 
+        "git.${config.monorepo.vars.orgHost}" = {
+          forceSSL = true;
+          enableACME = true;
+        };
         "list.${config.monorepo.vars.orgHost}" = {
           forceSSL = true;
           enableACME = true;
@@ -1480,6 +1485,34 @@ world. This was the easiest frontend to set up on NixOS.
   our $site_name = "NullRing Git Server";
   our $site_header = "NullRing Projects";
   '';
+    };
+  }
+#+end_src
+** CGit Interface
+#+begin_src nix :tangle ../nix/modules/cgit.nix
+  { lib, config, ... }:
+  {
+    services.cgit."my-projects" = {
+      enable = true;
+      scanPath = "/srv/git"; 
+      settings = {
+        root-title = "Nullring Git Server";
+        root-desc = "Projects and cool things";
+        enable-commit-graph = 1;
+        enable-log-filecount = 1;
+        enable-log-linecount = 1;
+        enable-index-owner = 0;
+        clone-prefix = "https://git.${config.monorepo.vars.orgHost}";
+        enable-tree-linenumbers = 1;
+        strict-export = "git-daemon-export-ok";
+      };
+      gitHttpBackend = {
+        enable = true;
+        checkExportOkFiles = true;
+      };
+      nginx = {
+        virtualHost = "git.${config.monorepo.vars.orgHost}";
+      };
     };
   }
 #+end_src
@@ -1552,11 +1585,20 @@ There is a non declarative part of setting dkims and spf.
         "imap tls://0.0.0.0:993 tcp://0.0.0.0:143"
         "submission tls://0.0.0.0:465 tcp://0.0.0.0:587"
       ] options.services.maddy.config.default;
+      ensureAccounts = [
+        "${config.monorepo.vars.internetName}@${config.monorepo.vars.orgHost}"
+        "monorepo@${config.monorepo.vars.orgHost}"
+        "nullerbot@${config.monorepo.vars.orgHost}"
+        "discussion@${config.monorepo.vars.orgHost}"
+      ];
       ensureCredentials = {
         "${config.monorepo.vars.internetName}@${config.monorepo.vars.orgHost}" = {
           passwordFile = "/run/secrets/mail_password";
         };
         "monorepo@${config.monorepo.vars.orgHost}" = {
+          passwordFile = "/run/secrets/mail_monorepo_password";
+        };
+        "nullerbot@${config.monorepo.vars.orgHost}" = {
           passwordFile = "/run/secrets/mail_monorepo_password";
         };
         "discussion@${config.monorepo.vars.orgHost}" = {
@@ -1586,6 +1628,7 @@ This is my mailing list software that I will use to develop software.
         # Allow the service to see the file it just created
         BindPaths = [ 
           "/var/lib/public-inbox" 
+          "/srv/git/"
         ];
         ReadOnlyPaths = [ "/var/lib/public-inbox/style.css" ];
         # Ensure it can actually write to the directory during preStart
@@ -1625,6 +1668,10 @@ This is my mailing list software that I will use to develop software.
     services.public-inbox = {
       enable = lib.mkDefault config.monorepo.profiles.server.enable;
       settings = {
+        coderepo."nullerbot".dir = "/srv/git/nullerbot.git";
+        coderepo."nullerbot".cgitUrl = "https://git.nullring.xyz/nullerbot.git";
+        coderepo."monorepo".dir = "/srv/git/monorepo.git";
+        coderepo."monorepo".cgitUrl = "https://git.nullring.xyz/monorepo.git";
         publicinbox.css = ["/var/lib/public-inbox/style.css"];
         publicinbox.wwwlisting = "all";
       };
@@ -1639,6 +1686,9 @@ This is my mailing list software that I will use to develop software.
           inboxdir = "/var/lib/public-inbox/monorepo";
           url = "https://list.${config.monorepo.vars.orgHost}/monorepo";
           watch = [ "imaps://monorepo%40${config.monorepo.vars.orgHost}@mail.${config.monorepo.vars.orgHost}/INBOX" ];
+          coderepo = [
+            "monorepo"
+          ];
         };
 
         "discussion" = {
@@ -1647,6 +1697,17 @@ This is my mailing list software that I will use to develop software.
           inboxdir = "/var/lib/public-inbox/discuss";
           url = "https://list.${config.monorepo.vars.orgHost}/discussion";
           watch = [ "imaps://discussion%40${config.monorepo.vars.orgHost}@mail.${config.monorepo.vars.orgHost}/INBOX" ];
+        };
+
+        "nullerbot" = {
+          description = "Discussion of Nullerbot Matrix Bot";
+          address = [ "nullerbot@${config.monorepo.vars.orgHost}" ];
+          inboxdir = "/var/lib/public-inbox/nullerbot";
+          url = "https://list.${config.monorepo.vars.orgHost}/nullerbot";
+          watch = [ "imaps://nullerbot%40${config.monorepo.vars.orgHost}@mail.${config.monorepo.vars.orgHost}/INBOX" ];
+          coderepo = [
+            "nullerbot"
+          ];
         };
       };
     };
@@ -1923,8 +1984,23 @@ This is the backbone of the all the NixOS configurations, with all these options
 because they enhance security.
 #+begin_src nix :tangle ../nix/modules/configuration.nix
   { config, pkgs, lib, ... }:
+  let
+    userGroups = [
+      "nginx"
+      "git"
+      "ircd"
+      "ngircd"
+      "conduit"
+      "livekit"
+      "matterbridge"
+      "maddy"
+      "ntfy-sh"
+      "public-inbox"
+    ];
+  in
   {
     imports = [
+      ./cgit.nix
       ./public_inbox.nix
       ./matterbridge.nix
       ./mautrix.nix
@@ -2302,7 +2378,7 @@ because they enhance security.
     environment.systemPackages = with pkgs; [
       restic
       sbctl
-      git
+      gitFull
       git-lfs
       git-lfs-transfer
       vim
@@ -2320,55 +2396,29 @@ because they enhance security.
       )
     ];
 
-    users.groups.nginx = lib.mkDefault {};
-    users.groups.git = lib.mkDefault {};
-    users.groups.ircd = lib.mkDefault {};
-    users.groups.ngircd = lib.mkDefault {};
-    users.groups.conduit = lib.mkDefault {};
-    users.groups.livekit = lib.mkDefault {};
-    users.groups.matterbridge = lib.mkDefault {};
-    users.groups.maddy = lib.mkDefault {};
-    users.groups.ntfy-sh = lib.mkDefault {};
-    users.groups.public-inbox = lib.mkDefault {};
+    users.groups = lib.genAttrs userGroups (name: lib.mkDefault {});
 
-    users.users = {
+    users.users = lib.genAttrs userGroups (name: {
+      isSystemUser = lib.mkDefault true;
+      group = "${name}";
+      extraGroups = [ "acme" "nginx" ];
+    }) // {
       conduit = {
         isSystemUser = lib.mkDefault true;
         group = "conduit";
+        extraGroups = [];
       };
       matterbridge = {
         isSystemUser = lib.mkDefault true;
         group = "matterbridge";
-      };
-
-      maddy = {
-        isSystemUser = lib.mkDefault true;
-        group = "maddy";
-        extraGroups = [ "acme" "nginx" ];
-      };
-
-      ntfy-sh = {
-        isSystemUser = lib.mkDefault true;
-        group = "ntfy-sh";
-        extraGroups = [ "acme" "nginx" ];
+        extraGroups = [];
       };
 
       public-inbox = {
         isSystemUser = lib.mkDefault true;
         group = "public-inbox";
 
-        extraGroups = [ "acme" "nginx" ];
-      };
-      ngircd = {
-        isSystemUser = lib.mkDefault true;
-        group = "ngircd";
-        extraGroups = [ "acme" "nginx" ];
-      };
-
-      livekit = {
-        isSystemUser = lib.mkDefault true;
-        group = "livekit";
-        extraGroups = [ "acme" "nginx" ];
+        extraGroups = [ "acme" "nginx" "git" ];
       };
 
       ircd = {
@@ -3304,10 +3354,11 @@ the timezone.
 My git configuration uses information set in the ~vars.nix~ in order to set configuration options.
 Make sure those are set correctly. I've set it to sign by default.
 #+begin_src nix :tangle ../nix/modules/home/git.nix
-  { lib, config, ... }:
+  { pkgs, lib, config, ... }:
   {
     programs.git = {
       enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
+      package = pkgs.gitFull;
       lfs.enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
       userName = config.monorepo.vars.fullName;
       userEmail = config.monorepo.profiles.email.email;
@@ -3318,6 +3369,16 @@ Make sure those are set correctly. I've set it to sign by default.
 
       extraConfig = {
         init.defaultBranch = "main";
+        credential."${config.monorepo.profiles.email.smtpsServer}" = {
+          username = "${config.monorepo.profiles.email.email}";
+          helper = "!f() { test \"$1\" = get && echo \"password=$(cat /run/user/1000/secrets/mail)\"; }; f";
+        };
+        sendemail = {
+          smtpserver = "${config.monorepo.profiles.email.smtpsServer}";
+          smtpuser = "${config.monorepo.profiles.email.email}";
+          smtpserverport = 465;
+          smtpencryption = "ssl";
+        };
       };
 
       aliases = {
@@ -4361,7 +4422,7 @@ for these configurations.
         pavucontrol alsa-utils imagemagick ffmpeg helvum
 
         # Net
-        curl rsync git iamb ungoogled-chromium
+        curl rsync gitFull iamb ungoogled-chromium
 
         # Tor
         torsocks tor-browser
@@ -4808,7 +4869,7 @@ This contains the installation script I use to install my systems.
       ];
       nixos = {
         packages = with pkgs; [
-          git
+          gitFull
           curl
           gum
           (writeShellScriptBin "nix_installer"

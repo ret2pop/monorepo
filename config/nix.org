@@ -33,6 +33,7 @@ We start with some configurable variables (you can change these if you want to u
 
     # Hostnames of my systems
     hostnames = [
+      "rpi-zero"
       "affinity"
       "continuity"
       "spontaneity"
@@ -116,7 +117,10 @@ and now for the main flake:
       let
         vars = import ./flakevars.nix;
         system = "x86_64-linux";
+
         pkgs = import nixpkgs { inherit system; };
+        armPkgs = import nixpkgs { inherit system; };
+
         generate = nixos-dns.utils.generate nixpkgs.legacyPackages."${system}";
 
         dnsConfig = {
@@ -125,38 +129,50 @@ and now for the main flake:
         };
 
         # function that generates all systems from hostnames
-        mkConfigs = map (hostname: {name = "${hostname}";
-                                  value = nixpkgs.lib.nixosSystem {
-                                    inherit system;
-                                    specialArgs = attrs;
-                                    modules = if (hostname == "installer") then [
-                                      (./. + "/systems/${hostname}/default.nix")
-                                      { networking.hostName = "${hostname}"; }
-                                      nix-topology.nixosModules.default
-                                    ] else [
-                                      {
-                                        environment.systemPackages = with nixpkgs.lib; [
-                                          deep-research.packages."${system}".deep-research
-                                        ];
-                                      }
-                                      impermanence.nixosModules.impermanence
-                                      nix-topology.nixosModules.default
-                                      lanzaboote.nixosModules.lanzaboote
-                                      disko.nixosModules.disko
-                                      home-manager.nixosModules.home-manager
-                                      sops-nix.nixosModules.sops
-                                      nixos-dns.nixosModules.dns
-                                      {
-                                        nixpkgs.overlays = [ nur.overlays.default ];
-                                        home-manager.extraSpecialArgs = attrs // {
-                                          systemHostName = "${hostname}";
-                                        };
-                                        networking.hostName = "${hostname}";
-                                      }
-                                      (./. + "/systems/${hostname}/default.nix")
-                                    ];
-                                  };
-                                 });
+        mkConfigs = map (hostname:
+          let
+            isRpi = (builtins.match "rpi-.*" hostname) != null;
+            hostSystem = if isRpi then "aarch64-linux" else system;
+          in
+          {
+            name = "${hostname}";
+            value = nixpkgs.lib.nixosSystem {
+              system = hostSystem;
+              specialArgs = attrs;
+              modules = if (hostname == "installer") then [
+                (./. + "/systems/${hostname}/default.nix")
+                { networking.hostName = "${hostname}"; }
+                nix-topology.nixosModules.default
+              ] else (if isRpi then [
+                (./. + "/systems/${hostname}/default.nix")
+                disko.nixosModules.disko
+                home-manager.nixosModules.home-manager
+                sops-nix.nixosModules.sops
+                lanzaboote.nixosModules.lanzaboote
+              ] else ([
+                {
+                  environment.systemPackages = with nixpkgs.lib; [
+                    deep-research.packages."${system}".deep-research
+                  ];
+                }
+                impermanence.nixosModules.impermanence
+                nix-topology.nixosModules.default
+                lanzaboote.nixosModules.lanzaboote
+                disko.nixosModules.disko
+                home-manager.nixosModules.home-manager
+                sops-nix.nixosModules.sops
+                nixos-dns.nixosModules.dns
+                {
+                  nixpkgs.overlays = [ nur.overlays.default ];
+                  home-manager.extraSpecialArgs = attrs // {
+                    systemHostName = "${hostname}";
+                  };
+                  networking.hostName = "${hostname}";
+                }
+                (./. + "/systems/${hostname}/default.nix")
+              ]));
+            };
+          });
 
         mkDiskoFiles = map (hostname: {
           name = "${hostname}";
@@ -2690,6 +2706,7 @@ I have many imports that we'll go through next.
       ./user.nix
       ./gtk.nix
       ./secrets.nix
+      ./pantalaimon.nix
     ];
 
     options = {
@@ -2926,7 +2943,9 @@ be straightforward.
             vimium
             privacy-redirect
           ] ++ (lib.optional config.monorepo.profiles.crypto.enable pkgs.nur.repos.rycee.firefox-addons.metamask);
-
+          settings = {
+            "privacy.resistFingerprinting.letterboxing" = true;
+          };
         };
       };
     };
@@ -3195,13 +3214,18 @@ to use this component will come soon.
             workspace = 2;
           }
           {
-            name = "element-desktop";
-            "match:class" = "element-desktop";
+            name = "chromium-browser";
+            "match:class" = "chromium-browser";
+            workspace = 2;
+          }
+          {
+            name = "signal";
+            "match:class" = "signal";
             workspace = 3;
           }
           {
-            name = "vesktop";
-            "match:class" = "vesktop";
+            name = "Element";
+            "match:class" = "Element";
             workspace = 3;
           }
           {
@@ -3229,7 +3253,7 @@ to use this component will come soon.
           "$mod, S, exec, pavucontrol"
           "$mod, M, exec, monero-wallet-gui"
           "$mod, V, exec, element-desktop"
-          "$mod, C, exec, fluffychat"
+          "$mod, C, exec, signal-desktop"
           "$mod, D, exec, wofi --show run"
           "$mod, P, exec, bash ${scripts}/powermenu.sh"
           "$mod, Q, killactive"
@@ -4052,6 +4076,28 @@ A classic program that allows you to download from youtube. Also has integration
     };
   }
 #+end_src
+*** pantalaimon
+#+begin_src nix :tangle ../nix/modules/home/pantalaimon.nix
+  { lib, config, ... }:
+  {
+    services.pantalaimon = {
+      enable = lib.mkDefault config.monorepo.profiles.enable;
+      settings = {
+        Default = {
+          LogLevel = "Debug";
+          SSL = true;
+        };
+
+        local-matrix = {
+          Homeserver = "https://matrix.nullring.xyz";
+          ListenAddress = "127.0.0.1";
+          ListenPort = 8008;
+        };
+      };
+
+    };
+  }
+#+end_src
 *** Zsh
 My zsh config has some useful aliases that one should read through. Otherwise it is pretty
 standard.
@@ -4158,7 +4204,7 @@ for these configurations.
 
         # Apps
         # octaveFull
-        grim swww vim kotatogram-desktop tg qwen-code element-desktop signal-desktop thunderbird jami
+        grim swww vim kotatogram-desktop tg qwen-code element-desktop signal-desktop signal-cli thunderbird jami
 
         # Sound/media
         pavucontrol alsa-utils imagemagick ffmpeg helvum
@@ -4398,6 +4444,41 @@ I want cuda in home manager too.
     };
   }
 #+end_src
+** rpi-zero
+#+begin_src nix :tangle ../nix/systems/rpi-zero/default.nix
+  { lib, config, home-manager, ... }:
+  {
+    imports = [
+      ../common.nix
+    ];
+    config = {
+      zramSwap = {
+        enable = true;
+        algorithm = "zstd";
+        memoryPercent = 100;
+      };
+      boot.loader.grub.enable = false;
+      boot.loader.generic-extlinux-compatible.enable = true;
+      monorepo = {
+        vars.device = "/dev/mmcblk0";
+        profiles = {
+          server.enable = false;
+          ttyonly.enable = true;
+        };
+      };
+    };
+  }
+#+end_src
+*** Home
+#+begin_src nix :tangle ../nix/systems/rpi-zero/home.nix
+  { lib, config, pkgs, ... }:
+  {
+    imports = [
+      ../home-common.nix
+    ];
+    config.monorepo.profiles.enable = false;
+  }
+#+end_src
 ** Spontaneity
 Spontaneity is my VPS instance. Note that much of this is not fully reproducible; you must change the IPs yourself and you must change
 some DNS records to match what you have on your system after deployment.
@@ -4439,12 +4520,11 @@ some DNS records to match what you have on your system after deployment.
         systemd.network.networks."40-ens3" = {
           matchConfig.Name = "ens3";
           networkConfig = {
-            # This is the magic combo for Vultr:
-            IPv6AcceptRA = true;         # Accept routes (so we know where the internet is)
-            IPv6PrivacyExtensions = false; # No random privacy IPs
+            IPv6AcceptRA = true;
+            IPv6PrivacyExtensions = false;
           };
           ipv6AcceptRAConfig = {
-            UseAutonomousPrefix = false; # Do NOT generate an IP address from the RA
+            UseAutonomousPrefix = false;
           };
         };
         networking = {

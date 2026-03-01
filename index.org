@@ -52,7 +52,7 @@ can therefore publish them. So I did! Configurations include:
 - Qutebrowser
 …and many more!
 * [[https://git.nullring.xyz][Projects]]
-My programming projects can be found on my [[https://nullring.xyz/gitweb][git server]]; other projects that do not directly pertain
+My programming projects can be found on my [[https://git.nullring.xyz/][git server]]; other projects that do not directly pertain
 to my projects on git or need a more in-depth explanation are explained further in my blog.
 I also have a [[https://github.com/ret2pop][github]] for those interested.
 * [[https://youtube.com/@ret2pop][Music and Media]]

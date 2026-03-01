@@ -2706,7 +2706,6 @@ I have many imports that we'll go through next.
       ./user.nix
       ./gtk.nix
       ./secrets.nix
-      ./pantalaimon.nix
     ];
 
     options = {

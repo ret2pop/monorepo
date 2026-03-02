@@ -111,6 +111,7 @@ and now for the main flake:
         deep-research,
         impermanence,
         nixpak,
+        git-hooks,
         ...
     }
       @attrs:
@@ -178,8 +179,34 @@ and now for the main flake:
           name = "${hostname}";
           value = self.nixosConfigurations."${hostname}".config.monorepo.vars.diskoSpec;
         });
+
+        pre-commit-check = git-hooks.lib.${system}.run {
+          src = ./.;
+          hooks = {
+            # 1. Formatting
+            nixpkgs-fmt.enable = false;
+            
+            # 2. Linting
+            statix.enable = true;
+            deadnix.enable = true;
+
+            # 3. Custom VM Boot Check (The "Integration" part)
+            # This runs the build-vm derivation to ensure it compiles
+            vm-build-check = {
+              enable = true;
+              name = "vps-vm-build";
+              description = "Ensure VPS configuration is buildable as a VM";
+              entry = "nix build .#nixosConfigurations.vps.config.system.build.vm --no-link";
+              pass_filenames = false;
+            };
+          };
+        };
       in
         {
+          checks."${system}" = {
+            inherit pre-commit-check;
+          };
+
           nixosConfigurations = builtins.listToAttrs (mkConfigs vars.hostnames);
 
           evalDisko = builtins.listToAttrs (mkDiskoFiles (builtins.filter (x: x != "installer") vars.hostnames));
@@ -196,6 +223,7 @@ and now for the main flake:
           };
 
           devShell."${system}" = with pkgs; mkShell {
+            inherit (pre-commit-check) shellHook;
             buildInputs = [
               fira-code
               python3
@@ -474,12 +502,21 @@ under ~default.nix~ in the ~systems~ folder.
   		    secureBoot.enable = lib.mkEnableOption "Enables secure boot. See sbctl.";
   		    pipewire.enable = lib.mkEnableOption "Enables pipewire low latency audio setup";
   		    tor.enable = lib.mkEnableOption "Enables tor along with torsocks";
-  		    home.enable = lib.mkEnableOption "Enables home user";
-  		    server.enable = lib.mkEnableOption "Enables server services";
+
+          server = {
+            enable = lib.mkEnableOption "Enables server services";
+            interface = lib.mkOption { type = lib.types.str; default = "eth0"; };
+            ipv4 = lib.mkOption { type = lib.types.nullOr lib.types.str; default = null; };
+            ipv6 = lib.mkOption { type = lib.types.nullOr lib.types.str; default = null; };
+            gateway = lib.mkOption { type = lib.types.nullOr lib.types.str; default = null; };
+          };
+
           ttyonly.enable = lib.mkEnableOption "TTY only, no xserver";
           grub.enable = lib.mkEnableOption "Enables grub instead of systemd-boot";
           workstation.enable = lib.mkEnableOption "Enables workstation services";
+          desktop.enable = lib.mkEnableOption "Enables everything common to desktops";
           impermanence.enable = lib.mkEnableOption "Enables imperamanence";
+          home.enable = lib.mkEnableOption "Enables home profiles";
   	    };
       };
     };
@@ -504,13 +541,30 @@ under ~default.nix~ in the ~systems~ folder.
         enable = true;
       };
 
+      assertions = [
+        {
+          assertion = !(config.monorepo.profiles.workstation.enable && config.monorepo.profiles.server.enable);
+          message = ''
+  You can't enable both workstation and server profile together. Please select only one.
+  '';
+        }
+        {
+          assertion = !(config.monorepo.profiles.desktop.enable && config.monorepo.profiles.server.enable);
+          message = ''
+  You can't enable both desktop and server profile together. Please select only one.
+  '';
+        }
+      ];
       monorepo = {
   	    profiles = {
+          desktop.enable = lib.mkDefault config.monorepo.profiles.workstation.enable;
   		    documentation.enable = lib.mkDefault true;
   		    pipewire.enable = lib.mkDefault true;
   		    tor.enable = lib.mkDefault true;
-  		    home.enable = lib.mkDefault true;
           impermanence.enable = lib.mkDefault false;
+          server.enable = lib.mkDefault false;
+          ttyonly.enable = lib.mkDefault config.monorepo.profiles.server.enable;
+          home.enable = lib.mkDefault config.monorepo.profiles.desktop.enable;
   	    };
       };
     };
@@ -583,7 +637,7 @@ the yaml file specified. Yes, this is safe to include in the repo.
         keyFile = "/home/${config.monorepo.vars.userName}/.config/sops/age/keys.txt";
       };
 
-      secrets = if ! config.monorepo.profiles.server.enable then {
+      secrets = if config.monorepo.profiles.desktop.enable then {
         mail = {
           format = "yaml";
         };
@@ -609,19 +663,7 @@ the yaml file specified. Yes, this is safe to include in the repo.
         matrix_bridge = {
           format = "yaml";
         };
-        livekit_secret = {
-          format = "yaml";
-          mode = "0444";
-        };
-        livekit = {
-          format = "yaml";
-        };
         mail_password = {
-          format = "yaml";
-          owner = "maddy";
-        };
-
-        mail_monorepo_password = {
           format = "yaml";
           owner = "maddy";
         };
@@ -631,9 +673,6 @@ the yaml file specified. Yes, this is safe to include in the repo.
           owner = "public-inbox";
         };
 
-        conduit_secrets = {
-          format = "yaml";
-        };
         mautrix_env = {
           format = "yaml";
         };
@@ -646,10 +685,6 @@ the yaml file specified. Yes, this is safe to include in the repo.
         mpd_password = {
           format = "yaml";
           owner = "nginx";
-        };
-        ntfy = {
-          format = "yaml";
-          owner = "ntfy-sh";
         };
       };
     };
@@ -668,21 +703,21 @@ Still, it is suitable for using Krita.
         startx.enable = (! config.monorepo.profiles.ttyonly.enable);
       };
 
-      windowManager = {
-  	    i3 = {
-  	      enable = (! config.monorepo.profiles.ttyonly.enable);
-  	    };
-      };
+      # windowManager = {
+  	  #   i3 = {
+  	  #     enable = (! config.monorepo.profiles.ttyonly.enable);
+  	  #   };
+      # };
 
       desktopManager = {
   	    runXdgAutostartIfNone = true;
       };
 
-      xkb = {
-  	    layout = "us";
-  	    variant = "";
-  	    options = "caps:escape";
-      };
+      # xkb = {
+  	  #   layout = "us";
+  	  #   variant = "";
+  	  #   options = "caps:escape";
+      # };
 
       videoDrivers = (if config.monorepo.profiles.cuda.enable then [ "nvidia" ] else []);
     };
@@ -764,12 +799,13 @@ My SSH daemon configuration.
     services.openssh = {
       enable = true;
       settings = {
-        PasswordAuthentication = lib.mkDefault (! config.monorepo.profiles.server.enable);
-        AllowUsers = [ config.monorepo.vars.userName "root" "git" ];
-        PermitRootLogin = "prohibit-password";
+        PasswordAuthentication = false;
+        AllowUsers = [ config.monorepo.vars.userName "git" ];
+        PermitRootLogin = "no";
         KbdInteractiveAuthentication = false;
       };
     };
+    networking.firewall.allowedTCPPorts = lib.mkIf config.services.openssh.enable [ 22 ];
   }
 #+end_src
 ** Tor
@@ -829,7 +865,7 @@ I use i2p for some p2p connections. We enable it with the server profile:
   { config, lib, ... }:
   {
     services.i2pd = {
-      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      enable = lib.mkDefault false;
       address = "0.0.0.0";
       inTunnels = {
       };
@@ -844,7 +880,7 @@ This is an internet radio which will host a ton of music.
   { lib, config, ... }:
   {
     services.icecast = {
-      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      enable = lib.mkDefault false;
       listen.address = "0.0.0.0";
       extraConfig = ''
   <mount type="default">
@@ -890,12 +926,18 @@ I run my own IRC server to bridge with my Matrix server and my discord guild.
   	Ports = 6697
   '';
     };
+
     environment.etc."motd.txt" = {
       source = ../data/motd.txt;
       mode = "644";
       user = "ngircd";
       group = "ngircd";
     };
+
+    networking.firewall.allowedTCPPorts = if (config.services.ngircd.enable == true) then [
+      6697
+      6667
+    ] else [];
   }
 #+end_src
 *** MOTD
@@ -961,10 +1003,27 @@ still federating and hosting the same protocol. There is also a configuration
 for lk-jwt and livekit which is important for configuring p2p calls in matrix.
 #+begin_src nix :tangle ../nix/modules/conduit.nix
   { config, lib, ... }:
+  let
+    livekitListenPort = 8443;
+    # secrets.yaml
+    livekit_secret = "livekit_secret";
+    conduit_secret = "conduit_secrets";
+  in
   {
+    sops.secrets = lib.mkIf config.services.matrix-conduit.enable {
+      "${livekit_secret}" = lib.mkIf config.services.livekit.enable {
+        format = "yaml";
+        mode = "0444";
+      };
+
+      "${conduit_secret}" = {
+        format = "yaml";
+      };
+    };
+
     services.matrix-conduit = {
       enable = lib.mkDefault config.monorepo.profiles.server.enable;
-      secretFile = "/run/secrets/conduit_secrets";
+      secretFile = "/run/secrets/${conduit_secret}";
       settings.global = {
         server_name = "matrix.${config.monorepo.vars.orgHost}";
         trusted_servers = [
@@ -977,15 +1036,11 @@ for lk-jwt and livekit which is important for configuring p2p calls in matrix.
         allow_registration = false;
       };
     };
-    services.lk-jwt-service = {
-      enable = lib.mkDefault config.monorepo.profiles.server.enable;
-      port = 6495;
-      livekitUrl = "wss://livekit.${config.monorepo.vars.orgHost}";
-      keyFile = "/run/secrets/livekit_secret";
-    };
+
+
     services.livekit = {
-      enable = lib.mkDefault config.monorepo.profiles.server.enable;
-      keyFile = "/run/secrets/livekit_secret";
+      enable = lib.mkDefault (config.services.matrix-conduit.enable || config.services.matrix-synapse.enable);
+      keyFile = "/run/secrets/${livekit_secret}";
       settings = {
         port = 7880;
         turn = {
@@ -1006,15 +1061,167 @@ for lk-jwt and livekit which is important for configuring p2p calls in matrix.
         };
       };
     };
+
+    services.lk-jwt-service = {
+      enable = lib.mkDefault config.services.livekit.enable;
+      port = 6495;
+      livekitUrl = "wss://livekit.${config.monorepo.vars.orgHost}";
+      keyFile = "/run/secrets/${livekit_secret}";
+    };
+
+    # TODO: split into conduit and livekit
+    networking.firewall.allowedTCPPorts = lib.mkIf config.services.matrix-conduit.enable [ 8448 7881 5349 livekitListenPort ];
+
+    # this is fine though
+    networking.firewall.allowedUDPPorts = lib.mkIf config.services.livekit.enable [ 7882 3478 ];
+    networking.firewall.allowedUDPPortRanges = lib.mkIf config.services.livekit.enable [
+      { from = 49152; to = 65535; }
+    ];
+
+    networking.domains.subDomains."matrix.${config.monorepo.vars.orgHost}" = lib.mkIf config.services.matrix-conduit.enable {};
+    networking.domains.subDomains."livekit.${config.monorepo.vars.orgHost}" = lib.mkIf config.services.livekit.enable {};
+
+    services.nginx.virtualHosts."matrix.${config.monorepo.vars.orgHost}" = lib.mkIf config.services.matrix-conduit.enable {
+      enableACME = lib.mkDefault config.monorepo.profiles.server.enable;
+      forceSSL = true;
+      listen = [
+        {
+          addr = "0.0.0.0";
+          port = 443;
+          ssl = true;
+        }
+        {
+          addr = "[::]";
+          port = 443;
+          ssl = true;
+        }
+        {
+          addr = "0.0.0.0";
+          port = 8448;
+          ssl = true;
+        }
+        {
+          addr = "[::]";
+          port = 8448;
+          ssl = true;
+        }
+      ];
+      locations."/_matrix/" = {
+        proxyPass = "http://127.0.0.1:${toString config.services.matrix-conduit.settings.global.port}";
+        extraConfig = ''
+              proxy_set_header Host $host;
+              proxy_buffers 32 16k;
+              proxy_read_timeout 5m;
+            '';
+      };
+
+      locations."= /.well-known/matrix/server" = {
+        extraConfig = ''
+        default_type application/json;
+        add_header Content-Type application/json;
+        add_header Access-Control-Allow-Origin *;
+      '';
+        
+        return = ''200 '{"m.server": "matrix.${config.monorepo.vars.orgHost}:443"}' ''; 
+      };
+
+      locations."/.well-known/matrix/client" = {
+        extraConfig = ''
+      default_type application/json;
+      add_header Access-Control-Allow-Origin *;
+    '';
+
+        return = "200 '{\"m.homeserver\": {\"base_url\": \"https://matrix.${config.monorepo.vars.orgHost}\"}, \"org.matrix.msc4143.rtc_foci\": [{\"type\": \"livekit\", \"livekit_service_url\": \"https://matrix.${config.monorepo.vars.orgHost}:${toString livekitListenPort}\"}]}'";
+      };
+
+      extraConfig = ''
+            merge_slashes off;
+          '';
+    };
+
+
+    services.nginx.virtualHosts."matrix.${config.monorepo.vars.orgHost}-livekit" = lib.mkIf config.services.livekit.enable {
+      serverName = "matrix.${config.monorepo.vars.orgHost}";
+      listen = [
+        { 
+          addr = "0.0.0.0"; 
+          port = livekitListenPort;
+          ssl = true; 
+        }
+        {
+          addr = "[::]";
+          port = livekitListenPort;
+          ssl = true;
+        }
+      ];
+      addSSL = true;
+      enableACME = false;
+      forceSSL = false;
+      useACMEHost = "matrix.${config.monorepo.vars.orgHost}";
+      
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:${toString config.services.lk-jwt-service.port}"; 
+        proxyWebsockets = true;
+        extraConfig = ''
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+      '';
+      };
+    };
+
+    services.nginx.virtualHosts."livekit.${config.monorepo.vars.orgHost}" = lib.mkIf config.services.livekit.enable {
+      enableACME = true;
+      forceSSL = true;
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:${toString config.services.livekit.settings.port}";
+        proxyWebsockets = true;
+        extraConfig = ''
+              proxy_read_timeout 3600s;
+              proxy_send_timeout 3600s;
+
+              # Standard headers for LiveKit
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "upgrade";
+
+              # --- CORS CONFIGURATION START ---
+              # 1. Allow all origins (including app.element.io)
+              add_header 'Access-Control-Allow-Origin' '*' always;
+              
+              # 2. Allow specific methods (POST is required for /sfu/get)
+              add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, PUT, DELETE' always;
+              
+              # 3. Allow headers (Content-Type is crucial for JSON)
+              add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+              
+              # 4. Handle the OPTIONS preflight request immediately
+              if ($request_method = 'OPTIONS') {
+                 add_header 'Access-Control-Allow-Origin' '*' always;
+                 add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, PUT, DELETE' always;
+                 add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+                 add_header 'Access-Control-Max-Age' 1728000;
+                 add_header 'Content-Type' 'text/plain; charset=utf-8';
+                 add_header 'Content-Length' 0;
+                 return 204;
+                  }
+              # --- CORS CONFIGURATION END ---
+            '';
+      };
+    };
   }
 #+end_src
-** GoToSocial
+** TODO GoToSocial
 This is a basic ActivityPub server.
 #+begin_src nix :tangle ../nix/modules/gotosocial.nix
   { lib, config, ... }:
   {
     services.gotosocial = {
-      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      enable = lib.mkDefault false;
       setupPostgresqlDB = true;
       settings = {
         application-name = "Nullring GoToSocial Instance";
@@ -1023,17 +1230,6 @@ This is a basic ActivityPub server.
         bind-address = "127.0.0.1";
         port = 8080;
       };
-    };
-  }
-#+end_src
-** Matterbridge
-I want to connect IRC to discord with matterbridge.
-#+begin_src nix :tangle ../nix/modules/matterbridge.nix
-  { lib, config, ... }:
-  {
-    services.matterbridge = {
-      enable = lib.mkDefault config.monorepo.profiles.server.enable;
-      configPath = "${config.sops.templates.matterbridge.path}";
     };
   }
 #+end_src
@@ -1047,6 +1243,28 @@ I want to connect IRC to discord with matterbridge.
     settings = {
       homeserver.url = "https://matrix.nullring.xyz";
       homserver.domain = "matrix.nullring.xyz";
+    };
+  }
+#+end_src
+** Gitolite
+#+begin_src nix :tangle ../nix/modules/gitolite.nix
+  { lib, config, ... }:
+  {
+    services.gitolite = {
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      description = "My Gitolite User";
+      adminPubkey = config.monorepo.vars.sshKey;
+    };
+  }
+#+end_src
+** Matterbridge
+I want to connect IRC to discord with matterbridge.
+#+begin_src nix :tangle ../nix/modules/matterbridge.nix
+  { lib, config, ... }:
+  {
+    services.matterbridge = {
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      configPath = "${config.sops.templates.matterbridge.path}";
     };
   }
 #+end_src
@@ -1213,9 +1431,9 @@ Use ollama for serving large language models to my other computers.
   {
     # services.open-webui.enable = lib.mkDefault (!config.monorepo.profiles.server.enable);
     services.ollama = {
-      enable = lib.mkDefault (!config.monorepo.profiles.server.enable);
-      package = if (config.monorepo.profiles.workstation.enable) then pkgs.ollama-cuda else pkgs.ollama-vulkan;
-      loadModels = if (config.monorepo.profiles.workstation.enable) then [
+      enable = lib.mkDefault config.monorepo.profiles.desktop.enable;
+      package = if (config.monorepo.profiles.cuda.enable) then pkgs.ollama-cuda else pkgs.ollama-vulkan;
+      loadModels = if (config.monorepo.profiles.cuda.enable) then [
         "qwen3:30b"
         "qwen3-coder:latest"
         "qwen2.5-coder:latest"
@@ -1249,27 +1467,43 @@ I run my own git server in order to have a mirror in case github goes down.
       exportAll = true;
       basePath = "${config.users.users.git.home}";
     };
+    networking.firewall.allowedTCPPorts = lib.mkIf config.services.gitDaemon.enable [
+      9418
+    ];
   }
 #+end_src
 ** Ntfy
 I want to have notifications on my phone, and run my own server to do this.
 #+begin_src nix :tangle ../nix/modules/ntfy-sh.nix
   { pkgs, lib, config, ... }:
+  let
+    serverName = "ntfy.${config.monorepo.vars.remoteHost}";
+    port = 2586;
+    ntfySecret = "ntfy";
+  in
   {
+    sops.secrets."${ntfySecret}" = lib.mkIf config.services.ntfy-sh.enable {
+      format = "yaml";
+      owner = "ntfy-sh";
+    };
+
     services.ntfy-sh = {
       enable = lib.mkDefault config.monorepo.profiles.server.enable;
       settings = {
-        base-url = "https://ntfy.${config.monorepo.vars.remoteHost}";
-        listen-http = "127.0.0.1:2586";
-        envrionmentFile = "/run/secrets/ntfy";
+        base-url = "https://${serverName}";
+        listen-http = "127.0.0.1:${toString port}";
+        envrionmentFile = "/run/secrets/${ntfySecret}";
         auth-file = "/var/lib/ntfy-sh/user.db";
         auth-default-access = "deny-all";
         enable-login = true;
       };
     };
-    systemd.services.ntfy-sh = {
+
+    services.nginx.enable = config.services.ntfy-sh.enable;
+
+    systemd.services.ntfy-sh = lib.mkIf config.services.ntfy-sh.enable {
       serviceConfig = {
-        EnvironmentFile = "/run/secrets/ntfy";
+        EnvironmentFile = "/run/secrets/${ntfySecret}";
       };
       postStart = lib.mkForce ''
         # 1. Wait for the server to initialize the database
@@ -1301,6 +1535,24 @@ I want to have notifications on my phone, and run my own server to do this.
         fi
       '';
     };
+
+    networking.domains.subDomains."${serverName}" = lib.mkIf config.services.ntfy-sh.enable {};
+    services.nginx.virtualHosts."${serverName}" = lib.mkIf config.services.ntfy-sh.enable {
+      serverName = "${serverName}";
+      enableACME = true;
+      forceSSL = true;
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:${toString port}";
+        proxyWebsockets = true;
+        extraConfig = ''
+  proxy_buffering off;
+  proxy_set_header Host $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Forwarded-Proto $scheme;
+  '';
+      };
+    };
   }
 #+end_src
 ** Nginx
@@ -1310,198 +1562,30 @@ to the outside world under a domain.
 #+begin_src nix :tangle ../nix/modules/nginx.nix
   { config, lib, ... }:
   {
-    config = lib.mkIf config.monorepo.profiles.server.enable {
-      services.nginx = {
-        enable = true;
-        user = "nginx";
-        recommendedGzipSettings = true;
-        recommendedOptimisation = true;
-        recommendedTlsSettings = true;
-        recommendedProxySettings = false;
-        virtualHosts = {
-          "matrix.${config.monorepo.vars.orgHost}" = {
-            enableACME = config.monorepo.profiles.server.enable;
-            forceSSL = true;
-            listen = [
-              {
-                addr = "0.0.0.0";
-                port = 443;
-                ssl = true;
-              }
-              {
-                addr = "[::]";
-                port = 443;
-                ssl = true;
-              }
-              {
-                addr = "0.0.0.0";
-                port = 8448;
-                ssl = true;
-              }
-              {
-                addr = "[::]";
-                port = 8448;
-                ssl = true;
-              }
-            ];
-            locations."/_matrix/" = {
-              proxyPass = "http://127.0.0.1:6167";
-              extraConfig = ''
-              proxy_set_header Host $host;
-              proxy_buffers 32 16k;
-              proxy_read_timeout 5m;
-            '';
-            };
-            locations."= /.well-known/matrix/server" = {
-              extraConfig = ''
-        default_type application/json;
-        add_header Content-Type application/json;
-        add_header Access-Control-Allow-Origin *;
-      '';
-              
-              return = ''200 '{"m.server": "matrix.${config.monorepo.vars.orgHost}:443"}' ''; 
-            };
-            locations."/.well-known/matrix/client" = {
-              extraConfig = ''
-      default_type application/json;
-      add_header Access-Control-Allow-Origin *;
-    '';
+    services.nginx = {
+      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      user = "nginx";
+      recommendedGzipSettings = true;
+      recommendedOptimisation = true;
+      recommendedTlsSettings = true;
+      recommendedProxySettings = false;
+      virtualHosts = {
+        "${config.monorepo.vars.remoteHost}" = {
+          serverName = "${config.monorepo.vars.remoteHost}";
+          serverAliases = [ "${config.monorepo.vars.internetName}.${config.monorepo.vars.orgHost}" ];
+          root = "/var/www/${config.monorepo.vars.internetName}-website/";
+          addSSL = true;
+          enableACME = true;
+        };
 
-              return = "200 '{\"m.homeserver\": {\"base_url\": \"https://matrix.${config.monorepo.vars.orgHost}\"}, \"org.matrix.msc4143.rtc_foci\": [{\"type\": \"livekit\", \"livekit_service_url\": \"https://matrix.${config.monorepo.vars.orgHost}:8443\"}]}'";
-            };
-
+        # the port comes from ssh tunnelling
+        "music.${config.monorepo.vars.remoteHost}" = lib.mkIf config.monorepo.profiles.server.enable {
+          addSSL = true;
+          enableACME = true;
+          basicAuthFile = config.sops.secrets."mpd_password".path;
+          locations."/" = {
+            proxyPass = "http://localhost:8000";
             extraConfig = ''
-            merge_slashes off;
-          '';
-          };
-
-          "matrix.${config.monorepo.vars.orgHost}-livekit" = {
-            serverName = "matrix.${config.monorepo.vars.orgHost}";
-            listen = [
-              { 
-                addr = "0.0.0.0"; 
-                port = 8443; 
-                ssl = true; 
-              }
-              {
-                addr = "[::]";
-                port = 8443;
-                ssl = true;
-              }
-            ];
-            addSSL = true;
-            enableACME = false;
-            forceSSL = false;
-            useACMEHost = "matrix.${config.monorepo.vars.orgHost}";
-            
-            locations."/" = {
-              proxyPass = "http://127.0.0.1:6495"; 
-              proxyWebsockets = true;
-              extraConfig = ''
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-      '';
-            };
-          };
-
-          "livekit.${config.monorepo.vars.orgHost}" = {
-            enableACME = true;
-            forceSSL = true;
-            locations."/" = {
-              proxyPass = "http://127.0.0.1:7880";
-              proxyWebsockets = true;
-              extraConfig = ''
-              proxy_read_timeout 3600s;
-              proxy_send_timeout 3600s;
-
-              # Standard headers for LiveKit
-              proxy_set_header Host $host;
-              proxy_set_header X-Real-IP $remote_addr;
-              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              proxy_set_header X-Forwarded-Proto $scheme;
-              proxy_set_header Upgrade $http_upgrade;
-              proxy_set_header Connection "upgrade";
-
-              # --- CORS CONFIGURATION START ---
-              # 1. Allow all origins (including app.element.io)
-              add_header 'Access-Control-Allow-Origin' '*' always;
-              
-              # 2. Allow specific methods (POST is required for /sfu/get)
-              add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, PUT, DELETE' always;
-              
-              # 3. Allow headers (Content-Type is crucial for JSON)
-              add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
-              
-              # 4. Handle the OPTIONS preflight request immediately
-              if ($request_method = 'OPTIONS') {
-                 add_header 'Access-Control-Allow-Origin' '*' always;
-                 add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, PUT, DELETE' always;
-                 add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
-                 add_header 'Access-Control-Max-Age' 1728000;
-                 add_header 'Content-Type' 'text/plain; charset=utf-8';
-                 add_header 'Content-Length' 0;
-                 return 204;
-                  }
-              # --- CORS CONFIGURATION END ---
-            '';
-            };
-          };
-
-          "ntfy.${config.monorepo.vars.remoteHost}" = {
-            serverName = "ntfy.${config.monorepo.vars.remoteHost}";
-            enableACME = true;
-            forceSSL = true;
-            locations."/" = {
-              proxyPass = "http://127.0.0.1:2586";
-              proxyWebsockets = true;
-              extraConfig = ''
-  proxy_buffering off;
-  proxy_request_buffering off
-
-  proxy_set_header Host $host;
-  proxy_set_header X-Real-IP $remote_addr;
-  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-  proxy_set_header X-Forwarded-Proto $scheme;
-  '';
-            };
-          };
-
-  	      "${config.monorepo.vars.remoteHost}" = {
-            serverName = "${config.monorepo.vars.remoteHost}";
-            serverAliases = [ "${config.monorepo.vars.internetName}.${config.monorepo.vars.orgHost}" ];
-  	        root = "/var/www/${config.monorepo.vars.internetName}-website/";
-  	        addSSL = true;
-  	        enableACME = true;
-  	      };
-
-          "git.${config.monorepo.vars.orgHost}" = {
-            forceSSL = true;
-            enableACME = true;
-          };
-          "list.${config.monorepo.vars.orgHost}" = {
-            forceSSL = true;
-            enableACME = true;
-            locations."/" = {
-              proxyPass = "http://localhost:9090";
-              extraConfig = ''
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-          '';
-            };
-          };
-
-          # the port comes from ssh tunnelling
-          "music.${config.monorepo.vars.remoteHost}" = lib.mkIf config.monorepo.profiles.server.enable {
-            addSSL = true;
-            enableACME = true;
-            basicAuthFile = config.sops.secrets."mpd_password".path;
-            locations."/" = {
-              proxyPass = "http://localhost:8000";
-              extraConfig = ''
   proxy_buffering off;
   proxy_http_version 1.1;
   proxy_set_header Connection "";
@@ -1510,24 +1594,24 @@ to the outside world under a domain.
   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   proxy_read_timeout 36000s;
   '';
-            };
-          };
-
-          "${config.monorepo.vars.orgHost}" = {
-            serverName = "${config.monorepo.vars.orgHost}";
-            root = "/var/www/nullring/";
-            addSSL = true;
-            enableACME = true;
-          };
-
-          "mail.${config.monorepo.vars.orgHost}" = {
-            serverName = "mail.${config.monorepo.vars.orgHost}";
-            root = "/var/www/dummy";
-            addSSL = true;
-            enableACME = true;
           };
         };
+
+        "${config.monorepo.vars.orgHost}" = {
+          serverName = "${config.monorepo.vars.orgHost}";
+          root = "/var/www/nullring/";
+          addSSL = true;
+          enableACME = true;
+        };
       };
+    };
+
+    networking.firewall.allowedTCPPorts = lib.mkIf config.services.nginx.enable [ 80 443 ];
+
+    networking.domains.subDomains = lib.mkIf config.services.nginx.enable {
+      "${config.monorepo.vars.remoteHost}" = {};
+      "${config.monorepo.vars.orgHost}" = {};
+      "${config.monorepo.vars.internetName}.${config.monorepo.vars.orgHost}" = {};
     };
   }
 #+end_src
@@ -1535,9 +1619,12 @@ to the outside world under a domain.
 I have this cgit interface in order to integrate with public-inbox.
 #+begin_src nix :tangle ../nix/modules/cgit.nix
   { lib, config, ... }:
+  let
+    serverName = "git.${config.monorepo.vars.orgHost}";
+  in
   {
     services.cgit."my-projects" = {
-      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      enable = lib.mkDefault config.services.gitDaemon.enable;
       scanPath = "${config.users.users.git.home}"; 
       settings = {
         root-title = "Nullring Git Server";
@@ -1546,7 +1633,7 @@ I have this cgit interface in order to integrate with public-inbox.
         enable-log-filecount = 1;
         enable-log-linecount = 1;
         enable-index-owner = 0;
-        clone-prefix = "https://git.${config.monorepo.vars.orgHost}";
+        clone-prefix = "https://${serverName}";
         enable-tree-linenumbers = 1;
         strict-export = "git-daemon-export-ok";
       };
@@ -1555,8 +1642,14 @@ I have this cgit interface in order to integrate with public-inbox.
         checkExportOkFiles = true;
       };
       nginx = {
-        virtualHost = "git.${config.monorepo.vars.orgHost}";
+        virtualHost = "${serverName}";
       };
+    };
+
+    networking.domains.subDomains."${serverName}" = lib.mkIf config.services.cgit."my-projects".enable {};
+    services.nginx.virtualHosts."${serverName}" = lib.mkIf config.services.cgit."my-projects".enable {
+      forceSSL = true;
+      enableACME = true;
     };
   }
 #+end_src
@@ -1603,7 +1696,19 @@ I need CUDA on some computers because I run local LLMs.
 There is a non declarative part of setting dkims and spf.
 #+begin_src nix :tangle ../nix/modules/maddy.nix
   { lib, config, options, ... }:
+  let
+    emailServerName = "mail.${config.monorepo.vars.orgHost}";
+    serverName = "list.${config.monorepo.vars.orgHost}";
+    password_path = "mail_monorepo_password";
+  in
   {
+    sops.secrets = lib.mkIf config.services.maddy.enable {
+      "${password_path}" = lib.mkIf config.services.maddy.enable {
+        format = "yaml";
+        owner = "maddy";
+      };
+    };
+
     services.maddy = {
       enable = lib.mkDefault config.monorepo.profiles.server.enable;
       openFirewall = true;
@@ -1629,25 +1734,20 @@ There is a non declarative part of setting dkims and spf.
         "imap tls://0.0.0.0:993 tcp://0.0.0.0:143"
         "submission tls://0.0.0.0:465 tcp://0.0.0.0:587"
       ] options.services.maddy.config.default;
+
       ensureAccounts = (builtins.map (x: "${x}@${config.monorepo.vars.orgHost}") config.monorepo.vars.projects) ++ [
         "${config.monorepo.vars.internetName}@${config.monorepo.vars.orgHost}"
         "discussion@${config.monorepo.vars.orgHost}"
       ];
       ensureCredentials = lib.genAttrs config.services.maddy.ensureAccounts (name: {
-        passwordFile = "/run/secrets/mail_monorepo_password";
+        passwordFile = "/run/secrets/${password_path}";
       }) // {
         "${config.monorepo.vars.internetName}@${config.monorepo.vars.orgHost}" = {
           passwordFile = "/run/secrets/mail_password";
         };
       };
     };
-  }
-#+end_src
-*** Public Inbox
-This is my mailing list software that I will use to develop software.
-#+begin_src nix :tangle ../nix/modules/public_inbox.nix
-  { lib, config, ... }:
-  {
+
     systemd.tmpfiles.rules = [
       "C+ /var/lib/public-inbox/style.css 0644 public-inbox public-inbox - ${../data/public-inbox.css}"
     ];
@@ -1705,6 +1805,7 @@ This is my mailing list software that I will use to develop software.
       settings = {
         coderepo = lib.genAttrs config.monorepo.vars.projects (name: {
           dir = "${config.users.users.git.home}/${name}.git";
+          # works even if no cgit server running here, this is just the default
           cgitUrl = "https://git.${config.monorepo.vars.orgHost}/${name}.git";
         });
         publicinbox.css = ["/var/lib/public-inbox/style.css"];
@@ -1719,18 +1820,71 @@ This is my mailing list software that I will use to develop software.
         address = [ "${name}@${config.monorepo.vars.orgHost}" ];
         inboxdir = "/var/lib/public-inbox/${name}";
         url = "https://list.${config.monorepo.vars.orgHost}/${name}";
-        watch = [ "imaps://${name}${config.monorepo.vars.orgHost}@mail.${config.monorepo.vars.orgHost}/INBOX" ];
+        watch = [ "imaps://${name}${config.monorepo.vars.orgHost}@${emailServerName}/INBOX" ];
         coderepo = [ "${name}" ];
       }) // {
         "discussion" = {
           description = "Main Nullring Discussion Mailing List";
           address = [ "discussion@${config.monorepo.vars.orgHost}" ];
           inboxdir = "/var/lib/public-inbox/discuss";
-          url = "https://list.${config.monorepo.vars.orgHost}/discussion";
-          watch = [ "imaps://discussion%40${config.monorepo.vars.orgHost}@mail.${config.monorepo.vars.orgHost}/INBOX" ];
+          url = "https://${serverName}/discussion";
+          watch = [ "imaps://discussion%40${config.monorepo.vars.orgHost}@${emailServerName}/INBOX" ];
         };
       };
     };
+
+    networking.domains.baseDomains."${config.monorepo.vars.orgHost}" = lib.mkIf config.services.maddy.enable {
+      mx.data = [
+        {
+          preference = 10;
+          exchange = "${emailServerName}";
+        }
+      ];
+    };
+
+    networking.domains.subDomains = lib.mkIf config.services.maddy.enable {
+      "${serverName}" = {};
+      "${emailServerName}" = {};
+      "_dmarc.${config.monorepo.vars.orgHost}" = {
+        txt = {
+          data = "v=DMARC1; p=none";
+        };
+      };
+      "default._domainkey.${config.monorepo.vars.orgHost}" = {
+        txt = {
+          data = "v=DKIM1; k=rsa; p=${config.monorepo.vars.dkimKey}";
+        };
+      };
+    };
+
+    networking.firewall.allowedTCPPorts = lib.mkIf config.services.maddy.enable [
+      143
+      465
+      587
+      993
+    ];
+
+    services.nginx.virtualHosts."${serverName}" = lib.mkIf config.services.public-inbox.enable {
+      forceSSL = true;
+      enableACME = true;
+      locations."/" = {
+        proxyPass = "http://localhost:${toString config.services.public-inbox.http.port}";
+        extraConfig = ''
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+          '';
+      };
+    };
+
+    services.nginx.virtualHosts."${emailServerName}" = lib.mkIf config.services.maddy.enable {
+      serverName = "${emailServerName}";
+      root = "/var/www/dummy";
+      addSSL = true;
+      enableACME = true;
+    };
+
   }
 #+end_src
 *** Public Inbox CSS
@@ -2018,6 +2172,13 @@ because they enhance security.
       "public-inbox"
       "plugdev"
     ];
+    allDomains = 
+      (lib.attrNames config.networking.domains.baseDomains) ++ 
+      (lib.attrNames config.networking.domains.subDomains);
+
+    # 2. Generate BOTH possible outcomes in advance
+    prodHosts = map (dom: "${config.monorepo.profiles.server.ipv4} ${dom}") allDomains;
+    vmHosts = map (dom: "127.0.0.1 ${dom}") allDomains;
   in
   {
     imports = [
@@ -2053,6 +2214,40 @@ because they enhance security.
     environment.etc."wpa_supplicant.conf".text = ''
   country=CA
   '';
+    systemd.tmpfiles.rules = [
+      "d /srv/git 0755 git git -"
+    ];
+
+    zramSwap = lib.mkIf config.monorepo.profiles.desktop.enable {
+      enable = true;
+      algorithm = "zstd";
+      memoryPercent = 50;
+    };
+
+    virtualisation.vmVariant = lib.mkIf config.monorepo.profiles.server.enable {
+      sops.validateSopsFiles = false;
+      disko.devices = lib.mkForce {};
+      virtualisation.forwardPorts = [
+        { from = "host"; host.port = 10443; guest.port = 443; }
+        { from = "host"; host.port = 9080; guest.port = 80; }
+      ];
+      virtualisation.useNixStoreImage = false;
+      virtualisation.sharedDirectories.sops-keys = {
+        source = "/home/preston/.config/sops/age"; # Path to your host key
+        target = "/home/preston/.config/sops/age";
+      };
+      networking.extraHosts = lib.mkForce (lib.concatStringsSep "\n" vmHosts);
+      networking.defaultGateway = lib.mkForce null;
+      networking.interfaces."${config.monorepo.profiles.server.interface}".useDHCP = lib.mkForce true;
+
+      fileSystems."/" = lib.mkForce {
+        device = "/dev/disk/by-label/nixos";
+        fsType = "ext4";
+      };
+      systemd.services.sops-nix = {
+        unitConfig.RequiresMountsFor = "/home/preston/.config/sops/age";
+      };
+    };
 
     documentation = {
       enable = lib.mkDefault config.monorepo.profiles.documentation.enable;
@@ -2066,6 +2261,19 @@ because they enhance security.
     	    # /etc/securetty: list of terminals on which root is allowed to login.
     	    # See securetty(5) and login(1).
     	    '';
+      };
+    };
+
+
+    systemd.network.enable = lib.mkDefault config.monorepo.profiles.server.enable;
+    systemd.network.networks."40-${config.monorepo.profiles.server.interface}" = lib.mkIf config.monorepo.profiles.server.enable {
+      matchConfig.Name = "${config.monorepo.profiles.server.interface}";
+      networkConfig = {
+        IPv6AcceptRA = true;
+        IPv6PrivacyExtensions = false;
+      };
+      ipv6AcceptRAConfig = {
+        UseAutonomousPrefix = false;
       };
     };
 
@@ -2205,7 +2413,10 @@ because they enhance security.
     	  "ufs"
       ];
 
-      kernel.sysctl = {
+      kernel.sysctl = if config.monorepo.profiles.server.enable then {
+        "net.ipv6.conf.${config.monorepo.profiles.server.interface}.autoconf" = 0;
+        "net.ipv6.conf.${config.monorepo.profiles.server.interface}.accept_ra" = 1; 
+      } else {
         "kernel.ftrace_enabled" = false;
         "net.core.bpf_jit_enable" = false;
         "kernel.kptr_restrict" = 2;
@@ -2232,10 +2443,51 @@ because they enhance security.
     };
 
     networking = {
+      interfaces = lib.mkIf config.monorepo.profiles.server.enable {
+        "${config.monorepo.profiles.server.interface}" = {
+          ipv4.addresses = [
+            {
+              address = config.monorepo.profiles.server.ipv4;
+              prefixLength = 24;
+            }
+          ];
+          ipv6.addresses = [
+            {
+              address = config.monorepo.profiles.server.ipv6;
+              prefixLength = 64;
+            }
+          ];
+          useDHCP = lib.mkForce false;
+        };
+      };
+
+      defaultGateway = lib.mkIf config.monorepo.profiles.server.enable config.monorepo.profiles.server.gateway;
+      useDHCP = false;
+      tempAddresses = lib.mkIf config.monorepo.profiles.server.enable "disabled";
+      extraHosts = lib.mkIf config.monorepo.profiles.server.enable (lib.concatStringsSep "\n" prodHosts);
+
+      domains = lib.mkIf config.monorepo.profiles.server.enable {
+        enable = true;
+        baseDomains = {
+          "${config.monorepo.vars.remoteHost}" = {
+            a.data = config.monorepo.profiles.server.ipv4;
+            aaaa.data = config.monorepo.profiles.server.ipv6;
+          };
+          "${config.monorepo.vars.orgHost}" = {
+            a.data = config.monorepo.profiles.server.ipv4;
+            aaaa.data = config.monorepo.profiles.server.ipv6;
+            txt = {
+              data = "v=spf1 ip4:${config.monorepo.profiles.server.ipv4} ip6:${config.monorepo.profiles.server.ipv6} -all";
+            };
+          };
+        };
+      };
+
+
       nameservers = [ "8.8.8.8" "1.1.1.1"];
       dhcpcd.enable = (! config.monorepo.profiles.server.enable);
       networkmanager = {
-    	  enable = true;
+    	  enable = lib.mkForce (! config.monorepo.profiles.server.enable); # rpis need network
         wifi = {
           powersave = false;
         };
@@ -2287,8 +2539,8 @@ because they enhance security.
       graphics.enable = ! config.monorepo.profiles.ttyonly.enable;
 
       bluetooth = {
-        enable = lib.mkDefault (! config.monorepo.profiles.ttyonly.enable);
-        powerOnBoot = lib.mkDefault (! config.monorepo.profiles.ttyonly.enable);
+        enable = lib.mkDefault config.monorepo.profiles.desktop.enable;
+        powerOnBoot = lib.mkDefault config.monorepo.profiles.desktop.enable;
       };
     };
 
@@ -2338,7 +2590,7 @@ because they enhance security.
     security = {
       acme = {
         acceptTerms = true;
-        defaults.email = "ret2pop@gmail.com";
+        defaults.email = "${config.monorepo.vars.internetName}@gmail.com";
       };
       apparmor = {
         enable = true;
@@ -2706,6 +2958,7 @@ I have many imports that we'll go through next.
       ./user.nix
       ./gtk.nix
       ./secrets.nix
+      ./pantalaimon.nix
     ];
 
     options = {
@@ -2854,13 +3107,14 @@ I have many imports that we'll go through next.
   					          ]) else []);
 
       monorepo.profiles = {
-  	    enable = lib.mkDefault true;
+  	    enable = lib.mkDefault super.monorepo.profiles.home.enable;
   	    music.enable = lib.mkDefault config.monorepo.profiles.enable;
-  	    hyprland.enable = lib.mkDefault config.monorepo.profiles.enable;
   	    email.enable = lib.mkDefault config.monorepo.profiles.enable;
+        cuda.enable = lib.mkDefault super.monorepo.profiles.cuda.enable;
 
   	    # Programming
         graphics.enable = lib.mkDefault (! super.monorepo.profiles.ttyonly.enable);
+  	    hyprland.enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
   	    lang-c.enable = lib.mkDefault config.monorepo.profiles.enable;
   	    lang-rust.enable = lib.mkDefault config.monorepo.profiles.enable;
   	    lang-python.enable = lib.mkDefault config.monorepo.profiles.enable;
@@ -2877,7 +3131,7 @@ I have many imports that we'll go through next.
 
   	    crypto.enable = lib.mkDefault config.monorepo.profiles.enable;
   	    art.enable = lib.mkDefault config.monorepo.profiles.enable;
-  	    workstation.enable = lib.mkDefault config.monorepo.profiles.enable;
+  	    workstation.enable = lib.mkDefault super.monorepo.profiles.workstation.enable;
       };
     };
   }
@@ -2896,7 +3150,7 @@ These are some secrets that I use regularly for my programs in home.
         keyFile = "/home/${super.monorepo.vars.userName}/.config/sops/age/keys.txt";
       };
 
-      secrets = if config.monorepo.profiles.graphics.enable then {
+      secrets = if super.monorepo.profiles.desktop.enable then {
         mail = {
           format = "yaml";
           path = "${config.sops.defaultSymlinkPath}/mail";
@@ -3563,27 +3817,29 @@ here:
 #+begin_src nix :tangle ../nix/modules/home/gtk.nix
   { lib, config, pkgs, ... }:
   {
-    gtk = {
-      theme = {
-        name = "catppuccin-mocha-pink-standard";
-        package = pkgs.catppuccin-gtk.override {
-          variant = "mocha";
-          accents = [ "pink" ];
+    config = lib.mkIf config.monorepo.profiles.graphics.enable {
+      gtk = {
+        theme = {
+          name = "catppuccin-mocha-pink-standard";
+          package = pkgs.catppuccin-gtk.override {
+            variant = "mocha";
+            accents = [ "pink" ];
+          };
         };
       };
-    };
-    xdg.configFile = {
-      "gtk-4.0/assets".source = "${config.gtk.theme.package}/share/themes/${config.gtk.theme.name}/gtk-4.0/assets";
-      "gtk-4.0/gtk.css".source = "${config.gtk.theme.package}/share/themes/${config.gtk.theme.name}/gtk-4.0/gtk.css";
-      "gtk-4.0/gtk-dark.css".source = "${config.gtk.theme.package}/share/themes/${config.gtk.theme.name}/gtk-4.0/gtk-dark.css";
+      xdg.configFile = {
+        "gtk-4.0/assets".source = "${config.gtk.theme.package}/share/themes/${config.gtk.theme.name}/gtk-4.0/assets";
+        "gtk-4.0/gtk.css".source = "${config.gtk.theme.package}/share/themes/${config.gtk.theme.name}/gtk-4.0/gtk.css";
+        "gtk-4.0/gtk-dark.css".source = "${config.gtk.theme.package}/share/themes/${config.gtk.theme.name}/gtk-4.0/gtk-dark.css";
 
-      "gtk-3.0/gtk.css".source = "${config.gtk.theme.package}/share/themes/${config.gtk.theme.name}/gtk-3.0/gtk.css";
-      "gtk-3.0/gtk-dark.css".source = "${config.gtk.theme.package}/share/themes/${config.gtk.theme.name}/gtk-3.0/gtk-dark.css";
-      "gtk-3.0/settings.ini".text = ''
+        "gtk-3.0/gtk.css".source = "${config.gtk.theme.package}/share/themes/${config.gtk.theme.name}/gtk-3.0/gtk.css";
+        "gtk-3.0/gtk-dark.css".source = "${config.gtk.theme.package}/share/themes/${config.gtk.theme.name}/gtk-3.0/gtk-dark.css";
+        "gtk-3.0/settings.ini".text = ''
         [Settings]
         gtk-theme-name=${config.gtk.theme.name}
         gtk-application-prefer-dark-theme=1
       '';
+      };
     };
   }
 #+end_src
@@ -4080,7 +4336,7 @@ A classic program that allows you to download from youtube. Also has integration
   { lib, config, ... }:
   {
     services.pantalaimon = {
-      enable = lib.mkDefault config.monorepo.profiles.enable;
+      enable = lib.mkDefault false;
       settings = {
         Default = {
           LogLevel = "Debug";
@@ -4287,6 +4543,10 @@ for these configurations.
   stow */ # manage secrets with gnu stow
   cd "$HOME"
           '')
+        (writeShellScriptBin "spontaneity-ci"
+          ''
+  #!/bin/bash
+  nixos-rebuild build-vm --flake $HOME/monorepo/nix#spontaneity && QEMU_OPTS="-serial stdio" ./result/bin/run-spontaneity-vm 2>&1 | tee vm-boot.log'')
       ] else [
         pfetch
         # net
@@ -4307,7 +4567,7 @@ for these configurations.
       };
     };
     xdg.mimeApps = {
-      enable = true;
+      enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
       defaultApplications = {
         "x-scheme-handler/mailto" = "emacsclient-mail.desktop";
           "text/html" = "librewolf.desktop";
@@ -4382,6 +4642,7 @@ This is pretty understandable, if you understand all the above.
       monorepo = {
         profiles = {
           impermanence.enable = true;
+          desktop.enable = true;
         };
         vars = {
           device = "/dev/sda";
@@ -4400,7 +4661,6 @@ monorepo home options.
     imports = [
       ../home-common.nix
     ];
-    config.monorepo.profiles.workstation.enable = false;
   }
 #+end_src
 ** Affinity
@@ -4414,15 +4674,9 @@ as several other useful services.
       ../../disko/drive-simple.nix
     ];
     config = {
-      zramSwap = {
-        enable = true;
-        algorithm = "zstd";
-        memoryPercent = 50;
-      };
       monorepo = {
         vars.device = "/dev/nvme0n1";
         profiles = {
-          server.enable = false;
           cuda.enable = true;
           workstation.enable = true;
         };
@@ -4438,9 +4692,6 @@ I want cuda in home manager too.
     imports = [
       ../home-common.nix
     ];
-    config.monorepo = {
-      profiles.cuda.enable = true;
-    };
   }
 #+end_src
 ** rpi-zero
@@ -4461,7 +4712,6 @@ I want cuda in home manager too.
       monorepo = {
         vars.device = "/dev/mmcblk0";
         profiles = {
-          server.enable = false;
           ttyonly.enable = true;
         };
       };
@@ -4483,156 +4733,33 @@ Spontaneity is my VPS instance. Note that much of this is not fully reproducible
 some DNS records to match what you have on your system after deployment.
 #+begin_src nix :tangle ../nix/systems/spontaneity/default.nix
   { config, lib, ... }:
-    let
-      ipv4addr = "66.42.84.130";
-      ipv6addr = "2001:19f0:5401:10d0:5400:5ff:fe4a:7794";
-    in
-    {
-      imports = [
-        ../common.nix
-        ../../disko/drive-bios.nix
+  {
+    imports = [
+      ../common.nix
+      ../../disko/drive-bios.nix
 
-        # nixos-anywhere generates this file
-        ./hardware-configuration.nix
-      ];
-      config = {
-        monorepo = {
-          vars.device = "/dev/vda";
-          profiles = {
-            server.enable = true;
-            ttyonly.enable = true;
-            grub.enable = true;
-            pipewire.enable = false;
-            tor.enable = false;
-            home.enable = false;
-          };
-        };
-
-        boot.loader.grub.device = "nodev";
-        boot.kernel.sysctl = {
-          "net.ipv6.conf.ens3.autoconf" = 0;
-          # Keep accept_ra = 1 so you still get the default gateway/route!
-          "net.ipv6.conf.ens3.accept_ra" = 1; 
-        };
-
-        systemd.network.enable = true;
-        systemd.network.networks."40-ens3" = {
-          matchConfig.Name = "ens3";
-          networkConfig = {
-            IPv6AcceptRA = true;
-            IPv6PrivacyExtensions = false;
-          };
-          ipv6AcceptRAConfig = {
-            UseAutonomousPrefix = false;
-          };
-        };
-        networking = {
-          useDHCP = lib.mkForce false;
-          networkmanager.enable = lib.mkForce false;
-          tempAddresses = "disabled";
-          extraHosts = ''
-      127.0.0.1 livekit.${config.monorepo.vars.orgHost}
-      127.0.0.1 matrix.${config.monorepo.vars.orgHost}
-    '';
-          interfaces.ens3.ipv4.addresses = [
-            {
-              address = ipv4addr;
-              prefixLength = 24;
-            }
-          ];
-          interfaces.ens3.useDHCP = lib.mkForce false;
-          interfaces.ens3.ipv6.addresses = [
-            {
-              address = ipv6addr;
-              prefixLength = 64;
-            }
-          ];
-          defaultGateway = "66.42.84.1";
-          firewall = {
-            allowedTCPPorts = [
-              80
-              143
-              443
-              465
-              587
-              993
-              3478
-              5349
-              6697
-              6667
-              7881
-              8443
-              8448
-              9418
-            ];
-            allowedUDPPorts = [
-              3478 5349 7882
-            ];
-            allowedUDPPortRanges = [
-              { from = 49152; to = 65535; }
-            ];
-          };
-          domains = {
+      # nixos-anywhere generates this file
+      ./hardware-configuration.nix
+    ];
+    config = {
+      monorepo = {
+        vars.device = "/dev/vda";
+        profiles = {
+          server = {
             enable = true;
-            baseDomains = {
-              "${config.monorepo.vars.remoteHost}" = {
-                a.data = ipv4addr;
-                aaaa.data = ipv6addr;
-              };
-              "${config.monorepo.vars.orgHost}" = {
-                a.data = ipv4addr;
-                aaaa.data = ipv6addr;
-
-                mx.data = [
-                  {
-                    preference = 10;
-                    exchange = "mail.${config.monorepo.vars.orgHost}";
-                  }
-                ];
-                txt = {
-                  data = "v=spf1 ip4:${ipv4addr} ip6:${ipv6addr} -all";
-                };
-              };
-            };
-            subDomains = {
-              "${config.monorepo.vars.remoteHost}" = {};
-              "notes.${config.monorepo.vars.remoteHost}" = {
-                a.data = "45.76.87.125";
-              };
-
-              "_dmarc.${config.monorepo.vars.orgHost}" = {
-                txt = {
-                  data = "v=DMARC1; p=none";
-                };
-              };
-
-              "default._domainkey.${config.monorepo.vars.orgHost}" = {
-                txt = {
-                  data = "v=DKIM1; k=rsa; p=${config.monorepo.vars.dkimKey}";
-                };
-              };
-
-              "ntfy.${config.monorepo.vars.remoteHost}" = {};
-              "matrix.${config.monorepo.vars.remoteHost}" = {};
-              "www.${config.monorepo.vars.remoteHost}" = {};
-              "music.${config.monorepo.vars.remoteHost}" = {};
-              "mail.${config.monorepo.vars.remoteHost}" = {
-              };
-
-              "livekit.${config.monorepo.vars.orgHost}" = {};
-              "${config.monorepo.vars.orgHost}" = {};
-              "git.${config.monorepo.vars.orgHost}" = {};
-              "matrix.${config.monorepo.vars.orgHost}" = {};
-              "social.${config.monorepo.vars.orgHost}" = {};
-              "list.${config.monorepo.vars.orgHost}" = {};
-              "talk.${config.monorepo.vars.orgHost}" = {};
-              "mail.${config.monorepo.vars.orgHost}" = {};
-              "${config.monorepo.vars.internetName}.${config.monorepo.vars.orgHost}" = {};
-            };
+            ipv4 = "66.42.84.130";
+            gateway = "66.42.84.1";
+            ipv6 = "2001:19f0:5401:10d0:5400:5ff:fe4a:7794";
+            interface = "ens3";
           };
+          grub.enable = true;
+          pipewire.enable = false;
+          tor.enable = false;
         };
       };
-    }
+      boot.loader.grub.device = "nodev";
+    };
+  }
 #+end_src
 ** Home
 #+begin_src nix :tangle ../nix/systems/spontaneity/home.nix
@@ -4641,7 +4768,6 @@ some DNS records to match what you have on your system after deployment.
     imports = [
       ../home-common.nix
     ];
-    config.monorepo.profiles.enable = false;
   }
 #+end_src
 ** Installer

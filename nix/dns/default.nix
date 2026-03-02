@@ -1,3 +1,0 @@
-{
-  defaultTTL = 120;
-}

@@ -835,10 +835,10 @@ I use tabs because sometimes I like using the mouse (it's actually more efficien
 ** Lean4
 For some reason, lean4-mode is not in MELPA currently so I have to do this ugly thing:
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package lean4-mode
+  (unless noninteractive (use-package lean4-mode
     :commands lean4-mode
     :vc (:url "https://github.com/leanprover-community/lean4-mode.git"
-         :rev "76895d8939111654a472cfc617cfd43fbf5f1eb6"))
+         :rev "76895d8939111654a472cfc617cfd43fbf5f1eb6")))
 #+end_src
 and actually pull something from the internet instead of pinning. Thankfully this reproduction issue is probably localized to lean files. Also,
 we're pulling a specific commit so it is still pinned. If it fails to fetch, lean4 is broken I guess.

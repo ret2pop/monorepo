@@ -41,15 +41,22 @@ fi
       website = pkgs.stdenv.mkDerivation {
         name = "org-publish-website";
         src = pkgs.lib.cleanSource ./.;
-        buildInputs = [ ci-emacs ];
+        buildInputs = [
+          ci-emacs
+          pkgs.git
+        ];
         buildPhase = ''
+export HOME=$TMPDIR/fake-home
+mkdir -p $HOME/.emacs.d
 mkdir -p public
+ln -s "$(pwd)" $HOME/monorepo
 emacs -Q --batch \
+  --eval '(setq noninteractive t)' \
   --eval '(setq system-email "ci@dummy.local")' \
   --eval '(setq system-username "ci-runner")' \
   --eval '(setq system-fullname "CI Pipeline")' \
   --eval '(setq system-gpgkey "00000000")' \
-  -l ./nix/init.el \
+  -l ${hyprnixmacs}/init.el \
   --eval '(org-publish-all t)'
           '';
 

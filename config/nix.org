@@ -33,7 +33,6 @@ We start with some configurable variables (you can change these if you want to u
 
     # Hostnames of my systems
     hostnames = [
-      "rpi-zero"
       "affinity"
       "continuity"
       "spontaneity"
@@ -109,141 +108,246 @@ and now for the main flake:
         ...
     }
       @attrs:
-      let
-        vars = import ./flakevars.nix;
-        system = "x86_64-linux";
+        let
+          vars = import ./flakevars.nix;
+          system = "x86_64-linux";
 
-        pkgs = import nixpkgs { inherit system; };
-        generate = nixos-dns.utils.generate nixpkgs.legacyPackages."${system}";
+          pkgs = import nixpkgs { inherit system; };
+          generate = nixos-dns.utils.generate nixpkgs.legacyPackages."${system}";
 
-        dnsConfig = {
-          inherit (self) nixosConfigurations;
-          extraConfig = import ./dns/default.nix;
-        };
+          dnsConfig = {
+            inherit (self) nixosConfigurations;
+            extraConfig = import ./dns/default.nix;
+          };
 
-        # function that generates all systems from hostnames
-        mkConfigs = map (hostname:
-          let
-            isRpi = (builtins.match "rpi-.*" hostname) != null;
-            hostSystem = if isRpi then "aarch64-linux" else system;
-          in
-          {
+          rpiCheck = hostname: (builtins.match "rpi-.*" hostname) != null;
+          noRpi = builtins.filter (hostname: (! rpiCheck hostname));
+          noInstaller = builtins.filter (hostname: (hostname != "installer"));
+          filterHosts = noInstaller (noRpi vars.hostnames);
+
+          mkHostModules = hostname:
+            if (hostname == "installer") then ([
+              (./. + "/systems/${hostname}/default.nix")
+              { networking.hostName = "${hostname}"; }
+              nix-topology.nixosModules.default
+            ]) else (if (rpiCheck hostname) then [
+              (./. + "/systems/${hostname}/default.nix")
+              disko.nixosModules.disko
+              home-manager.nixosModules.home-manager
+              sops-nix.nixosModules.sops
+              lanzaboote.nixosModules.lanzaboote
+            ] else [
+              {
+                environment.systemPackages = with nixpkgs.lib; [
+                  deep-research.packages."${system}".deep-research
+                ];
+              }
+              impermanence.nixosModules.impermanence
+              nix-topology.nixosModules.default
+              lanzaboote.nixosModules.lanzaboote
+              disko.nixosModules.disko
+              home-manager.nixosModules.home-manager
+              sops-nix.nixosModules.sops
+              nixos-dns.nixosModules.dns
+              {
+                nixpkgs.overlays = [ nur.overlays.default ];
+                home-manager.extraSpecialArgs = attrs // {
+                  systemHostName = "${hostname}";
+                };
+                networking.hostName = "${hostname}";
+              }
+              (./. + "/systems/${hostname}/default.nix")
+            ]);
+
+          # function that generates all systems from hostnames
+          mkConfigs = map (hostname:
+            let
+              hostSystem = if (rpiCheck hostname) then "aarch64-linux" else system;
+            in
+              {
+                name = "${hostname}";
+                value = nixpkgs.lib.nixosSystem {
+                  system = hostSystem;
+                  specialArgs = attrs // { isIntegrationTest = false; };
+                  modules = mkHostModules hostname;
+                };
+              });
+
+          mkDiskoFiles = map (hostname: {
             name = "${hostname}";
-            value = nixpkgs.lib.nixosSystem {
-              system = hostSystem;
-              specialArgs = attrs;
-              modules = if (hostname == "installer") then [
-                (./. + "/systems/${hostname}/default.nix")
-                { networking.hostName = "${hostname}"; }
-                nix-topology.nixosModules.default
-              ] else (if isRpi then [
-                (./. + "/systems/${hostname}/default.nix")
-                disko.nixosModules.disko
-                home-manager.nixosModules.home-manager
-                sops-nix.nixosModules.sops
-                lanzaboote.nixosModules.lanzaboote
-              ] else ([
-                {
-                  environment.systemPackages = with nixpkgs.lib; [
-                    deep-research.packages."${system}".deep-research
-                  ];
-                }
-                impermanence.nixosModules.impermanence
-                nix-topology.nixosModules.default
-                lanzaboote.nixosModules.lanzaboote
-                disko.nixosModules.disko
-                home-manager.nixosModules.home-manager
-                sops-nix.nixosModules.sops
-                nixos-dns.nixosModules.dns
-                {
-                  nixpkgs.overlays = [ nur.overlays.default ];
-                  home-manager.extraSpecialArgs = attrs // {
-                    systemHostName = "${hostname}";
-                  };
-                  networking.hostName = "${hostname}";
-                }
-                (./. + "/systems/${hostname}/default.nix")
-              ]));
+            value = self.nixosConfigurations."${hostname}".config.monorepo.vars.diskoSpec;
+          });
+
+          mkBuildChecks = map (hostname: {
+            name = "${hostname}-build-check";
+            value = {
+              enable = true;
+              name = "${hostname}-vm-build";
+              description = "Ensure ${hostname} can build";
+              entry = "${pkgs.writeShellScript "${hostname}-check"''
+  BRANCH=$(git branch --show-current)
+  GIT_DIR=$(git rev-parse --git-dir)
+
+  if [ "$BRANCH" != "main" ] || [ ! -f "$GIT_DIR/MERGE_HEAD" ]; then
+    exit 0
+  fi
+  echo "Merge to main detected. Building VM for ${hostname}..."
+  nix build .#nixosConfigurations.${hostname}.config.system.build.vm --no-link
+  ''}";
+              pass_filenames = false;
             };
           });
 
-        mkDiskoFiles = map (hostname: {
-          name = "${hostname}";
-          value = self.nixosConfigurations."${hostname}".config.monorepo.vars.diskoSpec;
-        });
+          hostToServices = (hostname:
+            let
+              super = self.nixosConfigurations."${hostname}".config;
+            in
+              [
+                {
+                  serviceName = "nginx";
+                  enabled = super.services.nginx.enable;
+                }
+                {
+                  serviceName = "sshd";
+                  enabled = super.services.openssh.enable;
+                }
+                # {
+                #   serviceName = "conduit";
+                #   enabled = super.services.matrix-conduit.enable;
+                # }
+                {
+                  serviceName = "git-daemon";
+                  enabled = super.services.gitDaemon.enable;
+                }
+                {
+                  serviceName = "tor";
+                  enabled = super.services.tor.enable;
+                }
+              ]);
 
-        pre-commit-check = git-hooks.lib.${system}.run {
-          src = ./.;
-          hooks = {
-            statix.enable = false;
-            deadnix.enable = true;
+          _mkServiceTestScripts = hostname: services: builtins.concatStringsSep "\n" (builtins.map (service:
+            (if service.enabled then ''
+  ${hostname}.succeed("systemctl is-active ${service.serviceName}")
+  '' else "")) services);
 
-            # Custom VM Boot Check
-            # This runs the build-vm derivation to ensure it compiles
-            vm-build-check = {
-              enable = true;
-              name = "vps-vm-build";
-              description = "Ensure VPS configuration is buildable as a VM";
-              entry = "nix build .#nixosConfigurations.spontaneity.config.system.build.vm --no-link";
-              pass_filenames = false;
-            };
-          };
-        };
-      in
-        {
-          checks."${system}" = {
-            inherit pre-commit-check;
-          };
+          mkServiceTestScripts = hostname: _mkServiceTestScripts hostname (hostToServices hostname);
 
-          nixosConfigurations = builtins.listToAttrs (mkConfigs vars.hostnames);
-
-          evalDisko = builtins.listToAttrs (mkDiskoFiles (builtins.filter (x: x != "installer") vars.hostnames));
-
-          topology."${system}" = import nix-topology {
-            pkgs = import nixpkgs {
-              inherit system;
-              overlays = [ nix-topology.overlays.default ];
-            };
-            modules = [
-              ./topology/default.nix
-              { nixosConfigurations = self.nixosConfigurations; }
-            ];
-          };
-
-          devShell."${system}" = with pkgs; mkShell {
-            inherit (pre-commit-check) shellHook;
-            buildInputs = [
-              fira-code
-              python3
-              poetry
-              statix
-              deadnix
-            ];
-          };
-
-          packages."${system}" = {
-            zoneFiles = generate.zoneFiles dnsConfig;
-            octodns = generate.octodnsConfig {
-              inherit dnsConfig;
-              
-              config = {
-                providers = {
-                  cloudflare = {
-                    class = "octodns_cloudflare.CloudflareProvider";
-                    token = "env/CLOUDFLARE_TOKEN";
+          mkIntegrationTests = builtins.map (hostname: 
+            let
+              lib = nixpkgs.lib;
+              hostPkgs = self.nixosConfigurations."${hostname}".pkgs;
+              hardwareConfig = ./systems/${hostname}/hardware-configuration.nix;
+            in
+              {
+                name = "integration-test-${hostname}";
+                value = hostPkgs.testers.runNixOSTest {
+                  name = "services-test-${hostname}";
+                  nodes = {
+                    "${hostname}" = { ... }: {
+                      _module.args = attrs // { isIntegrationTest = true; };
+                      imports = mkHostModules hostname ++ [
+                        "${nixpkgs}/nixos/modules/misc/nixpkgs/read-only.nix"
+                        {
+                          nixpkgs.pkgs = lib.mkVMOverride hostPkgs;
+                          nixpkgs.config = lib.mkForce {};
+                          systemd.services.systemd-networkd-wait-online.enable = lib.mkForce false;
+                          systemd.services.NetworkManager-wait-online.enable = lib.mkForce false;
+                          nixpkgs.overlays = lib.mkForce [];
+                        }
+                      ];
+                      disabledModules = [ 
+                        ./modules/nixpkgs-options.nix
+                      ]
+                      ++ lib.optional (builtins.pathExists hardwareConfig) hardwareConfig;
+                    };
                   };
-                  config = {
-                    check_origin = false;
+                  testScript = ''
+  ${hostname}.start()
+  ${hostname}.wait_for_unit("default.target")
+  ${hostname}.succeed('printf "smoke"')
+  ${mkServiceTestScripts hostname}
+  '';
+                };
+              }
+          );
+
+          integrationTests = builtins.listToAttrs (mkIntegrationTests filterHosts);
+          pre-commit-check = git-hooks.lib.${system}.run {
+            src = ./.;
+            hooks = builtins.listToAttrs (mkBuildChecks filterHosts) // {
+              statix.enable = false;
+              deadnix.enable = true;
+              prevent-direct-main-commits = {
+                enable = true;
+                name = "Prevent direct commits to main";
+                description = "Blocks commits to main unless they are merge commits";
+                pass_filenames = false;
+                entry = "${pkgs.writeShellScript "block-main-commits" ''
+  BRANCH=$(git branch --show-current)
+  GIT_DIR=$(git rev-parse --git-dir)
+  if [ "$BRANCH" = "main" ] && [ ! -f "$GIT_DIR/MERGE_HEAD" ]; then
+    echo "Direct commits to 'main' are blocked."
+    echo "Please commit to a feature branch and merge it into main."
+    exit 1
+  fi
+                ''}";
+              };
+            };
+          };
+        in
+          {
+            checks."${system}" = integrationTests // {
+              inherit pre-commit-check;
+            };
+
+            nixosConfigurations = builtins.listToAttrs (mkConfigs vars.hostnames);
+            evalDisko = builtins.listToAttrs (mkDiskoFiles (noInstaller vars.hostnames));
+
+            topology."${system}" = import nix-topology {
+              pkgs = import nixpkgs {
+                inherit system;
+                overlays = [ nix-topology.overlays.default ];
+              };
+              modules = [
+                ./topology/default.nix
+                { nixosConfigurations = self.nixosConfigurations; }
+              ];
+            };
+
+            devShell."${system}" = with pkgs; mkShell {
+              inherit (pre-commit-check) shellHook;
+              buildInputs = [
+                fira-code
+                python3
+                poetry
+                statix
+                deadnix
+              ];
+            };
+
+            packages."${system}" = {
+              zoneFiles = generate.zoneFiles dnsConfig;
+              octodns = generate.octodnsConfig {
+                inherit dnsConfig;
+                
+                config = {
+                  providers = {
+                    cloudflare = {
+                      class = "octodns_cloudflare.CloudflareProvider";
+                      token = "env/CLOUDFLARE_TOKEN";
+                    };
+                    config = {
+                      check_origin = false;
+                    };
                   };
                 };
-              };
-              zones = {
-                "${vars.remoteHost}." = nixos-dns.utils.octodns.generateZoneAttrs [ "cloudflare" ];
-                "${vars.orgHost}." = nixos-dns.utils.octodns.generateZoneAttrs [ "cloudflare" ];
+                zones = {
+                  "${vars.remoteHost}." = nixos-dns.utils.octodns.generateZoneAttrs [ "cloudflare" ];
+                  "${vars.orgHost}." = nixos-dns.utils.octodns.generateZoneAttrs [ "cloudflare" ];
+                };
               };
             };
           };
-        };
   }
 #+end_src
 Note that the configurations are automatically generated with he mkConfigs function, and the final disko output is automatically generated
@@ -560,7 +664,8 @@ under ~default.nix~ in the ~systems~ folder.
 #+end_src
 ** Secrets
 This uses sops in order to declaratively create the secrets on my system by unencrypting
-the yaml file specified. Yes, this is safe to include in the repo.
+the yaml file specified. Yes, this is safe to include in the repo. TODO clean up secrets, move them
+to relevant places.
 #+begin_src nix :tangle ../nix/modules/secrets.nix
   { config, ... }:
   {
@@ -683,7 +788,7 @@ My Xorg configuration is used as a backup for when wayland applications don't wo
 using this configuration is extremely inefficient and my i3 configuration is unoptimized.
 Still, it is suitable for using Krita.
 #+begin_src nix :tangle ../nix/modules/xserver.nix
-  { lib, config, pkgs, ... }:
+  { config, ... }:
   {
     services.xserver = {
       enable = (! config.monorepo.profiles.ttyonly.enable);
@@ -715,7 +820,7 @@ You should add your own video drivers in a custom machine configuration.
 ** Containers
 In order to run docker/podman containers, I need this file:
 #+begin_src nix :tangle ../nix/modules/docker.nix
-  { lib, config, vars, ... }:
+  { ... }:
   {
     # virtualisation = {
     #   oci-containers = {
@@ -826,7 +931,7 @@ I use IPFS for my website and also for my ISOs for truly declarative and determi
 configuration. NixOS might be moving to IPFS for binary cache distribution and package
 distribution soon, and I'm waiting on that.
 #+begin_src nix :tangle ../nix/modules/kubo.nix
-  { config, pkgs, lib, ... }:
+  { config, lib, ... }:
   {
     services.kubo = {
       enable = lib.mkDefault config.monorepo.profiles.workstation.enable;
@@ -850,7 +955,7 @@ distribution soon, and I'm waiting on that.
 ** TODO i2pd
 I use i2p for some p2p connections. We enable it with the server profile:
 #+begin_src nix :tangle ../nix/modules/i2pd.nix
-  { config, lib, ... }:
+  { lib, ... }:
   {
     services.i2pd = {
       enable = lib.mkDefault false;
@@ -865,7 +970,7 @@ I use i2p for some p2p connections. We enable it with the server profile:
 ** TODO Icecast
 This is an internet radio which will host a ton of music.
 #+begin_src nix :tangle ../nix/modules/icecast.nix
-  { lib, config, ... }:
+  { lib, ... }:
   {
     services.icecast = {
       enable = lib.mkDefault false;
@@ -1670,7 +1775,7 @@ I have an Nvidia GPU on my computer.
 ** CUDA
 I need CUDA on some computers because I run local LLMs.
 #+begin_src nix :tangle ../nix/modules/cuda.nix
-  { config, lib, pkgs, ... }:
+  { config, pkgs, ... }:
   {
     environment.systemPackages = (if config.monorepo.profiles.cuda.enable then with pkgs; [
   	cudatoolkit
@@ -1727,7 +1832,7 @@ There is a non declarative part of setting dkims and spf.
         "${config.monorepo.vars.internetName}@${config.monorepo.vars.orgHost}"
         "discussion@${config.monorepo.vars.orgHost}"
       ];
-      ensureCredentials = lib.genAttrs config.services.maddy.ensureAccounts (name: {
+      ensureCredentials = lib.genAttrs config.services.maddy.ensureAccounts (_: {
         passwordFile = "/run/secrets/${password_path}";
       }) // {
         "${config.monorepo.vars.internetName}@${config.monorepo.vars.orgHost}" = {
@@ -2141,6 +2246,23 @@ This is my impermanence profile, which removes all files on reboot except for th
     };
   }
 #+end_src
+** Nixpkgs
+#+begin_src nix :tangle ../nix/modules/nixpkgs-options.nix
+  { lib, config, isIntegrationTest, ... }:
+  {
+    nixpkgs = lib.mkIf (! isIntegrationTest) {
+      hostPlatform = lib.mkDefault "x86_64-linux";
+      config = {
+        allowUnfree = true;
+        cudaSupport = lib.mkDefault config.monorepo.profiles.cuda.enable;
+      };
+      config.permittedInsecurePackages = [
+        "python3.13-ecdsa-0.19.1"
+        "olm-3.2.16"
+      ];
+    };
+  }
+#+end_src
 ** Main Configuration
 This is the backbone of the all the NixOS configurations, with all these options being shared
 because they enhance security.
@@ -2188,15 +2310,14 @@ because they enhance security.
       ./i2pd.nix
       ./conduit.nix
       ./bitcoin.nix
-      ./murmur.nix
       ./ngircd.nix
       ./znc.nix
       ./docker.nix
       ./impermanence.nix
-      ./coturn.nix
       ./maddy.nix
       ./ntfy-sh.nix
       ./fail2ban.nix
+      ./nixpkgs-options.nix
     ];
 
     environment.etc."wpa_supplicant.conf".text = ''
@@ -2212,21 +2333,26 @@ because they enhance security.
       memoryPercent = 50;
     };
 
-    virtualisation.vmVariant = lib.mkIf config.monorepo.profiles.server.enable {
+    virtualisation.vmVariant = {
       sops.validateSopsFiles = false;
       disko.devices = lib.mkForce {};
-      virtualisation.forwardPorts = [
+
+      virtualisation.forwardPorts = lib.mkIf config.monorepo.profiles.server.enable [
         { from = "host"; host.port = 10443; guest.port = 443; }
         { from = "host"; host.port = 9080; guest.port = 80; }
       ];
+
       virtualisation.useNixStoreImage = false;
+
       virtualisation.sharedDirectories.sops-keys = {
-        source = "/home/preston/.config/sops/age"; # Path to your host key
+        source = "/home/preston/.config/sops/age";
         target = "/home/preston/.config/sops/age";
       };
+
       networking.extraHosts = lib.mkForce (lib.concatStringsSep "\n" vmHosts);
       networking.defaultGateway = lib.mkForce null;
-      networking.interfaces."${config.monorepo.profiles.server.interface}".useDHCP = lib.mkForce true;
+
+      networking.interfaces.eth0.useDHCP = lib.mkForce true;
 
       fileSystems."/" = lib.mkForce {
         device = "/dev/disk/by-label/nixos";
@@ -2245,10 +2371,10 @@ because they enhance security.
 
     environment = {
       etc = {
-    	  securetty.text = ''
-    	    # /etc/securetty: list of terminals on which root is allowed to login.
-    	    # See securetty(5) and login(1).
-    	    '';
+        securetty.text = ''
+          # /etc/securetty: list of terminals on which root is allowed to login.
+          # See securetty(5) and login(1).
+        '';
       };
     };
 
@@ -2270,11 +2396,11 @@ because they enhance security.
       coredump.enable = false;
       network.config.networkConfig.IPv6PrivacyExtensions = "kernel";
       tmpfiles.settings = {
-    	  "restrictetcnixos"."/etc/nixos/*".Z = {
-    	    mode = "0000";
-    	    user = "root";
-    	    group = "root";
-    	  };
+        "restrictetcnixos"."/etc/nixos/*".Z = {
+          mode = "0000";
+          user = "root";
+          group = "root";
+        };
       };
     };
 
@@ -2567,14 +2693,6 @@ because they enhance security.
       ssh.enableAskPassword = false;
     };
 
-    nixpkgs = {
-      hostPlatform = lib.mkDefault "x86_64-linux";
-      config = {
-        allowUnfree = true;
-        cudaSupport = lib.mkDefault config.monorepo.profiles.cuda.enable;
-      };
-    };
-
     security = {
       acme = {
         acceptTerms = true;
@@ -2586,9 +2704,6 @@ because they enhance security.
         packages = with pkgs; [
           apparmor-profiles
         ];
-        # policies = {
-        #   firefox.path = "${pkgs.apparmor-profiles}/share/apparmor/extra-profiles/firefox";
-        # };
       };
 
       pam.loginLimits = [
@@ -2654,7 +2769,7 @@ because they enhance security.
       )
     ];
 
-    users.groups = lib.genAttrs userGroups (name: lib.mkDefault {});
+    users.groups = lib.genAttrs userGroups (_: lib.mkDefault {});
 
     users.users = lib.genAttrs userGroups (name: {
       isSystemUser = lib.mkDefault true;
@@ -2721,11 +2836,6 @@ because they enhance security.
       };
     };
 
-    nixpkgs.config.permittedInsecurePackages = [
-      "python3.13-ecdsa-0.19.1"
-      "olm-3.2.16"
-    ];
-
     nix = {
       settings = {
         keep-outputs = true;
@@ -2754,7 +2864,7 @@ This is the disko configuration for my continuity system. It features a boot and
 with configurable disk.
 *** Btrfs
 #+begin_src nix :tangle ../nix/disko/btrfs-simple.nix
-  { lib, config, ... }:
+  { config, ... }:
   let
     spec = {
       disko.devices = {
@@ -2835,7 +2945,7 @@ with configurable disk.
 *** Simple
 This configuration is used for simple partitioning schemes with EFI.
 #+begin_src nix :tangle ../nix/disko/drive-simple.nix
-  { lib, config, ... }:
+  { config, ... }:
   let
     spec = {
       disko.devices = {
@@ -2881,7 +2991,7 @@ This configuration is used for simple partitioning schemes with EFI.
 *** BIOS
 For machines that use BIOS instead of EFI.
 #+begin_src nix :tangle ../nix/disko/drive-bios.nix
-  { config, lib, ... }:
+  { config, ... }:
   let
     spec = {
       disko.devices = {
@@ -3067,7 +3177,7 @@ I have many imports that we'll go through next.
   					          ++
   					          (if config.monorepo.profiles.art.enable then (with pkgs; [
   						          inkscape
-  						          # krita
+  						          krita
   					          ]) else [])
   					          ++
   					          (if config.monorepo.profiles.music.enable then (with pkgs; [
@@ -3080,7 +3190,7 @@ I have many imports that we'll go through next.
   			                alsa-scarlett-gui
   				              ardour
   				              audacity
-  					            # blender
+  					            blender
                         foxdot
   			                fluidsynth
   			                qjackctl
@@ -3089,9 +3199,8 @@ I have many imports that we'll go through next.
   			                imagemagick
                         supercollider
   			                inkscape
-  			                # kdePackages.kdenlive
-  			                # kicad
-                        murmur
+  			                kdePackages.kdenlive
+  			                kicad
   					          ]) else []);
 
       monorepo.profiles = {
@@ -4321,7 +4430,7 @@ A classic program that allows you to download from youtube. Also has integration
 #+end_src
 *** pantalaimon
 #+begin_src nix :tangle ../nix/modules/home/pantalaimon.nix
-  { lib, config, ... }:
+  { lib, ... }:
   {
     services.pantalaimon = {
       enable = lib.mkDefault false;
@@ -4345,7 +4454,7 @@ A classic program that allows you to download from youtube. Also has integration
 My zsh config has some useful aliases that one should read through. Otherwise it is pretty
 standard.
 #+begin_src nix :tangle ../nix/modules/home/zsh.nix
-  { lib, config, pkgs, systemHostName, ... }:
+  { config, pkgs, systemHostName, ... }:
   {
     programs.zsh = {
       enable = true;
@@ -4398,7 +4507,7 @@ This configuration is the backbone configuration for the default user. It specif
 generally useful packages and something every home should have, as well as some dependencies
 for these configurations.
 #+begin_src nix :tangle ../nix/modules/home/user.nix
-  { lib, config, super, pkgs, ... }:
+  { lib, config, pkgs, ... }:
   {
     home = {
       activation.startup-files = lib.hm.dag.entryAfter [ "installPackages" ] ''
@@ -4597,7 +4706,7 @@ the path.
 These are the common includes for each of my systems. This ensures that we don't have to duplicate includes every time we want to add a new
 system. Also more common configuration can go here.
 #+begin_src nix :tangle ../nix/systems/common.nix
-  { config, lib, ... }:
+  { ... }:
   {
     imports = [
       ./home.nix
@@ -4609,7 +4718,7 @@ system. Also more common configuration can go here.
 *** Home Manager Common
 Also I want to have the same kind of file for the home namespace.
 #+begin_src nix :tangle ../nix/systems/home-common.nix
-  { lib, config, ... }:
+  { ... }:
   {
     imports = [
       ../modules/home/default.nix
@@ -4644,7 +4753,7 @@ This is pretty understandable, if you understand all the above.
 Each system has a corresponding home configuration in order to set
 monorepo home options.
 #+begin_src nix :tangle ../nix/systems/continuity/home.nix
-  { lib, config, pkgs, ... }:
+  { ... }:
   {
     imports = [
       ../home-common.nix
@@ -4655,7 +4764,7 @@ monorepo home options.
 This is my configuration for my workstation. It runs ollama, as well
 as several other useful services.
 #+begin_src nix :tangle ../nix/systems/affinity/default.nix
-  { config, lib, home-manager, ... }:
+  { ... }:
   {
     imports = [
       ../common.nix
@@ -4675,7 +4784,7 @@ as several other useful services.
 *** Home
 I want cuda in home manager too.
 #+begin_src nix :tangle ../nix/systems/affinity/home.nix
-  { lib, config, pkgs, ... }:
+  { ... }:
   {
     imports = [
       ../home-common.nix
@@ -4684,7 +4793,7 @@ I want cuda in home manager too.
 #+end_src
 ** rpi-zero
 #+begin_src nix :tangle ../nix/systems/rpi-zero/default.nix
-  { lib, config, home-manager, ... }:
+  { ... }:
   {
     imports = [
       ../common.nix
@@ -4708,7 +4817,7 @@ I want cuda in home manager too.
 #+end_src
 *** Home
 #+begin_src nix :tangle ../nix/systems/rpi-zero/home.nix
-  { lib, config, pkgs, ... }:
+  { ... }:
   {
     imports = [
       ../home-common.nix
@@ -4720,7 +4829,7 @@ I want cuda in home manager too.
 Spontaneity is my VPS instance. Note that much of this is not fully reproducible; you must change the IPs yourself and you must change
 some DNS records to match what you have on your system after deployment.
 #+begin_src nix :tangle ../nix/systems/spontaneity/default.nix
-  { config, lib, ... }:
+  { ... }:
   {
     imports = [
       ../common.nix
@@ -4751,7 +4860,7 @@ some DNS records to match what you have on your system after deployment.
 #+end_src
 ** Home
 #+begin_src nix :tangle ../nix/systems/spontaneity/home.nix
-  { lib, config, pkgs, ... }:
+  { ... }:
   {
     imports = [
       ../home-common.nix
@@ -4775,7 +4884,7 @@ work deterministically.
 *** ISO Default Profile
 This contains the installation script I use to install my systems.
 #+begin_src nix :tangle ../nix/systems/installer/default.nix
-  { pkgs, config, lib, modulesPath, ... }:
+  { pkgs, lib, modulesPath, ... }:
   let
     commits = import ./commits.nix;
   in
@@ -4792,7 +4901,7 @@ This contains the installation script I use to install my systems.
         allowedTCPPorts = [ 22 ];
         allowedUDPPorts = [ ];
       };
-      wireless.enable = false;
+      wireless.enable = lib.mkForce false;
     };
     services.openssh = {
       enable = true;

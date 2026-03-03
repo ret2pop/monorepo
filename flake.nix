@@ -1,5 +1,6 @@
 {
-  description = "Build my static site";
+  description = "Build my static site with my installer";
+
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     git-hooks = {
@@ -8,6 +9,7 @@
     };
     hyprnixmacs.url = "git+file:./nix";
   };
+
   outputs = { nixpkgs, git-hooks, hyprnixmacs, self, ... }:
     let
       system = "x86_64-linux";
@@ -34,7 +36,7 @@ fi
         };
       };
 
-      emacsPackages = import ./nix/modules/home/emacs-packages.nix;
+      emacsPackages = import  "${hyprnixmacs}/modules/home/emacs-packages.nix";
       ci-emacs = pkgs.emacs-nox.pkgs.withPackages emacsPackages;
       website = pkgs.stdenv.mkDerivation {
         name = "org-publish-website";

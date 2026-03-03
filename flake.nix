@@ -6,7 +6,7 @@
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    hyprnixmacs.url = "path:./nix";
+    hyprnixmacs.url = "git+file:./nix";
   };
   outputs = { nixpkgs, git-hooks, hyprnixmacs, self, ... }:
     let

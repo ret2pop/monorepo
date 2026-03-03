@@ -1,5 +1,5 @@
 ./website/**
-nix/result
+./result/**
 .env
 
 .gemini/

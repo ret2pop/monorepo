@@ -43,7 +43,9 @@ We start with some configurable variables (you can change these if you want to u
 * Flake.nix
 The flake is the entry point of the NixOS configuration. Here, I have a list of all the systems
 that I use with all the modules that they use. My NixOS configuration is heavily modularized,
-so that adding new configurations that add modifications is made simple.
+so that adding new configurations that add modifications is made simple. Additionally I have implemented
+integration tests for my systems in an automated way (it'll do integration tests for services that are enabled),
+with ~nix flake check~. I have implemented also git hooks which help with CI.
 
 and now for the main flake:
 #+begin_src nix :tangle ../nix/flake.nix
@@ -93,7 +95,7 @@ and now for the main flake:
     };
 
     outputs = {
-      self,
+        self,
         nixpkgs,
         home-manager,
         nur,
@@ -184,17 +186,17 @@ and now for the main flake:
               enable = true;
               name = "${hostname}-vm-build";
               description = "Ensure ${hostname} can build";
-              entry = "${pkgs.writeShellScript "${hostname}-check"''
+              stages = [ "post-merge" ];
+              entry = "${pkgs.writeShellScript "${hostname}-check" ''
   BRANCH=$(git branch --show-current)
-  GIT_DIR=$(git rev-parse --git-dir)
-
-  if [ "$BRANCH" != "main" ] || [ ! -f "$GIT_DIR/MERGE_HEAD" ]; then
+  if [ "$BRANCH" != "main" ]; then
     exit 0
   fi
   echo "Merge to main detected. Building VM for ${hostname}..."
   nix build .#nixosConfigurations.${hostname}.config.system.build.vm --no-link
   ''}";
               pass_filenames = false;
+              always_run = true;
             };
           });
 
@@ -315,7 +317,6 @@ and now for the main flake:
             };
 
             devShell."${system}" = with pkgs; mkShell {
-              inherit (pre-commit-check) shellHook;
               buildInputs = [
                 fira-code
                 python3
@@ -323,6 +324,7 @@ and now for the main flake:
                 statix
                 deadnix
               ];
+              inherit (pre-commit-check) shellHook;
             };
 
             packages."${system}" = {
@@ -3341,93 +3343,98 @@ as an org file which gets automatically tangled to an emacs-lisp file.
   (load "${pkgs.writeText "init.el" (builtins.readFile ../../init.el)}")
   '';
 
-        extraPackages = epkgs: [
-          epkgs.agda2-mode
-          epkgs.all-the-icons
-          epkgs.auctex
-          epkgs.catppuccin-theme
-          epkgs.company
-          epkgs.company-solidity
-          epkgs.counsel
-          epkgs.centaur-tabs
-          epkgs.dashboard
-          epkgs.doom-themes
-          epkgs.doom-modeline
-          epkgs.elfeed
-          epkgs.elfeed-org
-          epkgs.elfeed-tube
-          epkgs.elfeed-tube-mpv
-          epkgs.elpher
-          epkgs.ement
-          epkgs.emmet-mode
-          epkgs.emms
-          epkgs.enwc
-          epkgs.evil
-          epkgs.evil-collection
-          epkgs.evil-commentary
-          epkgs.evil-org
-          epkgs.f
-          epkgs.flycheck
-          epkgs.general
-          epkgs.gptel
-          epkgs.gruvbox-theme
-          epkgs.haskell-mode
-          epkgs.htmlize
-          epkgs.idris-mode
-          epkgs.irony-eldoc
-          epkgs.ivy
-          epkgs.ivy-pass
-          epkgs.kiwix
-          epkgs.latex-preview-pane
-          epkgs.lsp-ivy
-          epkgs.lsp-mode
-          epkgs.lsp-haskell
-          epkgs.lyrics-fetcher
-          epkgs.mastodon
-          epkgs.magit
-          epkgs.magit-delta
-          epkgs.mu4e
-          epkgs.minuet
-          epkgs.nix-mode
-          epkgs.org-fragtog
-          epkgs.org-journal
-          epkgs.org-roam
-          epkgs.org-roam-ui
-          epkgs.org-superstar
-          epkgs.page-break-lines
-          epkgs.password-store
-          epkgs.pdf-tools
-          epkgs.pinentry
-          epkgs.platformio-mode
-          epkgs.projectile
-          epkgs.rustic
-          epkgs.scad-mode
-          epkgs.simple-httpd
-          epkgs.solidity-flycheck
-          epkgs.solidity-mode
-          epkgs.sudo-edit
-          epkgs.telega
-          epkgs.treemacs
-          epkgs.treemacs-evil
-          epkgs.treemacs-magit
-          epkgs.treemacs-projectile
-          epkgs.treesit-auto
-          epkgs.typescript-mode
-          epkgs.unicode-fonts
-          epkgs.use-package
-          epkgs.vterm
-          epkgs.wgrep
-          epkgs.web-mode
-          epkgs.websocket
-          epkgs.which-key
-          epkgs.writegood-mode
-          epkgs.writeroom-mode
-          epkgs.yaml-mode
-          epkgs.yasnippet
-          epkgs.yasnippet-snippets
-        ];
+        extraPackages = import ./emacs-packages.nix;
       };
   }
+#+end_src
+**** Emacs Packages
+I want to separate out these packages so that my parent flake which builds my website has a list of my packages.
+#+begin_src nix :tangle ../nix/modules/home/emacs-packages.nix
+  epkgs: [
+    epkgs.agda2-mode
+    epkgs.all-the-icons
+    epkgs.auctex
+    epkgs.catppuccin-theme
+    epkgs.company
+    epkgs.company-solidity
+    epkgs.counsel
+    epkgs.centaur-tabs
+    epkgs.dashboard
+    epkgs.doom-themes
+    epkgs.doom-modeline
+    epkgs.elfeed
+    epkgs.elfeed-org
+    epkgs.elfeed-tube
+    epkgs.elfeed-tube-mpv
+    epkgs.elpher
+    epkgs.ement
+    epkgs.emmet-mode
+    epkgs.emms
+    epkgs.enwc
+    epkgs.evil
+    epkgs.evil-collection
+    epkgs.evil-commentary
+    epkgs.evil-org
+    epkgs.f
+    epkgs.flycheck
+    epkgs.general
+    epkgs.gptel
+    epkgs.gruvbox-theme
+    epkgs.haskell-mode
+    epkgs.htmlize
+    epkgs.idris-mode
+    epkgs.irony-eldoc
+    epkgs.ivy
+    epkgs.ivy-pass
+    epkgs.kiwix
+    epkgs.latex-preview-pane
+    epkgs.lsp-ivy
+    epkgs.lsp-mode
+    epkgs.lsp-haskell
+    epkgs.lyrics-fetcher
+    epkgs.mastodon
+    epkgs.magit
+    epkgs.magit-delta
+    epkgs.mu4e
+    epkgs.minuet
+    epkgs.nix-mode
+    epkgs.org-fragtog
+    epkgs.org-journal
+    epkgs.org-roam
+    epkgs.org-roam-ui
+    epkgs.org-superstar
+    epkgs.page-break-lines
+    epkgs.password-store
+    epkgs.pdf-tools
+    epkgs.pinentry
+    epkgs.platformio-mode
+    epkgs.projectile
+    epkgs.rustic
+    epkgs.scad-mode
+    epkgs.simple-httpd
+    epkgs.solidity-flycheck
+    epkgs.solidity-mode
+    epkgs.sudo-edit
+    epkgs.telega
+    epkgs.treemacs
+    epkgs.treemacs-evil
+    epkgs.treemacs-magit
+    epkgs.treemacs-projectile
+    epkgs.treesit-auto
+    epkgs.typescript-mode
+    epkgs.unicode-fonts
+    epkgs.use-package
+    epkgs.vterm
+    epkgs.wgrep
+    epkgs.web-mode
+    epkgs.websocket
+    epkgs.which-key
+    epkgs.writegood-mode
+    epkgs.writeroom-mode
+    epkgs.yaml-mode
+    epkgs.yasnippet
+    epkgs.yasnippet-snippets
+  ]
 #+end_src
 *** Gammastep
 This is a program like redshift for making your screen emit more red and less blue light. Here
@@ -4871,22 +4878,16 @@ some DNS records to match what you have on your system after deployment.
 My installer installs my systems almost completely without interaction. You can also make them
 install the exact version of the system that you want it to by pinning the commits to make it
 always work in the exact same deterministic way.
-*** Commit Hash Pinning
-Modify this to pin the installer image hash to make the installer image always
-work deterministically.
-#+begin_src nix :tangle ../nix/systems/installer/commits.nix
-  {
-    diskoCommitHash = "c8a0e78d86b12ea67be6ed0f7cae7f9bfabae75a";
-    monorepoCommitHash = "7d8501ebc97fc238d73dee4638ab58eb32a11dc1";
-    monorepoUrl = "https://github.com/ret2pop/monorepo";
-  }
-#+end_src
 *** ISO Default Profile
 This contains the installation script I use to install my systems.
 #+begin_src nix :tangle ../nix/systems/installer/default.nix
-  { pkgs, lib, modulesPath, ... }:
+  { pkgs, lib, modulesPath, disko, monorepoSelf ? null, self, ... }:
   let
-    commits = import ./commits.nix;
+    commits = {
+      diskoCommitHash = disko.rev or "dirty";
+      monorepoCommitHash = if monorepoSelf != null then (monorepoSelf.rev or "dirty") else (self.rev or "dirty");
+      monorepoUrl = "https://github.com/ret2pop/monorepo";
+    };
   in
   {
     imports = [
@@ -4941,7 +4942,7 @@ This contains the installation script I use to install my systems.
   ping -q -c1 google.com &>/dev/null && echo "online! Proceeding with the installation..." || nmtui
 
   if [ ! -d "$HOME/monorepo/" ]; then
-    git clone ${commits.monorepoUrl}
+    git clone ${commits.monorepoUrl} --recurse-submodules
     cd "$HOME/monorepo"
     git checkout "${commits.monorepoCommitHash}"
     cd "$HOME"

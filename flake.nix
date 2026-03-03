@@ -51,12 +51,18 @@ mkdir -p $HOME/.emacs.d
 mkdir -p public
 ln -s "$(pwd)" $HOME/monorepo
 emacs -Q --batch \
+  -l ${hyprnixmacs}/init.el \
   --eval '(setq noninteractive t)' \
   --eval '(setq system-email "ci@dummy.local")' \
   --eval '(setq system-username "ci-runner")' \
   --eval '(setq system-fullname "CI Pipeline")' \
   --eval '(setq system-gpgkey "00000000")' \
-  -l ${hyprnixmacs}/init.el \
+  --eval '(setq package-archives nil)' \
+  --eval '(setq use-package-always-ensure nil)' \
+  --eval '(setq package-vc-selected-packages nil)' \
+  --eval '(defalias (quote scroll-bar-mode) (quote ignore))' \
+  --eval '(defalias (quote tool-bar-mode) (quote ignore))' \
+  --eval '(defalias (quote menu-bar-mode) (quote ignore))' \
   --eval '(org-publish-all t)'
           '';
 

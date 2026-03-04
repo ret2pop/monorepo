@@ -611,6 +611,22 @@
         "type": "github"
       }
     },
+    "nixpkgs_7": {
+      "locked": {
+        "lastModified": 1772542754,
+        "narHash": "sha256-WGV2hy+VIeQsYXpsLjdr4GvHv5eECMISX1zKLTedhdg=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "8c809a146a140c5c8806f13399592dbcb1bb5dc4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nur": {
       "inputs": {
         "flake-parts": "flake-parts_3",
@@ -627,6 +643,23 @@
       "original": {
         "owner": "nix-community",
         "repo": "NUR",
+        "type": "github"
+      }
+    },
+    "org-roam-ui-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1731155379,
+        "narHash": "sha256-vgJswjY+y9MGzmFznhjFYDBwE+wuubnAKGfqyiDeRIo=",
+        "owner": "ikoamu",
+        "repo": "org-roam-ui",
+        "rev": "a68a24d2cc70ff213fbc971c225d1ff473ae6364",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ikoamu",
+        "ref": "publish-org-roam-ui",
+        "repo": "org-roam-ui",
         "type": "github"
       }
     },
@@ -659,11 +692,31 @@
         "type": "github"
       }
     },
+    "publish-org-roam-ui": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_7",
+        "org-roam-ui-src": "org-roam-ui-src"
+      },
+      "locked": {
+        "lastModified": 1772610081,
+        "narHash": "sha256-gIPpwSYCC52RFp7IShK1GdPNOSVPFoIgyw7A8vO6hyE=",
+        "ref": "refs/heads/main",
+        "rev": "fa45b54f9544a1ca68ae470cbc031eac56d4ee7e",
+        "revCount": 101,
+        "type": "git",
+        "url": "git://nullring.xyz/publish-org-roam-ui.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "git://nullring.xyz/publish-org-roam-ui.git"
+      }
+    },
     "root": {
       "inputs": {
         "git-hooks": "git-hooks",
         "hyprnixmacs": "hyprnixmacs",
-        "nixpkgs": "nixpkgs_6"
+        "nixpkgs": "nixpkgs_6",
+        "publish-org-roam-ui": "publish-org-roam-ui"
       }
     },
     "rust-overlay": {

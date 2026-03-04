@@ -11,15 +11,10 @@
 
     publish-org-roam-ui = {
       url = "git://nullring.xyz/publish-org-roam-ui.git";
-      flake = false;
-    };
-    org-roam-ui = {
-      url = "github:ikoamu/org-roam-ui/publish-org-roam-ui";
-      flake = false;
     };
   };
 
-  outputs = { nixpkgs, git-hooks, hyprnixmacs, self, publish-org-roam-ui, org-roam-ui, ... }:
+  outputs = { nixpkgs, git-hooks, hyprnixmacs, self, publish-org-roam-ui, ... }:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
@@ -43,41 +38,6 @@ fi
                 ''}";
           };
         };
-      };
-      publish-deps = pkgs.stdenv.mkDerivation {
-        name = "publish-scripts-node-modules";
-        src = publish-org-roam-ui; # <-- Changed this line
-        nativeBuildInputs = [ pkgs.nodejs ];
-        buildPhase = ''
-          export HOME=$TMPDIR
-          npm install
-          npm install fuse.js
-        '';
-        installPhase = ''
-          mkdir -p $out
-          cp -r node_modules $out/
-        '';
-        outputHashMode = "recursive";
-        outputHashAlgo = "sha256";
-        outputHash = pkgs.lib.fakeHash;
-      };
-
-      org-roam-ui-deps = pkgs.stdenv.mkDerivation {
-        name = "org-roam-ui-node-modules";
-        src = org-roam-ui;
-        nativeBuildInputs = [ pkgs.yarn pkgs.nodejs ];
-        buildPhase = ''
-          export HOME=$TMPDIR
-          yarn config set cache-folder $TMPDIR/.yarn-cache
-          yarn install
-        '';
-        installPhase = ''
-          mkdir -p $out
-          cp -r node_modules $out/
-        '';
-        outputHashMode = "recursive";
-        outputHashAlgo = "sha256";
-        outputHash = pkgs.lib.fakeHash; # We will update this after the first run!
       };
 
       emacsPackages = import  "${hyprnixmacs}/modules/home/emacs-packages.nix";
@@ -168,33 +128,11 @@ emacs -q --batch \
   --eval '(add-hook (quote org-publish-after-export-hook) (lambda (file) (font-lock-ensure)))' \
   --eval '(org-publish-all t)' \
   --eval '(org-publish-all nil)' || (echo "FAIL:" && cat /build/*.log && exit 1)
-
-echo "Setting up Org-Roam-UI..."
-export NIX_ENV=1
-export ROAM_DB_PATH=$HOME/.emacs.d/org-roam.db
-export ROAM_IMG_PATH=$HOME/monorepo/mindmap/img
-export ROAM_PATH=$HOME/monorepo/mindmap
-export UI_SRC=${org-roam-ui}
-
-cp -r ${publish-org-roam-ui} $HOME/publish-script
-chmod -R +w $HOME/publish-script
-cd $HOME/publish-script
-
-# Inject NPM modules safely
-cp -r ${publish-deps}/node_modules ./node_modules
-chmod -R +w ./node_modules
-
-# Run the patched local.sh
-bash local.sh || echo "Graph script hit a non-fatal error"
-
-# Inject Yarn modules safely
-cp -r ${org-roam-ui-deps}/node_modules ./org-roam-ui/node_modules
-chmod -R +w ./org-roam-ui/node_modules
-
-cd org-roam-ui/standalone
-bash build-standalone-server.sh ../..
-
-cp -r ../../out $HOME/website_html/graph_view
+          echo "Setting up Graph View..."
+${publish-org-roam-ui.packages.${system}.default}/bin/build-org-roam-graph \
+  $HOME/.emacs.d/org-roam.db \
+  $HOME/monorepo/mindmap \
+  $HOME/website_html/graph_view
           '';
 
         installPhase = ''

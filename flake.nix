@@ -69,6 +69,7 @@ export TEXMFVAR=$HOME/.cache/texmf
 mkdir -p $HOME/monorepo
 cp -a . $HOME/monorepo/
 cd $HOME/monorepo
+mkdir -p mindmap/img
 
 cat <<EOF > $TMPDIR/policy.xml
 <policymap>
@@ -103,12 +104,25 @@ emacs -q --batch \
   --eval '(setq org-startup-indented nil)' \
   --eval '(setq org-export-with-latex t)' \
   --eval '(setq org-confirm-babel-evaluate nil)' \
+  --eval '(setq load-prefer-newer t)' \
+  --eval '(setq custom-safe-themes t)' \
   -l ${hyprnixmacs}/init.el \
   --eval "(org-babel-do-load-languages 'org-babel-load-languages '((latex . t)))" \
   --eval '(setq org-roam-directory (expand-file-name "mindmap" (expand-file-name "~/monorepo")))' \
   --eval '(setq org-id-track-globally t)' \
   --eval '(org-roam-db-sync)' \
-  --eval '(org-publish-all t)' || (echo "FAIL:" && cat /build/*.log && exit 1)
+  --eval '(setq term-file-prefix nil)' \
+  --eval '(load-theme (quote doom-rouge) t)' \
+  --eval '(setq htmlize-output-type (quote font))' \
+  --eval '(setq custom-safe-themes t)' \
+  --eval '(force-mode-line-update)' \
+  --eval '(setq org-html-link-use-abs-url nil)' \
+  --eval '(setq default-directory (expand-file-name "~/monorepo"))' \
+  --eval '(setq org-html-link-use-abs-url nil)' \
+  --eval '(setq org-html-link-org-files-as-html t)' \
+  --eval '(add-hook (quote org-publish-after-export-hook) (lambda (file) (font-lock-ensure)))' \
+  --eval '(org-publish-all t)' \
+  --eval '(org-publish-all nil)' || (echo "FAIL:" && cat /build/*.log && exit 1)
           '';
 
         installPhase = ''
@@ -127,7 +141,7 @@ cp -r $HOME/website_html/. $out/
         };
 
         packages."${system}" = {
-          default = website;
+          website = website;
           installer = self.nixosConfigurations.installer.config.system.build.isoImage;
         };
         devShells."${system}".default = with pkgs; mkShell {

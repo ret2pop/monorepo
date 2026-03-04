@@ -402,7 +402,7 @@ We set up eglot, the LSP manager for emacs, now built in:
 *** C/C++
 Specific configuration for C (I also use the clangd lsp):
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package irony-mode
+  (use-package irony
     :hook (
     (c++-mode . irony-mode)
     (c-mode . irony-mode)

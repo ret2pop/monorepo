@@ -378,11 +378,11 @@
         "wallpapers": "wallpapers"
       },
       "locked": {
-        "lastModified": 1772585057,
-        "narHash": "sha256-xQdkR4vMeNXQHs8Vu2Xh1URw/aCKA40Rud1o/CkIcnA=",
+        "lastModified": 1772587375,
+        "narHash": "sha256-Ki3eMeMp53oyunJVXVDqL9BwgQjPYd7Z1VRJmUaW1Pc=",
         "ref": "refs/heads/main",
-        "rev": "a011d4e4dbccb963b7b98c0cd2de1e333132789c",
-        "revCount": 105,
+        "rev": "bd540a2121f3107cb3f9385114688eb99c2316c3",
+        "revCount": 106,
         "type": "git",
         "url": "git://nullring.xyz/hyprnixmacs.git"
       },

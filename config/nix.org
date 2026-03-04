@@ -3362,6 +3362,7 @@ I want to separate out these packages so that my parent flake which builds my we
     epkgs.dashboard
     epkgs.doom-themes
     epkgs.doom-modeline
+    epkgs.irony
     epkgs.elfeed
     epkgs.elfeed-org
     epkgs.elfeed-tube

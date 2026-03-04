@@ -44,26 +44,64 @@ fi
         buildInputs = [
           ci-emacs
           pkgs.git
+          pkgs.aspell 
+          pkgs.aspellDicts.en
+          pkgs.sqlite
+          pkgs.ghostscript
+          pkgs.imagemagick
+          (pkgs.texlive.combine {
+            inherit (pkgs.texlive)
+              scheme-full
+              circuitikz
+              standalone
+              dvipng
+              capt-of
+              dvisvgm;
+          })
         ];
         buildPhase = ''
 export HOME=$TMPDIR/fake-home
 mkdir -p $HOME/.emacs.d
 mkdir -p public
+mkdir -p .cache/texmf
+
+export TEXMFVAR=$HOME/.cache/texmf
 ln -s "$(pwd)" $HOME/monorepo
-emacs -Q --batch \
-  -l ${hyprnixmacs}/init.el \
+
+cat <<EOF > $TMPDIR/policy.xml
+<policymap>
+  <policy domain="coder" rights="read|write" pattern="{PDF,PS,EPS,GS}" />
+</policymap>
+EOF
+export MAGICK_CONFIGURE_PATH=$TMPDIR
+export FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf
+export FONTCONFIG_PATH=${pkgs.fontconfig.out}/etc/fonts/
+export XDG_CACHE_HOME=$TMPDIR/.cache
+
+emacs -q --batch \
   --eval '(setq noninteractive t)' \
-  --eval '(setq system-email "ci@dummy.local")' \
+  --eval '(setq system-email "lol@troll.com")' \
   --eval '(setq system-username "ci-runner")' \
-  --eval '(setq system-fullname "CI Pipeline")' \
+  --eval '(setq system-fullname "CI")' \
   --eval '(setq system-gpgkey "00000000")' \
+  --eval '(defun package-vc-install (&rest args) (message "blocked package-vc-install for %s" args))' \
+  --eval '(defun package-vc--unpack (&rest args) nil)' \
   --eval '(setq package-archives nil)' \
   --eval '(setq use-package-always-ensure nil)' \
   --eval '(setq package-vc-selected-packages nil)' \
   --eval '(defalias (quote scroll-bar-mode) (quote ignore))' \
   --eval '(defalias (quote tool-bar-mode) (quote ignore))' \
   --eval '(defalias (quote menu-bar-mode) (quote ignore))' \
-  --eval '(org-publish-all t)'
+  --eval '(provide (quote lean4-mode))' \
+  --eval "(setq org-latex-pdf-process (quote (\"xelatex -shell-escape -interaction nonstopmode %f\")))" \
+  --eval '(setq org-startup-with-latex-preview nil)' \
+  --eval '(setq org-startup-indented nil)' \
+  --eval '(setq org-export-with-latex t)' \
+  --eval '(setq org-confirm-babel-evaluate nil)' \
+  -l ${hyprnixmacs}/init.el \
+  --eval "(org-babel-do-load-languages 'org-babel-load-languages '((latex . t)))" \
+  --eval '(org-roam-db-sync)' \
+  --eval '(org-publish-all t)' || (echo "EMACS BUILD FAILED. DUMPING LATEX LOGS:" && cat /build/*.log && exit 1)
           '';
 
         installPhase = ''

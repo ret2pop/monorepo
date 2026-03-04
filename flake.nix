@@ -7,7 +7,7 @@
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    hyprnixmacs.url = "git+file:./nix";
+    hyprnixmacs.url = "git://nullring.xyz/hyprnixmacs.git";
   };
 
   outputs = { nixpkgs, git-hooks, hyprnixmacs, self, ... }:
@@ -93,6 +93,8 @@ emacs -q --batch \
   --eval '(defalias (quote tool-bar-mode) (quote ignore))' \
   --eval '(defalias (quote menu-bar-mode) (quote ignore))' \
   --eval '(provide (quote lean4-mode))' \
+  --eval '(provide (quote irony-mode))' \
+  --eval '(provide (quote irony))' \
   --eval "(setq org-latex-pdf-process (quote (\"xelatex -shell-escape -interaction nonstopmode %f\")))" \
   --eval '(setq org-startup-with-latex-preview nil)' \
   --eval '(setq org-startup-indented nil)' \

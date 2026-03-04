@@ -698,11 +698,11 @@
         "org-roam-ui-src": "org-roam-ui-src"
       },
       "locked": {
-        "lastModified": 1772610081,
-        "narHash": "sha256-gIPpwSYCC52RFp7IShK1GdPNOSVPFoIgyw7A8vO6hyE=",
+        "lastModified": 1772614187,
+        "narHash": "sha256-vnDfsNe9sOLeko8KVD54b3gJbDMcXQpWvBGjs98ItKM=",
         "ref": "refs/heads/main",
-        "rev": "fa45b54f9544a1ca68ae470cbc031eac56d4ee7e",
-        "revCount": 101,
+        "rev": "f76d34c1c2220a056a6a709208383169d2a5ac30",
+        "revCount": 108,
         "type": "git",
         "url": "git://nullring.xyz/publish-org-roam-ui.git"
       },

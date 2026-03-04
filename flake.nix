@@ -159,6 +159,7 @@ cp -r $HOME/website_html/. $out/
           buildInputs = [
             deadnix
             lychee
+            python3
           ];
         };
       };

@@ -66,7 +66,9 @@ mkdir -p public
 mkdir -p .cache/texmf
 
 export TEXMFVAR=$HOME/.cache/texmf
-ln -s "$(pwd)" $HOME/monorepo
+mkdir -p $HOME/monorepo
+cp -a . $HOME/monorepo/
+cd $HOME/monorepo
 
 cat <<EOF > $TMPDIR/policy.xml
 <policymap>
@@ -95,6 +97,7 @@ emacs -q --batch \
   --eval '(provide (quote lean4-mode))' \
   --eval '(provide (quote irony-mode))' \
   --eval '(provide (quote irony))' \
+  --eval '(defalias (quote irony-cdb-autosetup-compile-options) (quote ignore))' \
   --eval "(setq org-latex-pdf-process (quote (\"xelatex -shell-escape -interaction nonstopmode %f\")))" \
   --eval '(setq org-startup-with-latex-preview nil)' \
   --eval '(setq org-startup-indented nil)' \
@@ -102,13 +105,15 @@ emacs -q --batch \
   --eval '(setq org-confirm-babel-evaluate nil)' \
   -l ${hyprnixmacs}/init.el \
   --eval "(org-babel-do-load-languages 'org-babel-load-languages '((latex . t)))" \
+  --eval '(setq org-roam-directory (expand-file-name "mindmap" (expand-file-name "~/monorepo")))' \
+  --eval '(setq org-id-track-globally t)' \
   --eval '(org-roam-db-sync)' \
-  --eval '(org-publish-all t)' || (echo "EMACS BUILD FAILED. DUMPING LATEX LOGS:" && cat /build/*.log && exit 1)
+  --eval '(org-publish-all t)' || (echo "FAIL:" && cat /build/*.log && exit 1)
           '';
 
         installPhase = ''
 mkdir -p $out
-cp -r public/* $out/
+cp -r $HOME/website_html/. $out/
           '';
       };
     in
@@ -129,6 +134,7 @@ cp -r public/* $out/
           inherit (pre-commit-check) shellHook;
           buildInputs = [
             deadnix
+            lychee
           ];
         };
       };

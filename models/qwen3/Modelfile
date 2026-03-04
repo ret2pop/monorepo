@@ -1,3 +1,0 @@
-FROM qwen3-coder:30b
-PARAMETER temperature 0.5
-PARAMETER num_ctx 8192

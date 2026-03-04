@@ -30,6 +30,7 @@
             description = "Ensure website can build, and tests links";
             stages = [ "post-merge" ];
             entry = "${pkgs.writeShellScript "website-check" ''
+trap 'echo "Interrupted!"; exit 1' INT
 BRANCH=$(git branch --show-current)
 if [ "$BRANCH" != "main" ]; then
   exit 0

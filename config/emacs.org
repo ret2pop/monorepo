@@ -1,6 +1,6 @@
-#+TITLE: Emacs Configuration
-#+AUTHOR: Preston Pan
-#+DESCRIPTION: my personal emacs configuration for nixOS
+#+title: Emacs Configuration
+#+author: Preston Pan
+#+description: my personal emacs configuration for NixOS
 #+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 * Introduction
 This is my Vanilla Emacs configuration, made to work with my NixOS configuration. For that

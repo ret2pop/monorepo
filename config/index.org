@@ -24,13 +24,9 @@ Here is a list of my configurations for various programs:
 #+end_src
 
 #+RESULTS:
-- [[file:doom.org][Doom Literate Config]]
 - [[file:elfeed.org][Interesting RSS Feeds]]
 - [[file:emacs.org][Emacs Configuration]]
-- [[file:fish.org][Fish RC File]]
-- [[file:kmonad.org][KMonad Configuration]]
 - [[file:nix.org][NixOS Configuration]]
-- [[file:qtile.org][My Qtile Config (Mocha)]]
 - [[file:qutebrowser.org][Qutebrowser Configuration]]
 
 @@html: </div>@@

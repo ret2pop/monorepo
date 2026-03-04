@@ -18,10 +18,39 @@
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
+
+
       pre-commit-check = git-hooks.lib.${system}.run {
         src = ./.;
         hooks = {
           deadnix.enable = true;
+          website-build-check = {
+            enable = true;
+            name = "website-build";
+            description = "Ensure website can build, and tests links";
+            stages = [ "post-merge" ];
+            entry = "${pkgs.writeShellScript "website-check" ''
+BRANCH=$(git branch --show-current)
+if [ "$BRANCH" != "main" ]; then
+  exit 0
+fi
+RESULT_PATH=$(nix build .#website --no-link --print-out-paths)
+if [ -d "$RESULT_PATH" ]; then
+  echo "Running lychee link check..."
+  mkdir -p results
+  # Run lychee on the output directory
+  # --output results/lychee_report.md (or .txt, .json)
+  ${pkgs.lychee}/bin/lychee "$RESULT_PATH" \
+    --verbose || echo "Lychee found broken links."
+else
+  echo "Website build failed, skipping lychee."
+  exit 1
+fi
+''}";
+            pass_filenames = false;
+            always_run = true;
+          };
+
           prevent-direct-main-commits = {
             enable = true;
             name = "Prevent direct commits to main";
@@ -64,6 +93,7 @@ fi
               dvisvgm;
           })
         ];
+
         buildPhase = ''
 export HOME=$TMPDIR/fake-home
 mkdir -p $HOME/.emacs.d

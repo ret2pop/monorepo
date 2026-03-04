@@ -16,9 +16,7 @@
 * Introduction
 This is my journal. It's basically my everyday life, or at least the part that I can make public
 (not many personal details although there will be some). I will also be posting some TODOs that
-I have throughout time. I use the following [[file:../names.org][object names]] when I
-reference my system, so that may be confusing for some, though it is
-clearly documented in the above.
+I have throughout time.
 
 ** Entries
 @@html: <div class="links-page">@@
@@ -36,6 +34,14 @@ done
 #+end_src
 
 #+RESULTS:
+- [[file:20260129.org][20260129.org]]
+- [[file:20250928.org][20250928.org]]
+- [[file:20250924.org][20250924.org]]
+- [[file:20250917.org][20250917.org]]
+- [[file:20250916.org][20250916.org]]
+- [[file:20250915.org][20250915.org]]
+- [[file:20250914.org][20250914.org]]
+- [[file:20250912.org][20250912.org]]
 - [[file:20250909.org][20250909.org]]
 - [[file:20250908.org][20250908.org]]
 - [[file:20250826.org][20250826.org]]

@@ -188,10 +188,16 @@ and now for the main flake:
               description = "Ensure ${hostname} can build";
               stages = [ "post-merge" ];
               entry = "${pkgs.writeShellScript "${hostname}-check" ''
+  set -e
+  set -o pipefail
+  trap "echo -e '\nHook interrupted by user. Aborting merge!'; exit 1" INT TERM
+  echo "Running Nix integration tests..."
+
   BRANCH=$(git branch --show-current)
   if [ "$BRANCH" != "main" ]; then
     exit 0
   fi
+
   echo "Merge to main detected. Building VM for ${hostname}..."
   nix build .#nixosConfigurations.${hostname}.config.system.build.vm --no-link
   ''}";
@@ -810,20 +816,20 @@ You should add your own video drivers in a custom machine configuration.
 ** Containers
 In order to run docker/podman containers, I need this file:
 #+begin_src nix :tangle ../nix/modules/docker.nix
-  { ... }:
+  { lib, ... }:
   {
-    # virtualisation = {
-    #   oci-containers = {
-    #     backend = "podman";
-    #     containers = {};
-    #   };
-    #   containers.enable = true;
-    #   podman = {
-    #     enable = true;
-    #     dockerCompat = true;
-    #     defaultNetwork.settings.dns_enabled = true;
-    #   };
-    # };
+    virtualisation = {
+      oci-containers = {
+        backend = "podman";
+        containers = {};
+      };
+      containers.enable = lib.mkDefault false;
+      podman = {
+        enable = lib.mkDefault false;
+        dockerCompat = true;
+        defaultNetwork.settings.dns_enabled = true;
+      };
+    };
   }
 #+end_src
 ** Pipewire
@@ -2461,16 +2467,13 @@ because they enhance security.
         "usbcore.autosuspend=-1"
         "pcie_aspm=off"
         "pci=noaer"
-    	  # "debugfs=off"
     	  "page_alloc.shuffle=1"
     	  "slab_nomerge"
-    	  # "page_poison=1"
 
     	  # madaidan
     	  "pti=on"
     	  "randomize_kstack_offset=on"
     	  "vsyscall=none"
-    	  # "lockdown=confidentiality"
 
     	  # cpu
     	  "spectre_v2=on"
@@ -2483,11 +2486,7 @@ because they enhance security.
     	  "extra_latent_entropy"
 
     	  # mineral
-    	  # "init_on_alloc=1"
-    	  # "random.trust_bootloader=off"
-    	  # "init_on_free=1"
     	  "quiet"
-    	  # "loglevel=0"
       ];
 
       blacklistedKernelModules = [
@@ -2537,12 +2536,6 @@ because they enhance security.
         # net
         "net.ipv4.ip_forward" = 1;
         "net.ipv4.icmp_echo_ignore_broadcasts" = true;
-        # "net.ipv4.conf.all.accept_redirects" = false;
-        # "net.ipv4.conf.all.secure_redirects" = false;
-        # "net.ipv4.conf.default.accept_redirects" = false;
-        # "net.ipv4.conf.default.secure_redirects" = false;
-        # "net.ipv6.conf.all.accept_redirects" = false;
-        # "net.ipv6.conf.default.accept_redirects" = false;
       };
     };
 
@@ -2658,7 +2651,6 @@ because they enhance security.
 
       jitterentropy-rngd.enable = true;
       resolved.settings.Resolve.DNSSEC = true;
-      # usbguard.enable = true;
       usbguard.enable = false;
       dbus.apparmor = "enabled";
 
@@ -2852,169 +2844,150 @@ because they enhance security.
 ** Disko
 This is the disko configuration for my continuity system. It features a boot and ext4 partition,
 with configurable disk.
+*** GPT Common
+This is all configuration common to any GPT partitioned drive. I dynamically choose the partitioning scheme based on the options set.
+#+begin_src nix :tangle ../nix/disko/gpt-common.nix
+  { config, ... }:
+  let
+    matchSd = builtins.match "/dev/mmcblk[0-9]+" config.monorepo.vars.device != null;
+    partitions = if ((builtins.match "/dev/vd[a-z]+" config.monorepo.vars.device) != null) then
+                (import ./virtual-machine.nix)
+                           else (if matchSd then
+                             (import ./sd-card.nix)
+                                 else 
+                                   (import (./. + "/${config.monorepo.vars.fileSystem}.nix")));
+    spec = {
+      disko.devices = {
+        disk = {
+          main = {
+            type = "disk";
+            device = config.monorepo.vars.device;
+            content = {
+              type = if matchSd then "mbr" else "gpt";
+              inherit partitions;
+            };
+          };
+        };
+      };
+    };
+  in
+  {
+    monorepo.vars.diskoSpec = spec;
+    disko.devices = spec.disko.devices;
+  }
+#+end_src
+*** ESP Boot Partition
+#+begin_src nix :tangle ../nix/disko/esp-boot.nix
+  {
+    type = "filesystem";
+    format = "vfat";
+    mountpoint = "/boot";
+    mountOptions = [ "umask=0077" ];
+  }
+#+end_src
 *** Btrfs
-#+begin_src nix :tangle ../nix/disko/btrfs-simple.nix
-  { config, ... }:
-  let
-    spec = {
-      disko.devices = {
-        disk = {
-          main = {
-            type = "disk";
-            device = config.monorepo.vars.device;
-            content = {
-              type = "gpt";
-              partitions = {
-                ESP = {
-                  size = "512M";
-                  type = "EF00";
-                  content = {
-                    type = "filesystem";
-                    format = "vfat";
-                    mountpoint = "/boot";
-                    mountOptions = [ "umask=0077" ];
-                  };
-                };
-                luks = {
-                  size = "100%";
-                  content = {
-                    type = "luks";
-                    name = "crypted";
-                    passwordFile = "/tmp/secret.key";
-                    content = {
-                      type = "btrfs";
-                      extraArgs = [ "-f" ];
-                      subvolumes = {
-                        "/root" = {
-                          mountpoint = "/";
-                          mountOptions = [
-                            "compress=zstd"
-                            "noatime"
-                          ];
-                        };
+This is a fully featured drive configuration and the recommended configuration to install if on a workstation or laptop.
+Btrfs enables you to enable impermanence and also encrypt the drive with ~/tmp/secret.key~.
+#+begin_src nix :tangle ../nix/disko/btrfs.nix
+  {
+    ESP = {
+      size = "512M";
+      type = "EF00";
+      content = import ./esp-boot.nix;
+    };
+    luks = {
+      size = "100%";
+      content = {
+        type = "luks";
+        name = "crypted";
+        passwordFile = "/tmp/secret.key";
+        content = {
+          type = "btrfs";
+          extraArgs = [ "-f" ];
+          subvolumes = {
+            "/root" = {
+              mountpoint = "/";
+              mountOptions = [
+                "compress=zstd"
+                "noatime"
+              ];
+            };
 
-                        "/home" = {
-                          mountpoint = "/home";
-                          mountOptions = [
-                            "compress=zstd"
-                            "noatime"
-                          ];
-                        };
+            "/home" = {
+              mountpoint = "/home";
+              mountOptions = [
+                "compress=zstd"
+                "noatime"
+              ];
+            };
 
-                        "/nix" = {
-                          mountpoint = "/nix";
-                          mountOptions = [
-                            "compress=zstd"
-                            "noatime"
-                          ];
-                        };
+            "/nix" = {
+              mountpoint = "/nix";
+              mountOptions = [
+                "compress=zstd"
+                "noatime"
+              ];
+            };
 
-                        "/persistent" = {
-                          mountpoint = "/persistent";
-                          mountOptions = [
-                            "compress=zstd"
-                            "noatime"
-                          ];
-                        };
-                      };
-                    };
-                  };
-                };
-              };
+            "/persistent" = {
+              mountpoint = "/persistent";
+              mountOptions = [
+                "compress=zstd"
+                "noatime"
+              ];
             };
           };
         };
       };
     };
-  in
-  {
-    monorepo.vars.diskoSpec = spec;
-    disko.devices = spec.disko.devices;
   }
 #+end_src
-*** Simple
-This configuration is used for simple partitioning schemes with EFI.
-#+begin_src nix :tangle ../nix/disko/drive-simple.nix
-  { config, ... }:
-  let
-    spec = {
-      disko.devices = {
-        disk = {
-          main = {
-            device = config.monorepo.vars.device;
-            type = "disk";
-            content = {
-              type = "gpt";
-              partitions = {
-                ESP = {
-                  type = "EF00";
-                  size = "500M";
-                  priority = 1;
-                  content = {
-                    type = "filesystem";
-                    format = "vfat";
-                    mountpoint = "/boot";
-                    mountOptions = [ "umask=0077" ];
-                  };
-                };
-                root = {
-                  size = "100%";
-                  priority = 2;
-                  content = {
-                    type = "filesystem";
-                    format = "ext4";
-                    mountpoint = "/";
-                  };
-                };
-              };
-            };
-          };
-        };
+*** Ext4
+This configuration is used for simple partitioning schemes with EFI. A simple ext4 disk with no encryption or any fancy features. You
+should be using EFI if you can.
+#+begin_src nix :tangle ../nix/disko/ext4.nix
+  {
+    ESP = {
+      type = "EF00";
+      size = "500M";
+      priority = 1;
+      content = import ./esp-boot.nix;
+    };
+    root = {
+      size = "100%";
+      priority = 2;
+      content = {
+        type = "filesystem";
+        format = "ext4";
+        mountpoint = "/";
       };
     };
-  in
-  {
-    monorepo.vars.diskoSpec = spec;
-    disko.devices = spec.disko.devices;
   }
 #+end_src
-*** BIOS
-For machines that use BIOS instead of EFI.
-#+begin_src nix :tangle ../nix/disko/drive-bios.nix
-  { config, ... }:
-  let
-    spec = {
-      disko.devices = {
-        disk = {
-          main = {
-            device = config.monorepo.vars.device;
-            type = "disk";
-            content = {
-              type = "gpt";
-              partitions = {
-                boot = {
-                  size = "1M";
-                  type = "EF02";
-                };
-                root = {
-                  label = "disk-main-root"; 
-                  size = "100%";
-                  content = {
-                    type = "filesystem";
-                    format = "ext4";
-                    mountpoint = "/";
-                  };
-                };
-              };
-            };
-          };
-        };
+*** Virtual Machine
+This configuration is meant for virtual machines where BIOS is the only option.
+#+begin_src nix :tangle ../nix/disko/virtual-machine.nix
+  {
+    boot = {
+      size = "1M";
+      type = "EF02";
+    };
+    root = {
+      label = "disk-main-root"; 
+      size = "100%";
+      content = {
+        type = "filesystem";
+        format = "ext4";
+        mountpoint = "/";
       };
     };
-  in
+  }
+#+end_src
+*** TODO SD Card
+#+begin_src nix :tangle ../nix/disko/sd-card.nix
   {
-    monorepo.vars.diskoSpec = spec;
-    disko.devices = spec.disko.devices;
+    boot = {};
+    root = {};
   }
 #+end_src
 ** Home
@@ -3160,7 +3133,6 @@ I have many imports that we'll go through next.
   					          ++
   					          (if config.monorepo.profiles.crypto.enable then (with pkgs; [
   						          bitcoin
-  						          # electrum
   						          monero-cli
   						          monero-gui
   					          ]) else [])
@@ -4551,7 +4523,7 @@ for these configurations.
         graphviz jq
 
         # Apps
-        # octaveFull
+        octaveFull
         grim swww vim kotatogram-desktop tg qwen-code element-desktop signal-desktop signal-cli thunderbird jami
 
         # Sound/media
@@ -4707,6 +4679,7 @@ system. Also more common configuration can go here.
     imports = [
       ./home.nix
       ../modules/default.nix
+      ../disko/gpt-common.nix
     ];
     # Put configuration (e.g. monorepo variable configuration) common to all configs here
   }
@@ -4728,7 +4701,6 @@ This is pretty understandable, if you understand all the above.
   { ... }:
   {
     imports = [
-      ../../disko/btrfs-simple.nix
       ../common.nix
     ];
     config = {
@@ -4764,11 +4736,11 @@ as several other useful services.
   {
     imports = [
       ../common.nix
-      ../../disko/drive-simple.nix
     ];
     config = {
       monorepo = {
         vars.device = "/dev/nvme0n1";
+        vars.fileSystem = "ext4";
         profiles = {
           cuda.enable = true;
           workstation.enable = true;
@@ -4829,8 +4801,6 @@ some DNS records to match what you have on your system after deployment.
   {
     imports = [
       ../common.nix
-      ../../disko/drive-bios.nix
-
       # nixos-anywhere generates this file
       ./hardware-configuration.nix
     ];

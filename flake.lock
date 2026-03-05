@@ -3,7 +3,7 @@
     "crane": {
       "inputs": {
         "nixpkgs": [
-          "hyprnixmacs",
+          "nixmacs",
           "lanzaboote",
           "nixpkgs"
         ]
@@ -43,7 +43,7 @@
     "disko": {
       "inputs": {
         "nixpkgs": [
-          "hyprnixmacs",
+          "nixmacs",
           "nixpkgs"
         ]
       },
@@ -128,7 +128,7 @@
     "flake-parts": {
       "inputs": {
         "nixpkgs-lib": [
-          "hyprnixmacs",
+          "nixmacs",
           "lanzaboote",
           "nixpkgs"
         ]
@@ -168,7 +168,7 @@
     "flake-parts_3": {
       "inputs": {
         "nixpkgs-lib": [
-          "hyprnixmacs",
+          "nixmacs",
           "nur",
           "nixpkgs"
         ]
@@ -214,11 +214,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1772024342,
-        "narHash": "sha256-+eXlIc4/7dE6EcPs9a2DaSY3fTA9AE526hGqkNID3Wg=",
+        "lastModified": 1772665116,
+        "narHash": "sha256-XmjUDG/J8Z8lY5DVNVUf5aoZGc400FxcjsNCqHKiKtc=",
         "owner": "cachix",
         "repo": "git-hooks.nix",
-        "rev": "6e34e97ed9788b17796ee43ccdbaf871a5c2b476",
+        "rev": "39f53203a8458c330f61cc0759fe243f0ac0d198",
         "type": "github"
       },
       "original": {
@@ -232,7 +232,7 @@
         "flake-compat": "flake-compat_2",
         "gitignore": "gitignore_2",
         "nixpkgs": [
-          "hyprnixmacs",
+          "nixmacs",
           "nixpkgs"
         ]
       },
@@ -274,7 +274,7 @@
     "gitignore_2": {
       "inputs": {
         "nixpkgs": [
-          "hyprnixmacs",
+          "nixmacs",
           "git-hooks",
           "nixpkgs"
         ]
@@ -296,7 +296,7 @@
     "gitignore_3": {
       "inputs": {
         "nixpkgs": [
-          "hyprnixmacs",
+          "nixmacs",
           "lanzaboote",
           "pre-commit-hooks-nix",
           "nixpkgs"
@@ -319,7 +319,7 @@
     "home-manager": {
       "inputs": {
         "nixpkgs": [
-          "hyprnixmacs",
+          "nixmacs",
           "nixpkgs"
         ]
       },
@@ -341,7 +341,7 @@
     "home-manager_2": {
       "inputs": {
         "nixpkgs": [
-          "hyprnixmacs",
+          "nixmacs",
           "impermanence",
           "nixpkgs"
         ]
@@ -359,33 +359,6 @@
         "repo": "home-manager",
         "type": "github"
       }
-    },
-    "hyprnixmacs": {
-      "inputs": {
-        "deep-research": "deep-research",
-        "disko": "disko",
-        "git-hooks": "git-hooks_2",
-        "home-manager": "home-manager",
-        "impermanence": "impermanence",
-        "lanzaboote": "lanzaboote",
-        "nix-topology": "nix-topology",
-        "nixos-dns": "nixos-dns",
-        "nixpkgs": "nixpkgs_3",
-        "nur": "nur",
-        "scripts": "scripts",
-        "sops-nix": "sops-nix",
-        "sounds": "sounds",
-        "wallpapers": "wallpapers"
-      },
-      "locked": {
-        "path": "nix",
-        "type": "path"
-      },
-      "original": {
-        "path": "nix",
-        "type": "path"
-      },
-      "parent": []
     },
     "impermanence": {
       "inputs": {
@@ -413,7 +386,7 @@
         "flake-parts": "flake-parts",
         "flake-utils": "flake-utils",
         "nixpkgs": [
-          "hyprnixmacs",
+          "nixmacs",
           "nixpkgs"
         ],
         "pre-commit-hooks-nix": "pre-commit-hooks-nix",
@@ -438,7 +411,7 @@
       "inputs": {
         "flake-parts": "flake-parts_2",
         "nixpkgs": [
-          "hyprnixmacs",
+          "nixmacs",
           "nixpkgs"
         ]
       },
@@ -456,11 +429,38 @@
         "type": "github"
       }
     },
+    "nixmacs": {
+      "inputs": {
+        "deep-research": "deep-research",
+        "disko": "disko",
+        "git-hooks": "git-hooks_2",
+        "home-manager": "home-manager",
+        "impermanence": "impermanence",
+        "lanzaboote": "lanzaboote",
+        "nix-topology": "nix-topology",
+        "nixos-dns": "nixos-dns",
+        "nixpkgs": "nixpkgs_3",
+        "nur": "nur",
+        "scripts": "scripts",
+        "sops-nix": "sops-nix",
+        "sounds": "sounds",
+        "wallpapers": "wallpapers"
+      },
+      "locked": {
+        "path": "nix",
+        "type": "path"
+      },
+      "original": {
+        "path": "nix",
+        "type": "path"
+      },
+      "parent": []
+    },
     "nixos-dns": {
       "inputs": {
         "flake-compat": "flake-compat_4",
         "nixpkgs": [
-          "hyprnixmacs",
+          "nixmacs",
           "nixpkgs"
         ],
         "systems": "systems_2",
@@ -593,11 +593,11 @@
     },
     "nixpkgs_6": {
       "locked": {
-        "lastModified": 1772433332,
-        "narHash": "sha256-izhTDFKsg6KeVBxJS9EblGeQ8y+O8eCa6RcW874vxEc=",
+        "lastModified": 1772542754,
+        "narHash": "sha256-WGV2hy+VIeQsYXpsLjdr4GvHv5eECMISX1zKLTedhdg=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "cf59864ef8aa2e178cccedbe2c178185b0365705",
+        "rev": "8c809a146a140c5c8806f13399592dbcb1bb5dc4",
         "type": "github"
       },
       "original": {
@@ -662,13 +662,13 @@
     "pre-commit-hooks-nix": {
       "inputs": {
         "flake-compat": [
-          "hyprnixmacs",
+          "nixmacs",
           "lanzaboote",
           "flake-compat"
         ],
         "gitignore": "gitignore_3",
         "nixpkgs": [
-          "hyprnixmacs",
+          "nixmacs",
           "lanzaboote",
           "nixpkgs"
         ],
@@ -694,11 +694,11 @@
         "org-roam-ui-src": "org-roam-ui-src"
       },
       "locked": {
-        "lastModified": 1772614187,
-        "narHash": "sha256-vnDfsNe9sOLeko8KVD54b3gJbDMcXQpWvBGjs98ItKM=",
+        "lastModified": 1772614745,
+        "narHash": "sha256-u1S1rdzTlEZLC72mxttkQ1Atuu2XWJg1S2izFeT2xEk=",
         "ref": "refs/heads/main",
-        "rev": "f76d34c1c2220a056a6a709208383169d2a5ac30",
-        "revCount": 108,
+        "rev": "0624ed662562a38a4b2ee46f7f8dee30a6e3c527",
+        "revCount": 110,
         "type": "git",
         "url": "git://nullring.xyz/publish-org-roam-ui.git"
       },
@@ -710,7 +710,7 @@
     "root": {
       "inputs": {
         "git-hooks": "git-hooks",
-        "hyprnixmacs": "hyprnixmacs",
+        "nixmacs": "nixmacs",
         "nixpkgs": "nixpkgs_6",
         "publish-org-roam-ui": "publish-org-roam-ui"
       }
@@ -718,12 +718,12 @@
     "rust-overlay": {
       "inputs": {
         "flake-utils": [
-          "hyprnixmacs",
+          "nixmacs",
           "lanzaboote",
           "flake-utils"
         ],
         "nixpkgs": [
-          "hyprnixmacs",
+          "nixmacs",
           "lanzaboote",
           "nixpkgs"
         ]
@@ -822,7 +822,7 @@
     "treefmt-nix": {
       "inputs": {
         "nixpkgs": [
-          "hyprnixmacs",
+          "nixmacs",
           "nixos-dns",
           "nixpkgs"
         ]

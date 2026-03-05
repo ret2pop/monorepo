@@ -9,14 +9,14 @@
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    hyprnixmacs.url = ./nix;
+    nixmacs.url = ./nix;
 
     publish-org-roam-ui = {
       url = "git://nullring.xyz/publish-org-roam-ui.git";
     };
   };
 
-  outputs = { nixpkgs, git-hooks, hyprnixmacs, self, publish-org-roam-ui, ... }:
+  outputs = { nixpkgs, git-hooks, nixmacs, self, publish-org-roam-ui, ... }:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
@@ -70,7 +70,7 @@ fi
         };
       };
 
-      emacsPackages = import  "${hyprnixmacs}/modules/home/emacs-packages.nix";
+      emacsPackages = import  "${nixmacs}/modules/home/emacs-packages.nix";
       ci-emacs = pkgs.emacs-nox.pkgs.withPackages emacsPackages;
       website = pkgs.stdenv.mkDerivation {
         name = "org-publish-website";
@@ -142,7 +142,7 @@ emacs -q --batch \
   --eval '(setq org-confirm-babel-evaluate nil)' \
   --eval '(setq load-prefer-newer t)' \
   --eval '(setq custom-safe-themes t)' \
-  -l ${hyprnixmacs}/init.el \
+  -l ${nixmacs}/init.el \
   --eval "(org-babel-do-load-languages 'org-babel-load-languages '((latex . t)))" \
   --eval '(setq org-roam-directory (expand-file-name "mindmap" (expand-file-name "~/monorepo")))' \
   --eval '(setq org-id-track-globally t)' \
@@ -174,10 +174,10 @@ cp -r $HOME/website_html/. $out/
     in
       {
         nixosConfigurations = {
-          installer = hyprnixmacs.nixosConfigurations.installer.extendModules {
+          installer = nixmacs.nixosConfigurations.installer.extendModules {
             specialArgs = { monorepoSelf = self; };
           };
-          spontaneity = hyprnixmacs.nixosConfigurations.spontaneity.extendModules {
+          spontaneity = nixmacs.nixosConfigurations.spontaneity.extendModules {
             specialArgs = { monorepoSelf = self; };
           };
         };

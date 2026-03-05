@@ -30,7 +30,10 @@
             description = "Ensure website can build, and tests links";
             stages = [ "post-merge" ];
             entry = "${pkgs.writeShellScript "website-check" ''
-trap 'echo "Interrupted!"; exit 1' INT
+set -e 
+set -o pipefail 
+trap "echo -e '\nHook interrupted by user. Aborting merge!'; exit 1" INT TERM
+
 BRANCH=$(git branch --show-current)
 if [ "$BRANCH" != "main" ]; then
   exit 0

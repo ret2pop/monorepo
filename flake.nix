@@ -193,7 +193,11 @@ cp -r $HOME/website_html/. $out/
         };
 
         devShells."${system}".default = with pkgs; mkShell {
-          inherit (pre-commit-check) shellHook;
+
+          shellHook = ''
+${pre-commit-check.shellHook}
+git config branch.main.mergeoptions "--no-ff"
+'';
           buildInputs = [
             deadnix
             lychee

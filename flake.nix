@@ -2,14 +2,12 @@
   description = "Build my static site with my installer";
 
   inputs = {
-    self.submodules = true;
-
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     git-hooks = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixmacs.url = "path:./nix";
+    nixmacs.url = ./nix;
 
     publish-org-roam-ui = {
       url = "git://nullring.xyz/publish-org-roam-ui.git";

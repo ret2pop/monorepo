@@ -13,13 +13,9 @@
 #+html_head: <meta name="msapplication-TileColor" content="#da532c">
 #+html_head: <meta name="theme-color" content="#ffffff">
 
-* Webrings
-This website is a part of these webrings:
-[[https://tommi.space][<]] [[https://nullring.xyz][nullring]] [[https://pen15.agency][>]]
-
 * About Me
 ** whoami?
-[[https://preston.nullring.xyz][Preston Pan]]. Although, that is not really important for the enjoyment of ret2pop, and
+Preston Pan. Although, that is not really important for the enjoyment of ret2pop, and
 it is certainly not the focus at all. Ret2pop is a separate entity, controlled only
 by the will of Francois. Ret2pop is a relentlessly curious force willing to entertain
 ideas that are unconventional and unorthodox; Preston Pan is the individual that tries

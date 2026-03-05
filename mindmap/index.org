@@ -82,6 +82,7 @@ No you don't. That being said, if you really want the list of all articles, here
 - [[file:infinity.org][infinity]]
 - [[file:inheritance.org][inheritance]]
 - [[file:inner product space.org][inner product space]]
+- [[file:interpreter.org][interpreter]]
 - [[file:inverse square.org][inverse square]]
 - [[file:Kirchhoff's Laws.org][Kirchhoff's Laws]]
 - [[file:L_{2} space.org][L_{2} space]]

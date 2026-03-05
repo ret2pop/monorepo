@@ -43,7 +43,7 @@ systems of syntax we know of. Let's take a look at the conceptual reason why cog
 well as some /baremetal cognition/ code (you'll see what I mean by this later). There's a paper about this language
 available about the language in the repository, for those interested. Understanding cognition might require a
 lot of background in parsing, tokenization, and syntax, but I've done my best to write this in a very understandable way.
-The repository is available at https://github.com/metacrank/cognition, for your information.
+The repository is available at https://github.com/metacrank/cognition-rust, for your information.
 
 #+CAPTION: The Cognition programming language, logo designed by Matthew Hinton
 [[file:img/coglogo.png]]

@@ -38,7 +38,6 @@ fi
 RESULT_PATH=$(nix build .#website --no-link --print-out-paths)
 if [ -d "$RESULT_PATH" ]; then
   echo "Running lychee link check..."
-  # TODO
 else
   echo "Website build failed, skipping lychee."
   exit 1

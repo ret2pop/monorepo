@@ -378,18 +378,14 @@
         "wallpapers": "wallpapers"
       },
       "locked": {
-        "lastModified": 1772587375,
-        "narHash": "sha256-Ki3eMeMp53oyunJVXVDqL9BwgQjPYd7Z1VRJmUaW1Pc=",
-        "ref": "refs/heads/main",
-        "rev": "bd540a2121f3107cb3f9385114688eb99c2316c3",
-        "revCount": 106,
-        "type": "git",
-        "url": "git://nullring.xyz/hyprnixmacs.git"
+        "path": "nix",
+        "type": "path"
       },
       "original": {
-        "type": "git",
-        "url": "git://nullring.xyz/hyprnixmacs.git"
-      }
+        "path": "nix",
+        "type": "path"
+      },
+      "parent": []
     },
     "impermanence": {
       "inputs": {

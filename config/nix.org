@@ -170,7 +170,10 @@ and now for the main flake:
                 name = "${hostname}";
                 value = nixpkgs.lib.nixosSystem {
                   system = hostSystem;
-                  specialArgs = attrs // { isIntegrationTest = false; };
+                  specialArgs = attrs // {
+                    isIntegrationTest = false;
+                    monorepoSelf = null;
+                  };
                   modules = mkHostModules hostname;
                 };
               });
@@ -188,6 +191,7 @@ and now for the main flake:
               description = "Ensure ${hostname} can build";
               stages = [ "post-merge" ];
               entry = "${pkgs.writeShellScript "${hostname}-check" ''
+  #!/usr/bin/env bash
   set -e
   set -o pipefail
   trap "echo -e '\nHook interrupted by user. Aborting merge!'; exit 1" INT TERM
@@ -197,9 +201,14 @@ and now for the main flake:
   if [ "$BRANCH" != "main" ]; then
     exit 0
   fi
-
   echo "Merge to main detected. Building VM for ${hostname}..."
-  nix build .#nixosConfigurations.${hostname}.config.system.build.vm --no-link
+  if nix build .#nixosConfigurations.${hostname}.config.system.build.vm --no-link; then
+      echo "Build succeeded. Proceeding with merge."
+      exit 0
+  else
+      echo "Build failed! Aborting."
+      exit 1
+  fi
   ''}";
               pass_filenames = false;
               always_run = true;
@@ -1649,7 +1658,7 @@ These are all my virtual hosts. For many of these servers we have to
 have a reverse proxy in order to expose the locally running instances
 to the outside world under a domain.
 #+begin_src nix :tangle ../nix/modules/nginx.nix
-  { config, lib, ... }:
+  { pkgs, config, lib, monorepoSelf ? null, ... }:
   {
     services.nginx = {
       enable = lib.mkDefault config.monorepo.profiles.server.enable;
@@ -1659,10 +1668,10 @@ to the outside world under a domain.
       recommendedTlsSettings = true;
       recommendedProxySettings = false;
       virtualHosts = {
-        "${config.monorepo.vars.remoteHost}" = {
+        "${config.monorepo.vars.remoteHost}" = lib.mkIf (monorepoSelf != null) {
           serverName = "${config.monorepo.vars.remoteHost}";
           serverAliases = [ "${config.monorepo.vars.internetName}.${config.monorepo.vars.orgHost}" ];
-          root = "/var/www/${config.monorepo.vars.internetName}-website/";
+          root = "${monorepoSelf.packages.${pkgs.system}.website}";
           addSSL = true;
           enableACME = true;
         };

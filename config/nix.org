@@ -5,7 +5,7 @@
 
 * Introduction
 This is my NixOS configuration. It is a part of my monorepo, and this file automatically tangles
-to all the under the nix/ directory in my monorepo [[https://ret2pop.net/gitweb/monorepo.git][git repository]]. My monorepo also stores my
+to all the under the nix/ directory in my monorepo [[https://git.nullring.xyz/monorepo.git][git repository]]. My monorepo also stores my
 website, as my website stores my [[file:elfeed.org][elfeed]] and [[file:emacs.org][emacs]] configurations. Additionally, I want to track
 my emacs configuration with my Nix configuration. Having them in one repository means that my
 emacs configuration is pinned to my flake.

@@ -37,7 +37,7 @@ So, what's the percise solution to this connundrum? Well, it's beautiful; but it
 
 * Introduction
 Cognition is an active research project that Matthew Hinton and I have been working on for the past
-couple of months. Although my commit history for [[https://github.com/metacrank/cognition][this project]] has not been impressive, we came up with
+couple of months. Although my commit history for [[https://github.com/metacrank/cognition-rust][this project]] has not been impressive, we came up with
 a lot of the theory together, working alongside each other in order to achieve one of the most generalized
 systems of syntax we know of. Let's take a look at the conceptual reason why cognition needs to exist, as
 well as some /baremetal cognition/ code (you'll see what I mean by this later). There's a paper about this language

@@ -447,11 +447,11 @@
         "wallpapers": "wallpapers"
       },
       "locked": {
-        "path": "nix",
+        "path": "./nix",
         "type": "path"
       },
       "original": {
-        "path": "nix",
+        "path": "./nix",
         "type": "path"
       },
       "parent": []

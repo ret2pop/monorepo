@@ -1,3 +1,3 @@
 [submodule "nix"]
 	path = nix
-	url = git@nullring.xyz:/srv/git/hyprnixmacs.git
+	url = git://nullring.xyz/hyprnixmacs.git

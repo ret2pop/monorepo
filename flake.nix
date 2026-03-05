@@ -9,7 +9,7 @@
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixmacs.url = ./nix;
+    nixmacs.url = "path:./nix";
 
     publish-org-roam-ui = {
       url = "git://nullring.xyz/publish-org-roam-ui.git";

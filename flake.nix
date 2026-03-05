@@ -173,8 +173,13 @@ cp -r $HOME/website_html/. $out/
       };
     in
       {
-        nixosConfigurations.installer = hyprnixmacs.nixosConfigurations.installer.extendModules {
-          specialArgs = { monorepoSelf = self; };
+        nixosConfigurations = {
+          installer = hyprnixmacs.nixosConfigurations.installer.extendModules {
+            specialArgs = { monorepoSelf = self; };
+          };
+          spontaneity = hyprnixmacs.nixosConfigurations.spontaneity.extendModules {
+            specialArgs = { monorepoSelf = self; };
+          };
         };
 
         checks."${system}" = {
@@ -184,7 +189,9 @@ cp -r $HOME/website_html/. $out/
         packages."${system}" = {
           website = website;
           installer = self.nixosConfigurations.installer.config.system.build.isoImage;
+          spontaneity = self.nixosConfigurations.spontaneity.config.system.build.toplevel;
         };
+
         devShells."${system}".default = with pkgs; mkShell {
           inherit (pre-commit-check) shellHook;
           buildInputs = [

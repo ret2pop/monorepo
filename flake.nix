@@ -2,12 +2,14 @@
   description = "Build my static site with my installer";
 
   inputs = {
+    self.submodules = true;
+
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     git-hooks = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixmacs.url = ./nix;
+    nixmacs.url = "path:./nix";
 
     publish-org-roam-ui = {
       url = "git://nullring.xyz/publish-org-roam-ui.git";
@@ -28,7 +30,7 @@
             enable = true;
             name = "website-build";
             description = "Ensure website can build, and tests links";
-            stages = [ "post-merge" ];
+            stages = [ "pre-merge-commit" ];
             entry = "${pkgs.writeShellScript "website-check" ''
 set -e 
 set -o pipefail 

@@ -1,49 +1,63 @@
 @import url("https://fonts.googleapis.com/css2?family=Lora:wght@500&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Inconsolata&display=swap");
 
+:root {
+    --bg-main: #FBF8F1;       /* Softer, warmer paper color */
+    --text-main: #4A3F35;     /* Deep espresso brown (easier on eyes than pure black) */
+    --toc-bg: #EAE3D2;        /* A muted, darker beige for the sidebar */
+    --toc-text: #4A3F35;      /* Dark brown text for the sidebar */
+    --quote-accent: #D4A373;  /* A warm terracotta/clay accent */
+    --link-color: #8C6239;    /* Muted copper for links */
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-main: #1e1e2e; /* A rich, dark slate */
+        --text-main: #cdd6f4; /* Soft, readable off-white */
+        --toc-bg: #11111b; /* An even darker shade for the sidebar */
+        --quote-accent: #f5c2e7; /* A soft pastel pink/purple accent */
+    }
+}
+
 body {
     margin: 40px auto;
     width: 700px;
     line-height: 1.6;
     font-size: 16px;
-    background: #fffff4;
-    color: #3a1616;
+    background: var(--bg-main);
+    color: var(--text-main);
     padding: 0 10px;
     font-size: 18px;
     line-height: 28px;
     font-family: "Lora";
     font-weight: 500;
-    /* Smooth the font a little bit, it's a
-         bit too bold on retina screens */
     -webkit-font-smoothing: antialiased;
+
+    @media (max-width: 1250px) {
+        margin: 20px auto;
+        font-size: 20px;
+    }
 }
 
-/* --------------------------------------------------- */
-/* Make a nice input form with rounded corners and hover
- animations*/
-/* --------------------------------------------------- */
 input {
     padding: 10px 16px;
     margin: 2px 0;
     box-sizing: border-box;
     border: 2px solid #dabebe;
     border-radius: 6px;
-    background: #fffff4;
-    color: #3a1616;
+    background: var(--bg-main);
+    color: var(--text-main);
     font-size: 16px;
     -webkit-transition: 0.5s;
     transition: 0.5s;
     outline: none;
-}
-input:focus {
-    border: 2px solid #3a1616;
+    &:focus {
+        border: 2px solid var(--text-main);
+    }
 }
 
-/* --------------------------------------- */
-/* The button is very similar to the input */
-/* --------------------------------------- */
 .button {
-    background-color: #fffff4;
+    background-color: var(--bg-main);
     border: none;
     color: black;
     padding: 6px 14px;
@@ -54,12 +68,12 @@ input:focus {
     margin: 4px 2px;
     transition-duration: 0.4s;
     cursor: pointer;
-    border: 2px solid #3a1616;
+    border: 2px solid var(--text-main);
     border-radius: 6px;
-}
-.button:hover {
-    background-color: #3a1616;
-    color: white;
+    &:hover {
+        background-color: var(--text-main);
+        color: white;
+    }
 }
 
 /* ----------------------------------------------- */
@@ -77,14 +91,17 @@ input:focus {
     color: #00529b;
     background-color: #bde5f8;
 }
+
 .isa_success {
     color: #4f8a10;
     background-color: #dff2bf;
 }
+
 .isa_warning {
     color: #9f6000;
     background-color: #feefb3;
 }
+
 .isa_error {
     color: #d8000c;
     background-color: #ffd2d2;
@@ -95,6 +112,18 @@ h2,
 h3 {
     line-height: 1.2;
     font-family: "Lora";
+}
+
+h1 {
+    @media (max-width: 1250px) {
+        font-size: 20px;
+    }
+}
+
+h2 {
+    @media (max-width: 1250px) {
+        font-size: 18px;
+    }
 }
 
 img {
@@ -121,24 +150,16 @@ mjx-container[jax="CHTML"] {
 a {
     cursor: pointer;
     color: #217ab7;
-    line-height: inherit;
-    transition: 0.14s;
-}
-a:hover {
-    color: white;
-    background-color: #3297d3;
-}
-a:visited {
-    color: #43458b;
-    border-color: #43458b;
-}
-a:visited:hover {
-    color: white;
-    background-color: #9251ac;
-}
-
-pre {
-    font-family: "Inconsolata", monospace;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px; /* Pushes the underline down slightly */
+    transition: all 0.2s ease-in-out;
+    
+    /* Make the link change color and the underline grow on hover */
+    &:hover {
+        color: #11507c;
+        text-decoration-thickness: 4px;
+    }
 }
 
 ::selection {
@@ -147,62 +168,44 @@ pre {
 }
 
 #table-of-contents {
-    height: 100%; /* Full-height: remove this if you want "auto" height */
-    width: 250px; /* Set the width of the sidebar */
-    position: fixed; /* Fixed Sidebar (stay in place on scroll) */
-    z-index: 1; /* Stay on top */
-    top: 0; /* Stay at the top */
+    height: 100%;
+    width: 250px;
+    position: fixed;
+    z-index: 1;
+    top: 0;
     left: 0;
     font-size: 0px;
-    overflow-x: hidden; /* Disable horizontal scroll */
+    overflow-x: hidden;
     padding-top: 20px;
     border-right: 1px;
-    background: #133201;
-}
+    background: var(--toc-bg);
+    ul {
+        list-style-type: none;
+        padding-left: 0;
+        a {
+            padding: 6px 8px 6px 16px;
+            display: block;
+            font-size: 15px;
+            &, &:hover, &:visited, &:visited:hover {
+                color: white;
+                background-color: var(--toc-bg);
+                border-color: var(--toc-bg);
+                text-decoration: none;
+            }
+        } 
+    }
 
-#table-of-contents ul a {
-    padding: 6px 8px 6px 16px;
-    text-decoration: none;
-    font-size: 25px;
-    display: block;
-    font-size: 15px;
-    color: black;
-}
-
-#table-of-contents ul a {
-    padding: 6px 8px 6px 16px;
-    text-decoration: none;
-    font-size: 25px;
-    display: block;
-    font-size: 15px;
-    color: white;
-    background-color: #133201;
-}
-
-
-#table-of-contents ul a:hover {
-    color: white;
-    background-color: #133201;
-}
-
-#table-of-contents ul a:visited {
-    color: white;
-    border-color: #133201;
-}
-
-#table-of-contents ul a:visited:hover {
-    color: white;
-    background-color: #133201;
-}
-
-#table-of-contents ul {
-    list-style-type: none;
-    padding-left: 0;
+    @media (max-width: 1250px) {
+        display: none;
+    }
 }
 
 .content {
-    margin-left: 160px; /* Same as the width of the sidebar */
+    margin-left: 160px;
     padding: 0px 10px;
+    @media (max-width: 1250px) {
+        margin-left: 0; 
+    }
 }
 
 .src,
@@ -218,8 +221,41 @@ pre {
     text-align: center;
 }
 
-pre.src-stem:before {
-    content: "Stem";
+pre {
+    font-family: "Inconsolata", monospace;
+    &.src-stem::before {
+        content: "Stem";
+    }
+}
+
+.theorem, .proof {
+    display: block;
+    margin-left: 10px;
+    font-style: normal;
+    &::before {
+        float: left;
+        font-weight: bold;
+    }
+}
+
+.theorem {
+    margin-bottom:20px;
+    &::before {
+        content:"Theorem.\00a0\00a0";
+    }
+}
+
+.proof {
+    margin-bottom:30px;
+
+    &::before {
+        content:'Proof.\00a0\00a0';
+    }
+
+    &::after {
+        content: "\25FC";
+        float: right;
+    }
 }
 
 .links-page > ul {
@@ -228,86 +264,28 @@ pre.src-stem:before {
     -moz-columns: 2;
 }
 
-.theorem {
-    display:block;
-    margin-left:10px;
-    margin-bottom:20px;
-    font-style:normal;
-}
-
-.theorem:before {
-    content:"Theorem.\00a0\00a0";
-    float:left;
-    font-weight:bold;
-}
-
-.proof {
-    display:block;
-    margin-left:10px;
-    margin-bottom:30px;
-    font-style:normal;
-}
-
-.proof:before {
-    content:'Proof.\00a0\00a0';
-    float:left;
-    font-weight:bold;
-}
-
-.proof:after {
-    content:"\25FC";
-    float:right;
-}
 blockquote {
-    width:60%;
-    margin:50px auto;
-    font-style:italic;
-    color: #555555;
-    padding:1.2em 30px 1.2em 75px;
-    border-left:8px solid #78C0A8 ;
-    line-height:1.6;
+    width: 80%; /* Slightly wider so it doesn't feel cramped */
+    margin: 40px auto;
+    font-style: italic;
+    color: var(--text-main);
+    padding: 1.5em 30px 1.5em 60px; /* Adjusted padding */
+    border-left: 4px solid var(--quote-accent); /* Thinner, more elegant border */
+    border-radius: 0 8px 8px 0; /* Round the right corners slightly */
+    line-height: 1.6;
     position: relative;
-    background:#EDEDED;
-}
-blockquote::before {
-    font-family:Arial;
-    content: "\201C";
-    color:#78C0A8;
-    font-size:4em;
-    position: absolute;
-    left: 10px;
-    top:-10px;
-}
+    background: color-mix(in srgb, var(--quote-accent) 15%, transparent); /* Automatically makes a faint background based on your accent color! */
 
-blockquote::after{
-    content: '';
-}
-/* On smaller screens, where height is less than 450px, change the style of the sidebar (less padding and a smaller font size) */
-@media screen and (max-height: 450px) {
-    .sidenav {
-	padding-top: 15px;
+    &::before {
+        font-family: "Lora", serif; /* Match your main font instead of Arial */
+        content: "\201C";
+        color: var(--quote-accent);
+        font-size: 5em;
+        position: absolute;
+        left: 10px;
+        top: -20px;
+        opacity: 0.5; /* Fade the quote mark so it isn't overpowering */
     }
-    .sidenav a {
-	font-size: 18px;
-    }
-}
-
-@media (max-width: 1250px) {
-    body {
-	margin: 20px auto;
-	font-size: 20px;
-    }
-    h1 {
-	font-size: 20px;
-    }
-    h2 {
-	font-size: 18px;
-    }
-    #table-of-contents {
-	display: none;
-    }
-    #table-of-contents ul a {
-	padding: 0px 0px 0px 0px;
-	text-decoration: none;
-    }
+    
+    &::after { content: ''; }
 }

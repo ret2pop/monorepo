@@ -136,7 +136,6 @@ fi
           })
         ];
 
-
         buildPhase = ''
 export HOME=$TMPDIR/fake-home
 mkdir -p $HOME/.emacs.d
@@ -191,7 +190,6 @@ emacs -q --batch \
   --eval '(org-roam-db-sync)' \
   --eval '(setq term-file-prefix nil)' \
   --eval '(load-theme (quote doom-rouge) t)' \
-  --eval '(setq htmlize-output-type (quote font))' \
   --eval '(setq custom-safe-themes t)' \
   --eval '(force-mode-line-update)' \
   --eval '(setq org-html-link-use-abs-url nil)' \
@@ -234,7 +232,6 @@ sha256sum installer.iso > installer.iso.sha256
         };
 
         devShells."${system}".default = with pkgs; mkShell {
-
           shellHook = ''
 ${pre-commit-check.shellHook}
 git config branch.main.mergeoptions "--no-ff"

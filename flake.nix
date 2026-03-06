@@ -23,18 +23,20 @@
 
       emacsPackages = import  "${nixmacs}/modules/home/emacs-packages.nix";
       ci-emacs = pkgs.emacs-nox.pkgs.withPackages emacsPackages;
+      specialArgs = { monorepoSelf = self; };
 
       installer = nixmacs.nixosConfigurations.installer.extendModules {
-        specialArgs = { monorepoSelf = self; };
+        inherit specialArgs;
+      };
+
+      spontaneity = nixmacs.nixosConfigurations.spontaneity.extendModules {
+        inherit specialArgs;
       };
 
       installer-iso = installer.config.system.build.isoImage;
 
-      spontaneity = nixmacs.nixosConfigurations.spontaneity.extendModules {
-        specialArgs = { monorepoSelf = self; };
-      };
-
       spontaneityHost = spontaneity.config.monorepo.vars.orgHost;
+      spontaneityUser = spontaneity.config.monorepo.vars.userName;
 
       pre-commit-check = git-hooks.lib.${system}.run {
         src = ./.;
@@ -96,7 +98,7 @@ if [ "$BRANCH" != "main" ]; then
   exit 0
 fi
 echo "Pushing to main detected. Deploying to ${spontaneityHost}..."
-nixos-rebuild switch --flake .#spontaneity --target-host root@${spontaneityHost} --build-host localhost
+nixos-rebuild switch --flake .#spontaneity --target-host ${spontaneityUser}@${spontaneityHost}
 if [ $? -eq 0 ]; then
   echo "Deployment successful!"
 else

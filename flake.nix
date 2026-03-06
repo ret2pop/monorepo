@@ -212,7 +212,7 @@ ${publish-org-roam-ui.packages.${system}.default}/bin/build-org-roam-graph \
 mkdir -p $out/fonts
 
 cp -L ${pkgs.lora}/share/fonts/truetype/*.ttf $out/fonts/
-cp -L ${pkgs.inconsolata}/share/fonts/truetype/*.ttf $out/fonts/
+cp -L ${pkgs.inconsolata}/share/fonts/truetype/inconsolata/*.ttf $out/fonts
 
 cp -r $HOME/website_html/. $out/
 cp ${installer-iso}/iso/*.iso $out/installer.iso

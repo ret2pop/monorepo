@@ -87,9 +87,6 @@ input {
     }
 }
 
-/* ----------------------------------------------- */
-/* Various classes for messages of different kinds */
-/* ----------------------------------------------- */
 .isa_info,
 .isa_success,
 .isa_warning,
@@ -155,9 +152,6 @@ mjx-container[jax="CHTML"] {
     text-align: left !important;
 }
 
-/* --------------------------------------------- */
-/* Bold hover animations on links and clickables */
-/* --------------------------------------------- */
 a {
     cursor: pointer;
     color: var(--link-color);
@@ -197,14 +191,12 @@ a {
             display: block;
             font-size: 15px;
             
-            /* Standard state: Dark text, transparent background */
             &, &:visited {
                 color: var(--text-main); 
                 background-color: transparent; 
                 text-decoration: none;
             }
             
-            /* Hover state: Invert it so it highlights beautifully! */
             &:hover, &:visited:hover {
                 color: var(--bg-main); 
                 background-color: var(--text-main); 

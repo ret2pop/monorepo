@@ -92,7 +92,6 @@ fi
             pass_filenames = false;
             always_run = true;
             entry = "${pkgs.writeShellScript "deploy-spontaneity-hook" ''
-exec < /dev/tty
 BRANCH=$(git branch --show-current)
               
 if [ "$BRANCH" != "main" ]; then
@@ -100,9 +99,6 @@ if [ "$BRANCH" != "main" ]; then
 fi
 echo "Pushing to main detected. Deploying to ${spontaneityHost}..."
 export NIX_SSHOPTS="-t"
-nixos-rebuild switch --flake .#spontaneity \
-  --target-host ${spontaneityUser}@${spontaneityHost}
-  --ask-sudo-password --sudo
 
 if [ $? -eq 0 ]; then
   echo "Deployment successful!"

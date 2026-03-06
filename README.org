@@ -16,9 +16,9 @@ as well as writing a lot of things with a literate config. To see more, see my
 ** So, where is this website of yours located?
 https://ret2pop.net, it is the road to enlightenment.
 * Wait, so where are your dotfiles?
-To use my dotfiles, download the [[file:robots.txt][ISO image]] (link broken temporarily) for the installer. Note that you can validate the ISO image with the checksum provided:
+To use my dotfiles, download the [[file:installer.iso][ISO image]] for the installer. Note that you can validate the ISO image with the [[file:./installer.iso.sha256][checksum provided]]:
 #+begin_src bash
-  sha256sum -c nix-installer.iso.sha256
+  sha256sum -c installer.iso.sha256
 #+end_src
 with the ISO in the same directory. This install installs a certain commit hash of my monorepo. Flash the image, log into the installer, and run:
 #+begin_src bash

@@ -21,6 +21,22 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
 
+      emacsPackages = import  "${nixmacs}/modules/home/emacs-packages.nix";
+      ci-emacs = pkgs.emacs-nox.pkgs.withPackages emacsPackages;
+      specialArgs = { monorepoSelf = self; };
+
+      installer = nixmacs.nixosConfigurations.installer.extendModules {
+        inherit specialArgs;
+      };
+
+      spontaneity = nixmacs.nixosConfigurations.spontaneity.extendModules {
+        inherit specialArgs;
+      };
+
+      installer-iso = installer.config.system.build.isoImage;
+
+      spontaneityHost = spontaneity.config.monorepo.vars.orgHost;
+      spontaneityUser = spontaneity.config.monorepo.vars.userName;
 
       pre-commit-check = git-hooks.lib.${system}.run {
         src = ./.;
@@ -67,14 +83,39 @@ if [ "$BRANCH" = "main" ] && [ ! -f "$GIT_DIR/MERGE_HEAD" ]; then
 fi
                 ''}";
           };
+
+          deploy-spontaneity = {
+            enable = true;
+            name = "Deploy to Spontaneity VPS";
+            description = "Automatically deploys the NixOS configuration to the VPS on push to main";
+            stages = [ "pre-push" ]; 
+            pass_filenames = false;
+            always_run = true;
+            entry = "${pkgs.writeShellScript "deploy-spontaneity-hook" ''
+BRANCH=$(git branch --show-current)
+              
+if [ "$BRANCH" != "main" ]; then
+  exit 0
+fi
+echo "Pushing to main detected. Deploying to ${spontaneityHost}..."
+nixos-rebuild switch --flake .#spontaneity --target-host ${spontaneityUser}@${spontaneityHost}
+if [ $? -eq 0 ]; then
+  echo "Deployment successful!"
+else
+  echo "Deployment failed. Aborting."
+  exit 1
+fi
+            ''}";
+          };
         };
       };
 
-      emacsPackages = import  "${nixmacs}/modules/home/emacs-packages.nix";
-      ci-emacs = pkgs.emacs-nox.pkgs.withPackages emacsPackages;
       website = pkgs.stdenv.mkDerivation {
         name = "org-publish-website";
         src = pkgs.lib.cleanSource ./.;
+        nativeBuildInputs = [
+          installer-iso
+        ];
         buildInputs = [
           ci-emacs
           pkgs.git
@@ -94,6 +135,7 @@ fi
               dvisvgm;
           })
         ];
+
 
         buildPhase = ''
 export HOME=$TMPDIR/fake-home
@@ -169,17 +211,16 @@ ${publish-org-roam-ui.packages.${system}.default}/bin/build-org-roam-graph \
         installPhase = ''
 mkdir -p $out
 cp -r $HOME/website_html/. $out/
+cp ${installer-iso}/iso/*.iso $out/installer.iso
+cd $out
+sha256sum installer.iso > installer.iso.sha256
           '';
       };
     in
       {
         nixosConfigurations = {
-          installer = nixmacs.nixosConfigurations.installer.extendModules {
-            specialArgs = { monorepoSelf = self; };
-          };
-          spontaneity = nixmacs.nixosConfigurations.spontaneity.extendModules {
-            specialArgs = { monorepoSelf = self; };
-          };
+          inherit installer;
+          inherit spontaneity;
         };
 
         checks."${system}" = {
@@ -188,7 +229,7 @@ cp -r $HOME/website_html/. $out/
 
         packages."${system}" = {
           website = website;
-          installer = self.nixosConfigurations.installer.config.system.build.isoImage;
+          installer = installer-iso;
           spontaneity = self.nixosConfigurations.spontaneity.config.system.build.toplevel;
         };
 

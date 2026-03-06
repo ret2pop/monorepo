@@ -197,6 +197,7 @@ cp -r $HOME/website_html/. $out/
           shellHook = ''
 ${pre-commit-check.shellHook}
 git config branch.main.mergeoptions "--no-ff"
+alias gprune='git branch --merged | grep -v -E "^\*|main|master|dev" | xargs -r git branch -d'
 '';
           buildInputs = [
             deadnix

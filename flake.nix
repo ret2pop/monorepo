@@ -125,6 +125,8 @@ fi
           pkgs.ghostscript
           pkgs.imagemagick
           pkgs.jq
+          pkgs.lora
+          pkgs.inconsolata
           (pkgs.texlive.combine {
             inherit (pkgs.texlive)
               scheme-full
@@ -207,7 +209,11 @@ ${publish-org-roam-ui.packages.${system}.default}/bin/build-org-roam-graph \
           '';
 
         installPhase = ''
-mkdir -p $out
+mkdir -p $out/fonts
+
+cp -L ${pkgs.lora}/share/fonts/truetype/*.ttf $out/fonts/
+cp -L ${pkgs.inconsolata}/share/fonts/truetype/*.ttf $out/fonts/
+
 cp -r $HOME/website_html/. $out/
 cp ${installer-iso}/iso/*.iso $out/installer.iso
 cd $out

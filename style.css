@@ -1,21 +1,32 @@
-@import url("https://fonts.googleapis.com/css2?family=Lora:wght@500&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Inconsolata&display=swap");
+@font-face {
+    font-family: 'Lora';
+    font-style: normal;
+    font-weight: 500;
+    src: url('./fonts/Lora-Medium.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Inconsolata';
+    font-style: normal;
+    font-weight: 400;
+    src: url('./fonts/Inconsolata-Regular.ttf') format('truetype');
+}
 
 :root {
-    --bg-main: #FBF8F1;       /* Softer, warmer paper color */
-    --text-main: #4A3F35;     /* Deep espresso brown (easier on eyes than pure black) */
-    --toc-bg: #EAE3D2;        /* A muted, darker beige for the sidebar */
-    --toc-text: #4A3F35;      /* Dark brown text for the sidebar */
-    --quote-accent: #D4A373;  /* A warm terracotta/clay accent */
-    --link-color: #8C6239;    /* Muted copper for links */
+    --bg-main: #FBF8F1;
+    --text-main: #4A3F35;
+    --toc-bg: #EAE3D2;
+    --toc-text: #4A3F35;
+    --quote-accent: #D4A373;
+    --link-color: #8C6239;
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --bg-main: #1e1e2e; /* A rich, dark slate */
-        --text-main: #cdd6f4; /* Soft, readable off-white */
-        --toc-bg: #11111b; /* An even darker shade for the sidebar */
-        --quote-accent: #f5c2e7; /* A soft pastel pink/purple accent */
+        --bg-main: #1e1e2e;
+        --text-main: #cdd6f4;
+        --toc-bg: #11111b;
+        --quote-accent: #f5c2e7;
     }
 }
 
@@ -149,15 +160,14 @@ mjx-container[jax="CHTML"] {
 /* --------------------------------------------- */
 a {
     cursor: pointer;
-    color: #217ab7;
+    color: var(--link-color);
     text-decoration: underline;
     text-decoration-thickness: 2px;
-    text-underline-offset: 4px; /* Pushes the underline down slightly */
+    text-underline-offset: 4px;
     transition: all 0.2s ease-in-out;
     
-    /* Make the link change color and the underline grow on hover */
     &:hover {
-        color: #11507c;
+        color: color-mix(in srgb, var(--link-color) 80%, black); 
         text-decoration-thickness: 4px;
     }
 }
@@ -186,13 +196,20 @@ a {
             padding: 6px 8px 6px 16px;
             display: block;
             font-size: 15px;
-            &, &:hover, &:visited, &:visited:hover {
-                color: white;
-                background-color: var(--toc-bg);
-                border-color: var(--toc-bg);
+            
+            /* Standard state: Dark text, transparent background */
+            &, &:visited {
+                color: var(--text-main); 
+                background-color: transparent; 
                 text-decoration: none;
             }
-        } 
+            
+            /* Hover state: Invert it so it highlights beautifully! */
+            &:hover, &:visited:hover {
+                color: var(--bg-main); 
+                background-color: var(--text-main); 
+            }
+        }
     }
 
     @media (max-width: 1250px) {
@@ -265,26 +282,26 @@ pre {
 }
 
 blockquote {
-    width: 80%; /* Slightly wider so it doesn't feel cramped */
+    width: 80%;
     margin: 40px auto;
     font-style: italic;
     color: var(--text-main);
-    padding: 1.5em 30px 1.5em 60px; /* Adjusted padding */
-    border-left: 4px solid var(--quote-accent); /* Thinner, more elegant border */
-    border-radius: 0 8px 8px 0; /* Round the right corners slightly */
+    padding: 1.5em 30px 1.5em 60px;
+    border-left: 4px solid var(--quote-accent);
+    border-radius: 0 8px 8px 0;
     line-height: 1.6;
     position: relative;
-    background: color-mix(in srgb, var(--quote-accent) 15%, transparent); /* Automatically makes a faint background based on your accent color! */
+    background: color-mix(in srgb, var(--quote-accent) 15%, transparent);
 
     &::before {
-        font-family: "Lora", serif; /* Match your main font instead of Arial */
+        font-family: "Lora", serif;
         content: "\201C";
         color: var(--quote-accent);
         font-size: 5em;
         position: absolute;
         left: 10px;
         top: -20px;
-        opacity: 0.5; /* Fade the quote mark so it isn't overpowering */
+        opacity: 0.5;
     }
     
     &::after { content: ''; }

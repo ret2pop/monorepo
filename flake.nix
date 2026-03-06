@@ -164,7 +164,7 @@ emacs -q --batch \
   --eval '(setq noninteractive t)' \
   --eval '(setq system-email "lol@troll.com")' \
   --eval '(setq system-username "ci-runner")' \
-  --eval '(setq system-fullname "CI")' \
+  --eval '(setq system-fullname "Preston Pan")' \
   --eval '(setq system-gpgkey "00000000")' \
   --eval '(defun package-vc-install (&rest args) (message "blocked package-vc-install for %s" args))' \
   --eval '(defun package-vc--unpack (&rest args) nil)' \
@@ -247,6 +247,7 @@ alias gprune='git branch --merged | grep -v -E "^\*|main|master|dev" | xargs -r 
             deadnix
             lychee
             python3
+            miniserve
           ];
         };
       };

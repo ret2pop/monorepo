@@ -21,27 +21,31 @@
     --link-color: #8C6239;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg-main: #1e1e2e;
-        --text-main: #cdd6f4;
-        --toc-bg: #11111b;
-        --quote-accent: #f5c2e7;
-    }
-}
+/* @media (prefers-color-scheme: dark) { */
+/*     :root { */
+/*         --bg-main: #1e1e2e; */
+/*         --text-main: #cdd6f4; */
+/*         --toc-bg: #11111b; */
+/*         --quote-accent: #f5c2e7; */
+/*     } */
+/* } */
 
 body {
+    background:
+        radial-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
+        var(--bg-main);
+    max-width: 65ch;
+    line-height: 1.75;
+    background-size: 6px 6px;
     margin: 40px auto;
-    width: 700px;
-    line-height: 1.6;
     font-size: 16px;
-    background: var(--bg-main);
     color: var(--text-main);
     padding: 0 10px;
+    /* fonts */
     font-size: 18px;
-    line-height: 28px;
     font-family: "Lora";
     font-weight: 500;
+    font-variant-ligatures: common-ligatures;
     -webkit-font-smoothing: antialiased;
 
     @media (max-width: 1250px) {
@@ -134,6 +138,45 @@ h2 {
     }
 }
 
+h1, h2 {
+    border-bottom: 1px solid var(--border-color); /* Uses your existing #dabebe */
+    padding-bottom: 8px;
+    margin-top: 2.5rem;
+    letter-spacing: -0.01em;
+    position: relative;
+}
+
+h1 {
+    font-size: 2.1rem;
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+}
+
+h2 {
+    font-size: 1.6rem;
+    margin-top: 2.5rem;
+    margin-bottom: 0.6rem;
+}
+
+h3 {
+    font-size: 1.25rem;
+    margin-top: 2rem;
+    margin-bottom: 0.4rem;
+}
+
+p {
+    margin: 1.2rem 0;
+}
+
+p, ul, ol {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+li {
+    margin: 0.3rem 0;
+}
+
 img {
     border-radius: 10px;
     text-align: center;
@@ -150,6 +193,11 @@ img {
 
 mjx-container[jax="CHTML"] {
     text-align: left !important;
+    background: rgba(212, 163, 115, 0.05); /* Uses a hint of your --quote-accent */
+    padding: 1.5rem;
+    border-left: 2px solid var(--quote-accent);
+    margin: 2rem 0 !important;
+    overflow-x: auto;
 }
 
 a {
@@ -172,42 +220,97 @@ a {
 }
 
 #table-of-contents {
-    height: 100%;
+    height: 100vh;
     width: 250px;
     position: fixed;
-    z-index: 1;
+    z-index: 10; /* Ensure it stays above content */
     top: 0;
     left: 0;
-    font-size: 0px;
-    overflow-x: hidden;
-    padding-top: 20px;
-    border-right: 1px;
+    padding-top: 0; /* Removed the 20px space at the top */
     background: var(--toc-bg);
+    border-right: 1px solid var(--quote-accent);
+    overflow-y: auto; /* Allow scrolling if TOC is very long */
+    overflow-x: hidden;
+    
+    /* Technical Header for TOC */
+    &::before {
+        content: "INDEX // NAVIGATION";
+        display: block;
+        padding: 20px 16px 10px 16px;
+        font-family: "Inconsolata";
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: var(--quote-accent);
+        border-bottom: 1px solid rgba(212, 163, 115, 0.2);
+        margin-bottom: 10px;
+    }
+
     ul {
         list-style-type: none;
         padding-left: 0;
+        margin: 0;
+
         a {
-            padding: 6px 8px 6px 16px;
+            padding: 8px 16px;
             display: block;
-            font-size: 15px;
+            font-size: 14px;
+            font-family: "Inconsolata"; /* Using mono for the 'futuristic' look */
+            white-space: nowrap;      /* Keep text on one line */
+            overflow: hidden;         /* Hide overflow */
+            text-overflow: ellipsis;  /* Use "..." for long titles */
+            transition: all 0.2s ease;
             
             &, &:visited {
-                color: var(--text-main); 
-                background-color: transparent; 
+                color: var(--text-main);
                 text-decoration: none;
             }
-            
-            &:hover, &:visited:hover {
-                color: var(--bg-main); 
-                background-color: var(--text-main); 
+
+            &:hover {
+                background-color: var(--text-main);
+                color: var(--bg-main);
+                padding-left: 22px; /* Slight 'slide' effect on hover */
             }
         }
     }
-
-    @media (max-width: 1250px) {
-        display: none;
-    }
 }
+
+/* #table-of-contents { */
+/*     height: 100%; */
+/*     width: 250px; */
+/*     position: fixed; */
+/*     z-index: 1; */
+/*     top: 0; */
+/*     left: 0; */
+/*     font-size: 0px; */
+/*     overflow-x: hidden; */
+/*     padding-top: 20px; */
+/*     border-right: 1px; */
+/*     background: var(--toc-bg); */
+/*     ul { */
+/*         list-style-type: none; */
+/*         padding-left: 0; */
+/*         a { */
+/*             padding: 6px 8px 6px 16px; */
+/*             display: block; */
+/*             font-size: 15px; */
+            
+/*             &, &:visited { */
+/*                 color: var(--text-main);  */
+/*                 background-color: transparent;  */
+/*                 text-decoration: none; */
+/*             } */
+            
+/*             &:hover, &:visited:hover { */
+/*                 color: var(--bg-main);  */
+/*                 background-color: var(--text-main);  */
+/*             } */
+/*         } */
+/*     } */
+
+/*     @media (max-width: 1250px) { */
+/*         display: none; */
+/*     } */
+/* } */
 
 .content {
     margin-left: 160px;
@@ -219,11 +322,13 @@ a {
 
 .src,
 .example {
+    background: #1e1e2e;
     color: #cdd6f4;
-    background-color: #1e1e2e;
-    box-shadow:
-	rgba(0, 0, 0, 0.3) 0px 19px 38px,
-	rgba(0, 0, 0, 0.22) 0px 15px 12px;
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.9rem;
+    box-shadow: none;
 }
 
 #postamble {
@@ -241,6 +346,10 @@ pre {
     display: block;
     margin-left: 10px;
     font-style: normal;
+    background: color-mix(in srgb, var(--quote-accent) 8%, transparent);
+    border-left: 3px solid var(--quote-accent);
+    padding: 1rem 1.3rem;
+    margin: 2rem 0;
     &::before {
         float: left;
         font-weight: bold;
@@ -297,4 +406,57 @@ blockquote {
     }
     
     &::after { content: ''; }
+}
+
+figure {
+    margin: 2rem auto;
+    text-align: center;
+}
+
+figcaption {
+    font-size: 0.9rem;
+    color: color-mix(in srgb, var(--text-main) 80%, gray);
+    margin-top: 0.5rem;
+}
+
+.title {
+    font-size: 2.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: color-mix(in srgb, var(--text-main) 70%, gray);
+}
+
+.author, .date {
+    display: inline; /* Keep them on the same line */
+    font-family: "Lora";
+    font-style: italic;
+    font-size: 1.1rem;
+    color: color-mix(in srgb, var(--text-main) 70%, gray);
+}
+
+/* Add the "by" prefix using a pseudo-element */
+.author::before {
+    content: "by ";
+    font-family: "Inconsolata"; /* Technical contrast */
+    font-style: normal;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    margin-right: 4px;
+}
+
+/* Add a comma separator between author and date if both exist */
+.author:not(:last-child)::after {
+    content: ", ";
+    font-style: normal;
+}
+
+header, .title + p, .subtitle + p {
+    margin-bottom: 3rem;
+    border-bottom: 1px double var(--quote-accent);
+    padding-bottom: 1rem;
 }

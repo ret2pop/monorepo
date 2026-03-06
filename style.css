@@ -1,49 +1,78 @@
-@import url("https://fonts.googleapis.com/css2?family=Lora:wght@500&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Inconsolata&display=swap");
-
-body {
-    margin: 40px auto;
-    width: 700px;
-    line-height: 1.6;
-    font-size: 16px;
-    background: #fffff4;
-    color: #3a1616;
-    padding: 0 10px;
-    font-size: 18px;
-    line-height: 28px;
-    font-family: "Lora";
+@font-face {
+    font-family: 'Lora';
+    font-style: normal;
     font-weight: 500;
-    /* Smooth the font a little bit, it's a
-         bit too bold on retina screens */
-    -webkit-font-smoothing: antialiased;
+    src: url('./fonts/Lora-Medium.ttf') format('truetype');
 }
 
-/* --------------------------------------------------- */
-/* Make a nice input form with rounded corners and hover
- animations*/
-/* --------------------------------------------------- */
+@font-face {
+    font-family: 'Inconsolata';
+    font-style: normal;
+    font-weight: 400;
+    src: url('./fonts/Inconsolata-Regular.ttf') format('truetype');
+}
+
+:root {
+    --bg-main: #FBF8F1;
+    --text-main: #4A3F35;
+    --toc-bg: #EAE3D2;
+    --toc-text: #4A3F35;
+    --quote-accent: #D4A373;
+    --link-color: #8C6239;
+}
+
+/* @media (prefers-color-scheme: dark) { */
+/*     :root { */
+/*         --bg-main: #1e1e2e; */
+/*         --text-main: #cdd6f4; */
+/*         --toc-bg: #11111b; */
+/*         --quote-accent: #f5c2e7; */
+/*     } */
+/* } */
+
+body {
+    background:
+        radial-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
+        var(--bg-main);
+    max-width: 65ch;
+    line-height: 1.75;
+    background-size: 6px 6px;
+    margin: 40px auto;
+    font-size: 16px;
+    color: var(--text-main);
+    padding: 0 10px;
+    /* fonts */
+    font-size: 18px;
+    font-family: "Lora";
+    font-weight: 500;
+    font-variant-ligatures: common-ligatures;
+    -webkit-font-smoothing: antialiased;
+
+    @media (max-width: 1250px) {
+        margin: 20px auto;
+        font-size: 20px;
+    }
+}
+
 input {
     padding: 10px 16px;
     margin: 2px 0;
     box-sizing: border-box;
     border: 2px solid #dabebe;
     border-radius: 6px;
-    background: #fffff4;
-    color: #3a1616;
+    background: var(--bg-main);
+    color: var(--text-main);
     font-size: 16px;
     -webkit-transition: 0.5s;
     transition: 0.5s;
     outline: none;
-}
-input:focus {
-    border: 2px solid #3a1616;
+    &:focus {
+        border: 2px solid var(--text-main);
+    }
 }
 
-/* --------------------------------------- */
-/* The button is very similar to the input */
-/* --------------------------------------- */
 .button {
-    background-color: #fffff4;
+    background-color: var(--bg-main);
     border: none;
     color: black;
     padding: 6px 14px;
@@ -54,17 +83,14 @@ input:focus {
     margin: 4px 2px;
     transition-duration: 0.4s;
     cursor: pointer;
-    border: 2px solid #3a1616;
+    border: 2px solid var(--text-main);
     border-radius: 6px;
-}
-.button:hover {
-    background-color: #3a1616;
-    color: white;
+    &:hover {
+        background-color: var(--text-main);
+        color: white;
+    }
 }
 
-/* ----------------------------------------------- */
-/* Various classes for messages of different kinds */
-/* ----------------------------------------------- */
 .isa_info,
 .isa_success,
 .isa_warning,
@@ -77,14 +103,17 @@ input:focus {
     color: #00529b;
     background-color: #bde5f8;
 }
+
 .isa_success {
     color: #4f8a10;
     background-color: #dff2bf;
 }
+
 .isa_warning {
     color: #9f6000;
     background-color: #feefb3;
 }
+
 .isa_error {
     color: #d8000c;
     background-color: #ffd2d2;
@@ -95,6 +124,57 @@ h2,
 h3 {
     line-height: 1.2;
     font-family: "Lora";
+}
+
+h1 {
+    @media (max-width: 1250px) {
+        font-size: 20px;
+    }
+}
+
+h2 {
+    @media (max-width: 1250px) {
+        font-size: 18px;
+    }
+}
+
+h1, h2 {
+    border-bottom: 1px solid var(--border-color); /* Uses your existing #dabebe */
+    padding-bottom: 8px;
+    margin-top: 2.5rem;
+    letter-spacing: -0.01em;
+    position: relative;
+}
+
+h1 {
+    font-size: 2.1rem;
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+}
+
+h2 {
+    font-size: 1.6rem;
+    margin-top: 2.5rem;
+    margin-bottom: 0.6rem;
+}
+
+h3 {
+    font-size: 1.25rem;
+    margin-top: 2rem;
+    margin-bottom: 0.4rem;
+}
+
+p {
+    margin: 1.2rem 0;
+}
+
+p, ul, ol {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+li {
+    margin: 0.3rem 0;
 }
 
 img {
@@ -111,34 +191,45 @@ img {
     max-width: none;
 }
 
-mjx-container[jax="CHTML"] {
+mjx-container[jax="CHTML"][display="true"] {
     text-align: left !important;
+    background: rgba(212, 163, 115, 0.05);
+    padding: 1.5rem;
+    border-left: 2px solid var(--quote-accent);
+    margin: 2rem 0 !important;
+    overflow-x: auto;
+    
+    /* Hide scrollbar for Firefox */
+    scrollbar-width: none;
+    /* Hide scrollbar for IE/Edge */
+    -ms-overflow-style: none;
 }
 
-/* --------------------------------------------- */
-/* Bold hover animations on links and clickables */
-/* --------------------------------------------- */
+/* Hide scrollbar for Chrome, Safari and Opera */
+mjx-container[jax="CHTML"][display="true"]::-webkit-scrollbar {
+    display: none;
+}
+
+/* Inline MathJax (Inside paragraphs) */
+mjx-container[jax="CHTML"]:not([display="true"]) {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: none;
+}
+
 a {
     cursor: pointer;
-    color: #217ab7;
-    line-height: inherit;
-    transition: 0.14s;
-}
-a:hover {
-    color: white;
-    background-color: #3297d3;
-}
-a:visited {
-    color: #43458b;
-    border-color: #43458b;
-}
-a:visited:hover {
-    color: white;
-    background-color: #9251ac;
-}
-
-pre {
-    font-family: "Inconsolata", monospace;
+    color: var(--link-color);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    transition: all 0.2s ease-in-out;
+    
+    &:hover {
+        color: color-mix(in srgb, var(--link-color) 80%, black); 
+        text-decoration-thickness: 4px;
+    }
 }
 
 ::selection {
@@ -147,79 +238,159 @@ pre {
 }
 
 #table-of-contents {
-    height: 100%; /* Full-height: remove this if you want "auto" height */
-    width: 250px; /* Set the width of the sidebar */
-    position: fixed; /* Fixed Sidebar (stay in place on scroll) */
-    z-index: 1; /* Stay on top */
-    top: 0; /* Stay at the top */
+    height: 100vh;
+    width: 250px;
+    position: fixed;
+    z-index: 10;
+    top: 0;
     left: 0;
-    font-size: 0px;
-    overflow-x: hidden; /* Disable horizontal scroll */
-    padding-top: 20px;
-    border-right: 1px;
-    background: #133201;
-}
+    padding-top: 0;
+    background: var(--toc-bg);
+    border-right: 1px solid var(--quote-accent);
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
 
-#table-of-contents ul a {
-    padding: 6px 8px 6px 16px;
-    text-decoration: none;
-    font-size: 25px;
-    display: block;
-    font-size: 15px;
-    color: black;
-}
+    &::-webkit-scrollbar { display: none; }
 
-#table-of-contents ul a {
-    padding: 6px 8px 6px 16px;
-    text-decoration: none;
-    font-size: 25px;
-    display: block;
-    font-size: 15px;
-    color: white;
-    background-color: #133201;
-}
+    h2 {
+        display: none !important;
+    }
 
+    /* 2. Insert the aligned futuristic header */
+    &::before {
+        content: "NAVIGATION";
+        display: block;
+        /* Padding math: 19px left matches the link text exactly */
+        padding: 24px 16px 12px 19px; 
+        font-family: "Inconsolata";
+        font-size: 11px;
+        font-weight: bold;
+        letter-spacing: 2px;
+        color: var(--text-main);
+        border-bottom: 1px solid rgba(212, 163, 115, 0.2);
+        margin-bottom: 10px;
+    }
 
-#table-of-contents ul a:hover {
-    color: white;
-    background-color: #133201;
-}
+    ul {
+        list-style-type: none;
+        padding-left: 0;
+        margin: 0;
 
-#table-of-contents ul a:visited {
-    color: white;
-    border-color: #133201;
-}
+        a {
+            display: block;
+            width: 218px;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-family: "Inconsolata";
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 3px solid transparent;
+            
+            &, &:visited {
+                color: var(--text-main);
+                text-decoration: none;
+            }
 
-#table-of-contents ul a:visited:hover {
-    color: white;
-    background-color: #133201;
-}
+            &:hover {
+                background-color: var(--text-main);
+                color: var(--bg-main);
+                padding-left: 22px;
+                border-left: 3px solid var(--quote-accent);
+            }
+        }
 
-#table-of-contents ul {
-    list-style-type: none;
-    padding-left: 0;
+        ul {
+            a {
+                padding-left: 32px;
+                font-size: 12px;
+                opacity: 0.8;
+                width: 202px; /* Adjusted width for nesting */
+                
+                &:hover {
+                    padding-left: 38px;
+                }
+            }
+        }
+    }
+
+    @media (max-width: 1250px) {
+        display: none;
+    }
 }
 
 .content {
-    margin-left: 160px; /* Same as the width of the sidebar */
+    margin-left: 160px;
     padding: 0px 10px;
+    @media (max-width: 1250px) {
+        margin-left: 0; 
+    }
 }
 
 .src,
 .example {
+    background: #1e1e2e;
     color: #cdd6f4;
-    background-color: #1e1e2e;
-    box-shadow:
-	rgba(0, 0, 0, 0.3) 0px 19px 38px,
-	rgba(0, 0, 0, 0.22) 0px 15px 12px;
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.9rem;
+    box-shadow: none;
+    
+    scrollbar-width: none; 
+    -ms-overflow-style: none; 
+}
+
+.src::-webkit-scrollbar,
+.example::-webkit-scrollbar {
+    display: none;
 }
 
 #postamble {
     text-align: center;
 }
 
-pre.src-stem:before {
-    content: "Stem";
+pre {
+    font-family: "Inconsolata", monospace;
+    &.src-stem::before {
+        content: "Stem";
+    }
+}
+
+.theorem, .proof {
+    display: block;
+    margin-left: 10px;
+    font-style: normal;
+    background: color-mix(in srgb, var(--quote-accent) 8%, transparent);
+    border-left: 3px solid var(--quote-accent);
+    padding: 1rem 1.3rem;
+    margin: 2rem 0;
+    &::before {
+        float: left;
+        font-weight: bold;
+    }
+}
+
+.theorem {
+    margin-bottom:20px;
+    &::before {
+        content:"Theorem.\00a0\00a0";
+    }
+}
+
+.proof {
+    margin-bottom:30px;
+
+    &::before {
+        content:'Proof.\00a0\00a0';
+    }
+
+    &::after {
+        content: "\25FC";
+        float: right;
+    }
 }
 
 .links-page > ul {
@@ -228,86 +399,106 @@ pre.src-stem:before {
     -moz-columns: 2;
 }
 
-.theorem {
-    display:block;
-    margin-left:10px;
-    margin-bottom:20px;
-    font-style:normal;
-}
-
-.theorem:before {
-    content:"Theorem.\00a0\00a0";
-    float:left;
-    font-weight:bold;
-}
-
-.proof {
-    display:block;
-    margin-left:10px;
-    margin-bottom:30px;
-    font-style:normal;
-}
-
-.proof:before {
-    content:'Proof.\00a0\00a0';
-    float:left;
-    font-weight:bold;
-}
-
-.proof:after {
-    content:"\25FC";
-    float:right;
-}
 blockquote {
-    width:60%;
-    margin:50px auto;
-    font-style:italic;
-    color: #555555;
-    padding:1.2em 30px 1.2em 75px;
-    border-left:8px solid #78C0A8 ;
-    line-height:1.6;
+    width: 80%;
+    margin: 40px auto;
+    font-style: italic;
+    color: var(--text-main);
+    padding: 1.5em 30px 1.5em 60px;
+    border-left: 4px solid var(--quote-accent);
+    border-radius: 0 8px 8px 0;
+    line-height: 1.6;
     position: relative;
-    background:#EDEDED;
-}
-blockquote::before {
-    font-family:Arial;
-    content: "\201C";
-    color:#78C0A8;
-    font-size:4em;
-    position: absolute;
-    left: 10px;
-    top:-10px;
+    background: color-mix(in srgb, var(--quote-accent) 15%, transparent);
+
+    &::before {
+        font-family: "Lora", serif;
+        content: "\201C";
+        color: var(--quote-accent);
+        font-size: 5em;
+        position: absolute;
+        left: 10px;
+        top: -20px;
+        opacity: 0.5;
+    }
+    
+    &::after { content: ''; }
 }
 
-blockquote::after{
-    content: '';
+figure {
+    margin: 2rem auto;
+    text-align: center;
 }
-/* On smaller screens, where height is less than 450px, change the style of the sidebar (less padding and a smaller font size) */
-@media screen and (max-height: 450px) {
-    .sidenav {
-	padding-top: 15px;
-    }
-    .sidenav a {
-	font-size: 18px;
+
+figcaption {
+    font-size: 0.9rem;
+    color: color-mix(in srgb, var(--text-main) 80%, gray);
+    margin-top: 0.5rem;
+}
+
+.title {
+    font-size: 2.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: color-mix(in srgb, var(--text-main) 70%, gray);
+}
+
+.author, .date {
+    display: inline;
+    font-family: "Lora";
+    font-style: italic;
+    font-size: 1.1rem;
+    color: color-mix(in srgb, var(--text-main) 70%, gray);
+}
+
+.author {
+    &::before {
+        content: "by ";
+        font-family: "Inconsolata";
+        font-style: normal;
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        margin-right: 4px;
+    } 
+    &:not(:last-child)::after {
+        content: ", ";
+        font-style: normal;
     }
 }
 
-@media (max-width: 1250px) {
+header, .title + p, .subtitle + p {
+    margin-bottom: 3rem;
+    border-bottom: 1px double var(--quote-accent);
+    padding-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
     body {
-	margin: 20px auto;
-	font-size: 20px;
+        max-width: 100%;
+        padding: 0 15px;
+        box-sizing: border-box;
     }
-    h1 {
-	font-size: 20px;
+
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.5rem; }
+
+    img, blockquote, .src, .example, mjx-container[jax="CHTML"][display="true"] {
+        max-width: 100%;
+        box-sizing: border-box;
     }
-    h2 {
-	font-size: 18px;
+
+    blockquote {
+        padding: 1em 15px 1em 40px; 
+        width: 100%;
     }
-    #table-of-contents {
-	display: none;
-    }
-    #table-of-contents ul a {
-	padding: 0px 0px 0px 0px;
-	text-decoration: none;
+
+    .src, .example, mjx-container[jax="CHTML"][display="true"] {
+        width: 100%;
+        overflow-x: auto;
     }
 }

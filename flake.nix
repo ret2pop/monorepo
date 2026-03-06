@@ -125,6 +125,8 @@ fi
           pkgs.ghostscript
           pkgs.imagemagick
           pkgs.jq
+          pkgs.lora
+          pkgs.inconsolata
           (pkgs.texlive.combine {
             inherit (pkgs.texlive)
               scheme-full
@@ -135,7 +137,6 @@ fi
               dvisvgm;
           })
         ];
-
 
         buildPhase = ''
 export HOME=$TMPDIR/fake-home
@@ -163,7 +164,7 @@ emacs -q --batch \
   --eval '(setq noninteractive t)' \
   --eval '(setq system-email "lol@troll.com")' \
   --eval '(setq system-username "ci-runner")' \
-  --eval '(setq system-fullname "CI")' \
+  --eval '(setq system-fullname "Preston Pan")' \
   --eval '(setq system-gpgkey "00000000")' \
   --eval '(defun package-vc-install (&rest args) (message "blocked package-vc-install for %s" args))' \
   --eval '(defun package-vc--unpack (&rest args) nil)' \
@@ -191,7 +192,6 @@ emacs -q --batch \
   --eval '(org-roam-db-sync)' \
   --eval '(setq term-file-prefix nil)' \
   --eval '(load-theme (quote doom-rouge) t)' \
-  --eval '(setq htmlize-output-type (quote font))' \
   --eval '(setq custom-safe-themes t)' \
   --eval '(force-mode-line-update)' \
   --eval '(setq org-html-link-use-abs-url nil)' \
@@ -209,7 +209,11 @@ ${publish-org-roam-ui.packages.${system}.default}/bin/build-org-roam-graph \
           '';
 
         installPhase = ''
-mkdir -p $out
+mkdir -p $out/fonts
+
+cp -L ${pkgs.lora}/share/fonts/truetype/*.ttf $out/fonts/
+cp -L ${pkgs.inconsolata}/share/fonts/truetype/inconsolata/*.ttf $out/fonts
+
 cp -r $HOME/website_html/. $out/
 cp ${installer-iso}/iso/*.iso $out/installer.iso
 cd $out
@@ -234,7 +238,6 @@ sha256sum installer.iso > installer.iso.sha256
         };
 
         devShells."${system}".default = with pkgs; mkShell {
-
           shellHook = ''
 ${pre-commit-check.shellHook}
 git config branch.main.mergeoptions "--no-ff"
@@ -244,6 +247,7 @@ alias gprune='git branch --merged | grep -v -E "^\*|main|master|dev" | xargs -r 
             deadnix
             lychee
             python3
+            miniserve
           ];
         };
       };

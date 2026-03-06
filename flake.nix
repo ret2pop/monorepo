@@ -98,7 +98,6 @@ if [ "$BRANCH" != "main" ]; then
   exit 0
 fi
 echo "Pushing to main detected. Deploying to ${spontaneityHost}..."
-nixos-rebuild switch --flake .#spontaneity --target-host ${spontaneityUser}@${spontaneityHost}
 if [ $? -eq 0 ]; then
   echo "Deployment successful!"
 else

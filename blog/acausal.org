@@ -1,5 +1,6 @@
 #+title: Consciousness and the Universal Handshake
 #+author: Preston Pan
+#+subtitle: By {{{author}}}
 #+description: Narrative is the only real construction.
 #+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 #+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">

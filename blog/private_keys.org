@@ -1,5 +1,6 @@
 #+title: Passwords Are Obselete
 #+author: Preston Pan
+#+subtitle: By {{{author}}}
 #+description: Why haven't we switched to asymmetric cryptography?
 #+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 #+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">

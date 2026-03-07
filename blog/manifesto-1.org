@@ -1,5 +1,7 @@
 #+title: The End of Equality and The Technocratic Imperative
 #+author: Preston Pan
+#+subtitle: By {{{author}}}
+
 #+description: A system built on illusions will always decay.
 #+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 #+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -11,8 +13,6 @@
 #+html_head: <meta name="theme-color" content="#ffffff">
 #+language: en
 #+OPTIONS: broken-links:t
-
-@@html:<span style="display: block; padding-bottom: 30px; text-align: center;"><i>By Preston Pan</i></span>@@
 
 * Introduction
 Our current economic and political system isn't totally failing right

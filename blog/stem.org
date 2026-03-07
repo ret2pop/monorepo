@@ -1,5 +1,6 @@
 #+title: Stem
 #+author: Preston Pan
+#+subtitle: By {{{author}}}
 #+description: My own concatenative programming language
 #+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 #+language: en

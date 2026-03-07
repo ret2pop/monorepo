@@ -1,5 +1,6 @@
 #+title: Automation, Hypocrisy, and Capitalism
 #+author: Preston Pan
+#+subtitle: By {{{author}}}
 #+description: Is automation taking jobs? Is capitalism causing all the world's problems?
 #+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 #+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">

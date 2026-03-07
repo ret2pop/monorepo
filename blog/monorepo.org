@@ -1,5 +1,7 @@
 #+title: My Monorepo
 #+author: Preston Pan
+#+date: [2025-01-01]
+#+subtitle: By {{{author}}}, 2025
 #+description: NixOS configurations for infrastructure, workstations, and laptops
 #+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 #+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">

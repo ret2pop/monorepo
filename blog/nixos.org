@@ -1,5 +1,7 @@
 #+title: You should use NixOS
 #+author: Preston Pan
+#+date: [2025-01-01]
+#+subtitle: By {{{author}}}, 2024
 #+description: You can run a system from the 2040s, today.
 #+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 #+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">

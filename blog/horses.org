@@ -1,6 +1,7 @@
 #+title: Stop Asking for Better Horses
-#+subtitle: By {{{author}}}
 #+author: Preston Pan
+#+date: [2024-01-01]
+#+subtitle: By {{{author}}}, 2024
 #+description: It doesn't happen instantly.
 #+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 #+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">

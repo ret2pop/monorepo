@@ -1,6 +1,8 @@
 #+title: A Review of Cryptocurrency
 #+author: Preston Pan
-#+subtitle: By {{{author}}}
+#+date: [2024-01-01]
+#+subtitle: By {{{author}}}, 2024
+
 #+description: Are cryptocurrencies useful in economic transactions? As technologies?
 #+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 #+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">

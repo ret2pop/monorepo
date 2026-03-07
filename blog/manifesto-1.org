@@ -1,6 +1,7 @@
 #+title: The End of Equality and The Technocratic Imperative
 #+author: Preston Pan
-#+subtitle: By {{{author}}}
+#+date: [2025-01-01]
+#+subtitle: By {{{author}}}, 2025
 
 #+description: A system built on illusions will always decay.
 #+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />

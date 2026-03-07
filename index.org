@@ -1,4 +1,4 @@
-#+title: Introducing ret2pop
+#+title: Introducing Ret2pop
 #+author: Preston Pan
 #+date: <2023-06-09 Fri>
 #+description: A website full of wonder and explanation

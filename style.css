@@ -487,8 +487,9 @@ header, .title + p, .subtitle + p {
 
         a {
             display: block;
-            width: 218px;
-            padding: 10px 16px;
+            width: 100%;
+            padding: 10px 16px 10px 32px;
+            box-sizing: border-box;
             font-size: 13px;
             font-family: var(--font-mono);
             white-space: nowrap;
@@ -496,7 +497,6 @@ header, .title + p, .subtitle + p {
             text-overflow: ellipsis;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             border-left: 3px solid transparent;
-            padding-left: 32px;
             opacity: 0.8;
             
             &, &:visited {
@@ -510,6 +510,28 @@ header, .title + p, .subtitle + p {
                 padding-left: 22px;
                 border-left: 3px solid var(--accent);
             }
+        }
+        ul {
+            a {
+                padding-left: 48px;
+                opacity: 0.55;
+                font-size: 12px;
+
+                &:hover {
+                    padding-left: 38px;
+                    opacity: 1;
+                }
+            }
+
+            ul a {
+                padding-left: 64px;
+                opacity: 0.4;
+
+                &:hover {
+                    padding-left: 54px;
+                }
+            }
+
         }
     }
 

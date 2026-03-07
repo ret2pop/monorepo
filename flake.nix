@@ -222,6 +222,8 @@ mkdir -p $out/fonts
 cp -L ${pkgs.lora}/share/fonts/truetype/*.ttf $out/fonts/
 cp -L ${pkgs.inconsolata}/share/fonts/truetype/inconsolata/*.ttf $out/fonts
 cp ${garamond}/ttf/CormorantGaramond-Medium.ttf $out/fonts/
+cp ${garamond}/ttf/CormorantGaramond-MediumItalic.ttf $out/fonts/
+cp ${garamond}/ttf/CormorantGaramond-Bold.ttf $out/fonts/
 
 cp -r $HOME/website_html/. $out/
 cp ${topology}/main.svg $out/img/topology.svg

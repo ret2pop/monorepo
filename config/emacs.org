@@ -194,6 +194,7 @@ This is my org mode configuration, which also configures latex.
       (org-babel-do-load-languages 'org-babel-load-languages
                                    '((shell . t)
                                      (python . t)
+                                     (nix . t)
                                      (latex . t))))
 #+end_src
 As you can see, I only have one real entry in config here (I don't count requires even though
@@ -725,6 +726,12 @@ to Chromium if I have to:
     (search-engine-default "google" "Use google as default")
     (eww-search-prefix "https://google.com/search?q=" "Google prefix")
     :hook ((eww-mode . (lambda () (local-set-key (kbd "y Y") #'eww-copy-page-url)))))
+#+end_src
+** Nix Mode
+Load Nix mode so our exported website has syntax highlighting for Nix blocks.
+#+begin_src emacs-lisp :tangle ../nix/init.el
+  (use-package nix-mode
+    :mode "\\.nix\\'")
 #+end_src
 ** Org Roam
 For all my mathematics and programming notes:

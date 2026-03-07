@@ -205,6 +205,22 @@
         "type": "github"
       }
     },
+    "garamond": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1621706236,
+        "narHash": "sha256-Axj0ofJygjMhKS0ptCh0V2OTUKthU61nAM3wgWbgb2c=",
+        "owner": "fontalternative",
+        "repo": "cormorant-garamond",
+        "rev": "c9f4a4de33febb7c5e90dda5bafbfd384f351f86",
+        "type": "github"
+      },
+      "original": {
+        "owner": "fontalternative",
+        "repo": "cormorant-garamond",
+        "type": "github"
+      }
+    },
     "git-hooks": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -709,6 +725,7 @@
     },
     "root": {
       "inputs": {
+        "garamond": "garamond",
         "git-hooks": "git-hooks",
         "nixmacs": "nixmacs",
         "nixpkgs": "nixpkgs_6",

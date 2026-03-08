@@ -68,7 +68,6 @@ if [ -d "$RESULT_PATH" ]; then
     --offline \
     --verbose \
     --no-progress \
-    --exclude-mail \
     "$RESULT_PATH/**/*.html"
 else
   echo "Website build failed, skipping lychee."
@@ -216,9 +215,9 @@ emacs -q --batch \
   --eval '(setq make-backup-files nil auto-save-default nil create-lockfiles nil)' \
   --eval '(setq org-html-htmlize-output-type (quote css))' \
   --eval '(setq org-html-head-extra "<link rel=\"stylesheet\" type=\"text/css\" href=\"/syntax.css\" />\n<script> window.MathJax = { tex: { tags: \"ams\", tagSide: \"left\", tagIndent: \"1em\" }, chtml: { displayAlign: \"left\", displayIndent: \"3em\" } }; </script>")' \
-  --eval '(org-publish-all t)' \
-  --eval '(org-publish-all nil)' || (echo "FAIL:" && cat /build/*.log && exit 1)
-          echo "Setting up Graph View..."
+  --eval '(org-publish-all t)' || (echo "FAIL:" && cat /build/*.log && exit 1)
+
+echo "Setting up Graph View..."
 ${publish-org-roam-ui.packages.${system}.default}/bin/build-org-roam-graph \
   $HOME/.emacs.d/org-roam.db \
   $HOME/monorepo/mindmap \

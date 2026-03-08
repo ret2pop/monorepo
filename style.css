@@ -62,7 +62,11 @@
     padding: 0.15em 0.4em;
     border-radius: 4px;
     font-size: 0.85em;
-    white-space: nowrap; /* Keeps small code snippets from breaking across lines */
+    white-space: pre-wrap;
+    word-break: break-word;
+    box-decoration-break: clone;
+
+    -webkit-box-decoration-break: clone;
 }
 
 body {
@@ -117,15 +121,21 @@ figure {
     text-align: center;
 }
 
-figcaption {
-    font-size: 0.9rem;
-    color: color-mix(in srgb, var(--text-main) 80%, gray);
-    margin-top: 0.5rem;
+p, li, blockquote, figcaption {
+    overflow-wrap: break-word;
+    word-wrap: break-word; /* Legacy fallback */
+    word-break: break-word;
 }
 
 p, ul, ol {
     margin-top: 1rem;
     margin-bottom: 1rem;
+}
+
+figcaption {
+    font-size: 0.9rem;
+    color: color-mix(in srgb, var(--text-main) 80%, gray);
+    margin-top: 0.5rem;
 }
 
 h1, h2, h3 {
@@ -200,6 +210,7 @@ h6 {
 img, blockquote {
     @media (max-width: 768px) {
         max-width: 100%;
+        width: 100%;
         box-sizing: border-box;
     }
 }
@@ -263,9 +274,46 @@ a {
     }
 }
 
+table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    border-collapse: collapse; 
+    margin: 2rem 0;
+
+    &::-webkit-scrollbar { display: none; }
+}
+
+math[display="block"] {
+    display: block !important;
+    min-width: 0 !important;
+    overflow-y: hidden !important;
+    overflow-x: auto !important;
+
+    background: rgba(212, 163, 115, 0.05);
+    padding: 1.5rem;
+    border-left: 2px solid var(--accent);
+    margin: 2rem 0 !important;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar { display: none; }
+
+    & mtable {
+        margin-left: 0 !important;
+        text-align: left !important;
+    }
+
+    & mtd { text-align: left !important; }
+}
+
 p { margin: 1.2rem 0; }
 
 li { margin: 0.3rem 0; }
+
 
 .org-svg {
     width: 100%;
@@ -425,6 +473,12 @@ mjx-container[jax="CHTML"] {
     columns: 2;
     -webkit-columns: 2;
     -moz-columns: 2;
+
+    @media (max-width: 768px) {
+        columns: 1;
+        -webkit-columns: 1;
+        -moz-columns: 1;
+    }
 }
 
 header, .title + p, .subtitle + p {

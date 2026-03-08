@@ -337,9 +337,13 @@ li { margin: 0.3rem 0; }
 
 mjx-container[jax="CHTML"] {
     &[display="true"] {
+        display: block !important;
+        min-width: 0 !important;
+        overflow-y: hidden !important;
+        overflow-x: auto !important;
+
         background: rgba(212, 163, 115, 0.05);
         padding: 1.5rem;
-        text-align: left !important;
         border-left: 2px solid var(--accent);
         margin: 2rem 0 !important;
 
@@ -347,10 +351,16 @@ mjx-container[jax="CHTML"] {
     }
 
     &:not([display="true"]) {
-        padding: 0;
-        margin: 0;
-        background: transparent;
-        border: none;
+        padding: 0; margin: 0; background: transparent; border: none;
+    }
+
+    & mjx-mtable {
+        margin-left: 0 !important;
+        text-align: left !important;
+    }
+
+    & mjx-mtd {
+        text-align: left !important;
     }
 }
 

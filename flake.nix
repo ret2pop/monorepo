@@ -64,6 +64,12 @@ fi
 RESULT_PATH=$(nix build .#website --no-link --print-out-paths)
 if [ -d "$RESULT_PATH" ]; then
   echo "Running lychee link check..."
+  ${pkgs.lychee}/bin/lychee --root-dir "$RESULT_PATH" \
+    --offline \
+    --verbose \
+    --no-progress \
+    --exclude-mail \
+    "$RESULT_PATH/**/*.html"
 else
   echo "Website build failed, skipping lychee."
   exit 1
@@ -203,10 +209,13 @@ emacs -q --batch \
   --eval '(setq default-directory (expand-file-name "~/monorepo"))' \
   --eval '(setq org-html-link-use-abs-url nil)' \
   --eval '(setq org-html-link-org-files-as-html t)' \
+  --eval '(setq vc-handled-backends nil)' \
   --eval '(require (quote htmlize))' \
   --eval '(require (quote nix-mode))' \
+  --eval '(setq gc-cons-threshold 100000000)' \
+  --eval '(setq make-backup-files nil auto-save-default nil create-lockfiles nil)' \
   --eval '(setq org-html-htmlize-output-type (quote css))' \
-  --eval '(setq org-html-head-extra "<link rel=\"stylesheet\" type=\"text/css\" href=\"/syntax.css\" />")' \
+  --eval '(setq org-html-head-extra "<link rel=\"stylesheet\" type=\"text/css\" href=\"/syntax.css\" />\n<script> window.MathJax = { tex: { tags: \"ams\", tagSide: \"left\", tagIndent: \"1em\" }, chtml: { displayAlign: \"left\", displayIndent: \"3em\" } }; </script>")' \
   --eval '(org-publish-all t)' \
   --eval '(org-publish-all nil)' || (echo "FAIL:" && cat /build/*.log && exit 1)
           echo "Setting up Graph View..."
@@ -254,6 +263,7 @@ sha256sum installer.iso > installer.iso.sha256
 ${pre-commit-check.shellHook}
 git config branch.main.mergeoptions "--no-ff"
 alias gprune='git branch --merged | grep -v -E "^\*|main|master|dev" | xargs -r git branch -d'
+alias serve='cd result; python3 -m http.server 10005'
 '';
           buildInputs = [
             deadnix

@@ -195,6 +195,7 @@ emacs -q --batch \
   --eval '(setq org-export-with-latex t)' \
   --eval '(setq org-confirm-babel-evaluate nil)' \
   --eval '(setq load-prefer-newer t)' \
+  --eval '(setq gc-cons-threshold 100000000)' \
   -l ${nixmacs}/init.el \
   --eval '(setq custom-safe-themes t)' \
   --eval "(org-babel-do-load-languages 'org-babel-load-languages '((latex . t)))" \
@@ -211,7 +212,6 @@ emacs -q --batch \
   --eval '(setq vc-handled-backends nil)' \
   --eval '(require (quote htmlize))' \
   --eval '(require (quote nix-mode))' \
-  --eval '(setq gc-cons-threshold 100000000)' \
   --eval '(setq make-backup-files nil auto-save-default nil create-lockfiles nil)' \
   --eval '(setq org-html-htmlize-output-type (quote css))' \
   --eval '(setq org-html-head-extra "<link rel=\"stylesheet\" type=\"text/css\" href=\"/syntax.css\" />\n<script> window.MathJax = { tex: { tags: \"ams\", tagSide: \"left\", tagIndent: \"1em\" }, chtml: { displayAlign: \"left\", displayIndent: \"3em\" } }; </script>")' \

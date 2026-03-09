@@ -2,7 +2,7 @@
 #+author: Preston Pan
 #+date: <2023-06-09 Fri>
 #+description: My list of blogs, news sites, and channels.
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+
 
 * Feed :elfeed:
 This is the feed I use for Elfeed, and the elfeed-org package allows me to publish

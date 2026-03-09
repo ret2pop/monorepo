@@ -3,7 +3,7 @@
 #+AUTHOR: Preston Pan
 #+DATE: <2023-06-14 Wed>
 #+DESCRIPTION: List of all my blogs in alphabetical order
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+
 #+language: en
 #+OPTIONS: broken-links:t
 

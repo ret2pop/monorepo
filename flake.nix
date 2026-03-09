@@ -5,15 +5,18 @@
     self.submodules = true;
 
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+
     git-hooks = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
     nixmacs.url = "path:./nix";
 
     publish-org-roam-ui = {
       url = "git://nullring.xyz/publish-org-roam-ui.git";
     };
+
     garamond = {
       url = "github:fontalternative/cormorant-garamond";
       flake = false;
@@ -138,6 +141,11 @@ fi
           pkgs.jq
           pkgs.lora
           pkgs.inconsolata
+          pkgs.stix-two
+          pkgs.pandoc
+          pkgs.rsass
+          pkgs.minify
+
           (pkgs.texlive.combine {
             inherit (pkgs.texlive)
               scheme-full
@@ -160,6 +168,7 @@ mkdir -p $HOME/monorepo
 cp -a . $HOME/monorepo/
 cd $HOME/monorepo
 mkdir -p mindmap/img
+rsass style.scss | minify --type=css > style.css
 
 cat <<EOF > $TMPDIR/policy.xml
 <policymap>
@@ -196,25 +205,22 @@ emacs -q --batch \
   --eval '(setq org-confirm-babel-evaluate nil)' \
   --eval '(setq load-prefer-newer t)' \
   --eval '(setq gc-cons-threshold 100000000)' \
+  --eval '(setq vc-handled-backends nil)' \
+  --eval '(setq make-backup-files nil auto-save-default nil create-lockfiles nil)' \
   -l ${nixmacs}/init.el \
   --eval '(setq custom-safe-themes t)' \
-  --eval "(org-babel-do-load-languages 'org-babel-load-languages '((latex . t)))" \
   --eval '(setq org-roam-directory (expand-file-name "mindmap" (expand-file-name "~/monorepo")))' \
   --eval '(setq org-id-track-globally t)' \
   --eval '(org-roam-db-sync)' \
   --eval '(setq term-file-prefix nil)' \
-  --eval '(load-theme (quote doom-rouge) t)' \
   --eval '(force-mode-line-update)' \
   --eval '(setq org-html-link-use-abs-url nil)' \
   --eval '(setq default-directory (expand-file-name "~/monorepo"))' \
   --eval '(setq org-html-link-use-abs-url nil)' \
   --eval '(setq org-html-link-org-files-as-html t)' \
-  --eval '(setq vc-handled-backends nil)' \
   --eval '(require (quote htmlize))' \
   --eval '(require (quote nix-mode))' \
-  --eval '(setq make-backup-files nil auto-save-default nil create-lockfiles nil)' \
   --eval '(setq org-html-htmlize-output-type (quote css))' \
-  --eval '(setq org-html-head-extra "<link rel=\"stylesheet\" type=\"text/css\" href=\"/syntax.css\" />\n<script> window.MathJax = { tex: { tags: \"ams\", tagSide: \"left\", tagIndent: \"1em\" }, chtml: { displayAlign: \"left\", displayIndent: \"3em\" } }; </script>")' \
   --eval '(org-publish-all t)' || (echo "FAIL:" && cat /build/*.log && exit 1)
 
 echo "Setting up Graph View..."
@@ -229,6 +235,9 @@ mkdir -p $out/fonts
 
 cp -L ${pkgs.lora}/share/fonts/truetype/*.ttf $out/fonts/
 cp -L ${pkgs.inconsolata}/share/fonts/truetype/inconsolata/*.ttf $out/fonts
+
+cp -L ${pkgs.stix-two}/share/fonts/truetype/STIXTwoMath-Regular.ttf $out/fonts/
+
 cp ${garamond}/ttf/CormorantGaramond-Medium.ttf $out/fonts/
 cp ${garamond}/ttf/CormorantGaramond-MediumItalic.ttf $out/fonts/
 cp ${garamond}/ttf/CormorantGaramond-Bold.ttf $out/fonts/

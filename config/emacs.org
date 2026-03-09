@@ -1,7 +1,7 @@
 #+title: Emacs Configuration
 #+author: Preston Pan
 #+description: my personal emacs configuration for NixOS
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+
 * Introduction
 This is my Vanilla Emacs configuration, made to work with my NixOS configuration. For that
 reason, you will not see :ensure t inside any use-package declaration, for emacs packages
@@ -164,6 +164,13 @@ This is my org mode configuration, which also configures latex.
       (org-pretty-entities t "prettify org mode")
       (org-agenda-files (list "~/monorepo/agenda.org" "~/org/notes.org" "~/org/agenda.org") "set default org files")
       (org-default-notes-file (concat org-directory "/notes.org") "Notes file")
+      (org-html-with-latex 'html)
+      (org-html-mathjax-options nil)
+      (org-html-mathjax-template "")
+      (org-html-container-element "main")
+      (org-html-head-extra "<link rel=\"stylesheet\" type=\"text/css\" href=\"/syntax.css\" /><link rel=\"stylesheet\" type=\"text/css\" href=\"/style.css\" />\n<link rel=\"manifest\" href=\"/site.webmanifest\">\n<link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"/favicon-16x16.png\">\n<link rel=\"mask-icon\" href=\"/safari-pinned-tab.svg\" color=\"#5bbad5\">\n<link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"/favicon-32x32.png\">\n<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/apple-touch-icon.png\"><meta name=\"msapplication-TileColor\" content=\"#da532c\">\n<meta name=\"theme-color\" content=\"#ffffff\">")
+      (org-latex-to-html-convert-command 
+        "printf '%%s' %i | pandoc -f latex -t html --mathml | tr -d '\\n' | sed -e 's/^<p>//' -e 's/<\\/p>$//'")
       (org-html-viewport '((width "device-width") 
                            (initial-scale "1.0") 
                            (minimum-scale "1.0")) "Prevent zooming out past default size")
@@ -192,6 +199,21 @@ This is my org mode configuration, which also configures latex.
       (require 'ox-publish)
       (require 'org-tempo)
       (require 'org-habit)
+      (require 'ob-latex)
+
+      (defun my-org-html-latex-environment-pandoc-fix (orig-fun latex-environment contents info)
+        "Force `ox-html' to use the convert command for LaTeX environments when set to 'html."
+        (let ((processing-type (plist-get info :with-latex)))
+          (if (eq processing-type 'html)
+              (let* ((latex-frag (org-remove-indentation
+                                  (org-element-property :value latex-environment)))
+                     (converted (org-format-latex-as-html latex-frag)))
+                (format "<div class=\"equation-container\">\n<span class=\"equation\">\n%s\n</span>\n</div>"
+                        converted))
+            (funcall orig-fun latex-environment contents info))))
+
+      (advice-add 'org-html-latex-environment :around #'my-org-html-latex-environment-pandoc-fix)
+
       (org-babel-do-load-languages 'org-babel-load-languages
                                    '((shell . t)
                                      (python . t)
@@ -332,7 +354,7 @@ I use org-journal to journal about my life, and it's a part of my website:
       "Custom function to create journal header."
       (concat
        (pcase org-journal-file-type
-         (`daily "#+TITLE: Daily Journal\n#+STARTUP: showeverything\n#+DESCRIPTION: My daily journal entry\n#+AUTHOR: Preston Pan\n#+HTML_HEAD: <link rel=\"stylesheet\" type=\"text/css\" href=\"../style.css\" />\n#+html_head: <script src=\"https://polyfill.io/v3/polyfill.min.js?features=es6\"></script>\n#+html_head: <script id=\"MathJax-script\" async src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js\"></script>\n#+options: broken-links:t")
+         (`daily "#+TITLE: Daily Journal\n#+STARTUP: showeverything\n#+DESCRIPTION: My daily journal entry\n#+AUTHOR: Preston Pan\n#+options: broken-links:t")
          (`weekly "#+TITLE: Weekly Journal\n#+STARTUP: folded")
          (`monthly "#+TITLE: Monthly Journal\n#+STARTUP: folded")
          (`yearly "#+TITLE: Yearly Journal\n#+STARTUP: folded"))))
@@ -745,7 +767,7 @@ For all my mathematics and programming notes:
     (org-roam-directory (file-truename "~/monorepo/mindmap") "Set org-roam directory inside monorepo")
     (org-roam-capture-templates '(("d" "default" plain "%?"
   				 :target (file+head "${title}.org"
-  						    "#+title: ${title}\n#+author: Preston Pan\n#+html_head: <link rel=\"stylesheet\" type=\"text/css\" href=\"../style.css\" />\n#+html_head: <script src=\"https://polyfill.io/v3/polyfill.min.js?features=es6\"></script>\n#+html_head: <script id=\"MathJax-script\" async src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js\"></script>\n#+options: broken-links:t")
+  						    "#+title: ${title}\n#+author: Preston Pan\n#+description:\n#+options: broken-links:t")
   				 :unnarrowed t)) "org-roam files start with this snippet by default")
     :config
     (org-roam-db-autosync-mode)

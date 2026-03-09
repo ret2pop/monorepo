@@ -3,7 +3,7 @@
 :END:
 #+title: everything
 #+author: Preston Pan
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+
 #+date: <2023-06-10 Sat>
 
 * Everything?

@@ -1,17 +1,9 @@
 #+title: Agenda
 #+author: Preston Pan
 #+description: My public agenda for the next while.
-#+html_head: <link rel="stylesheet" type="text/css" href="style.css" />
 #+language: en
 #+OPTIONS: broken-links:t
 #+date: <2025-01-09 Thu>
-#+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-#+html_head: <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-#+html_head: <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-#+html_head: <link rel="manifest" href="/site.webmanifest">
-#+html_head: <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
-#+html_head: <meta name="msapplication-TileColor" content="#da532c">
-#+html_head: <meta name="theme-color" content="#ffffff">
 
 This agenda is a public list of things that I need to keep track of. This is public because
 I also keep a private version, and if anyone wants to know what I'm up to or the status of a certain

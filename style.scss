@@ -33,6 +33,24 @@
     src: url('./fonts/CormorantGaramond-MediumItalic.ttf') format('truetype');
 }
 
+@font-face {
+    font-family: 'STIX Two Math';
+    font-style: normal;
+    font-weight: 400;
+    src: url('./fonts/STIXTwoMath-Regular.ttf') format('truetype');
+}
+
+@mixin hide-scrollbar {
+    &::-webkit-scrollbar { display: none; }
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+@mixin horizontal-scroll {
+    display: block !important;
+    overflow-x: auto;
+}
+
 :root {
     --bg-main: #FBF8F1;
     --text-main: #4A3F35;
@@ -47,7 +65,7 @@
 
     --font-serif: "Lora", serif;
     --font-mono: "Inconsolata", monospace;
-    --font-header: "CormorantGaramond";
+    --font-header: "CormorantGaramond", serif;
 }
 
 ::selection {
@@ -123,7 +141,7 @@ figure {
 
 p, li, blockquote, figcaption {
     overflow-wrap: break-word;
-    word-wrap: break-word; /* Legacy fallback */
+    word-wrap: break-word;
     word-break: break-word;
 }
 
@@ -140,7 +158,7 @@ figcaption {
 
 h1, h2, h3 {
     line-height: 1.2;
-    font-family: var(--font-header);
+    font-family: var(--font-header), serif;
 }
 
 h4, h5, h6 {
@@ -278,36 +296,31 @@ table {
     display: block;
     width: 100%;
     overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
     border-collapse: collapse; 
     margin: 2rem 0;
 
-    &::-webkit-scrollbar { display: none; }
+    @include hide-scrollbar;
 }
 
-math[display="block"] {
-    display: block !important;
-    min-width: 0 !important;
-    overflow-y: hidden !important;
-    overflow-x: auto !important;
+math {
+    display: inline-block;
+    white-space: nowrap;
+    &[display="block"] {
+        font-family: 'STIX Two Math', 'Latin Modern Math', serif;
+        font-size: 1.3em;
+        min-width: 0 !important;
+        overflow-y: hidden !important;
 
-    background: rgba(212, 163, 115, 0.05);
-    padding: 1.5rem;
-    border-left: 2px solid var(--accent);
-    margin: 2rem 0 !important;
+        & mtable {
+            margin-left: 0 !important;
+            text-align: left !important;
+        }
 
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+        & mtd { text-align: left !important; }
 
-    &::-webkit-scrollbar { display: none; }
-
-    & mtable {
-        margin-left: 0 !important;
-        text-align: left !important;
+        @include hide-scrollbar;
+        @include horizontal-scroll;
     }
-
-    & mtd { text-align: left !important; }
 }
 
 p { margin: 1.2rem 0; }
@@ -338,10 +351,7 @@ li { margin: 0.3rem 0; }
             overflow-x: auto;
             padding: 1.5rem 1rem 1rem 1rem;
             white-space: pre;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-
-            &::-webkit-scrollbar { display: none; }
+            @include hide-scrollbar;
         }
 
         &::before {
@@ -371,44 +381,30 @@ li { margin: 0.3rem 0; }
     @media (max-width: 1250px) { margin-left: 0; }
 }
 
-.src, .example, mjx-container[jax="CHTML"][display="true"] {
-    scrollbar-width: none; 
-    -ms-overflow-style: none; 
-    overflow-x: auto;
+.equation-container {
+    display: grid;
+    grid-template-columns: 1fr minmax(0, auto) 1fr;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
 
-    @media (max-width: 768px) {
-        max-width: 100%;
-        box-sizing: border-box;
-        width: 100%;
-    }
-}
+    margin: 2rem 0;
+    background: rgba(212, 163, 115, 0.05);
+    padding: 1.5rem;
+    border-left: 2px solid var(--accent);
 
-mjx-container[jax="CHTML"] {
-    &[display="true"] {
-        display: block !important;
-        min-width: 0 !important;
-        overflow-y: hidden !important;
-        overflow-x: auto !important;
+    .equation {
+        grid-column: 2;
+        text-align: center;
 
-        background: rgba(212, 163, 115, 0.05);
-        padding: 1.5rem;
-        border-left: 2px solid var(--accent);
-        margin: 2rem 0 !important;
-
-        &::-webkit-scrollbar { display: none; }
+        & math[display="block"] { margin: 0 !important; }
+        @include horizontal-scroll;
+        @include hide-scrollbar;
     }
 
-    &:not([display="true"]) {
-        padding: 0; margin: 0; background: transparent; border: none;
-    }
-
-    & mjx-mtable {
-        margin-left: 0 !important;
-        text-align: left !important;
-    }
-
-    & mjx-mtd {
-        text-align: left !important;
+    .equation-label {
+        grid-column: 3;
+        justify-self: end;
     }
 }
 
@@ -420,6 +416,13 @@ mjx-container[jax="CHTML"] {
     border-radius: 6px;
     font-size: 0.9rem;
     box-shadow: none;
+    overflow-x: auto;
+
+    @media (max-width: 768px) {
+        max-width: 100%;
+        box-sizing: border-box;
+        width: 100%;
+    }
 
     &::before {
         position: absolute;
@@ -436,7 +439,7 @@ mjx-container[jax="CHTML"] {
         padding: 2px 4px;
     }
 
-    &::-webkit-scrollbar { display: none; }
+    @include hide-scrollbar;
 }
 
 .theorem, .proof {
@@ -537,6 +540,7 @@ header, .title + p, .subtitle + p {
     cursor: pointer;
     border: 2px solid var(--text-main);
     border-radius: 6px;
+
     &:hover {
         background-color: var(--text-main);
         color: white;
@@ -570,12 +574,12 @@ header, .title + p, .subtitle + p {
 }
 
 .title + .subtitle {
-  text-align: center;
-  font-style: italic;
-  padding-bottom: 30px;
-  margin-top: -10px;
-  color: #555;
-  display: block;
+    text-align: center;
+    font-style: italic;
+    padding-bottom: 30px;
+    margin-top: -10px;
+    color: #555;
+    display: block;
 }
 
 .preamble {
@@ -585,6 +589,7 @@ header, .title + p, .subtitle + p {
     letter-spacing: 1px;
     margin-top: 10px;
     color: color-mix(in srgb, var(--text-main) 50%, transparent); 
+
     a {
         color: var(--text-main);
         text-decoration: none;
@@ -623,10 +628,10 @@ header, .title + p, .subtitle + p {
     border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
-.todo.DONE {
+.done.DONE {
     color: #4f8a10; 
-    background-color: #dff2bf; 
-    border: 1px solid color-mix(in srgb, #4f8a10 50%, transparent);
+    background-color: color-mix(in srgb, var(--accent) 20%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
 #table-of-contents {
@@ -641,7 +646,6 @@ header, .title + p, .subtitle + p {
     border-right: 1px solid var(--accent);
     overflow-y: auto;
     overflow-x: hidden;
-    scrollbar-width: none;
 
     &::before {
         content: "NAVIGATION";
@@ -713,9 +717,8 @@ header, .title + p, .subtitle + p {
 
     h2 { display: none !important; }
 
-    &::-webkit-scrollbar { display: none; }
-
     @media (max-width: 1250px) { display: none; }
+    @include hide-scrollbar;
 }
 
 #postamble { text-align: center; }

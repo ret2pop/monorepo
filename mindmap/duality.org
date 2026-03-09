@@ -3,7 +3,7 @@
 :END:
 #+title: duality
 #+author: Preston Pan
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+
 #+date: <2023-06-10 Sat>
 * is it One or is it Two?
 Is it me, or is it you? Is it false, or is it true? Many things

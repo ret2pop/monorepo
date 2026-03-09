@@ -1,7 +1,6 @@
 #+title: NixOS Configuration
 #+AUTHOR: Preston Pan
 #+DESCRIPTION: My NixOS system, written entirely in a literate configuration
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 
 * Introduction
 This is my NixOS configuration. It is a part of my monorepo, and this file automatically tangles
@@ -388,6 +387,12 @@ you own:
     - path_regex: secrets/vps_secrets.yaml$
       key_groups:
         - age:
+          - *vps
+
+    - path_regex: secrets/common_secrets.yaml$
+      key_groups:
+        - age:
+          - *primary
           - *vps
 #+end_src
 also note that you will have to write your own secrets.yaml file, with an entry called ~mail~,
@@ -3371,6 +3376,7 @@ I want to separate out these packages so that my parent flake which builds my we
     epkgs.mu4e
     epkgs.minuet
     epkgs.nix-mode
+    epkgs.org-contrib
     epkgs.org-fragtog
     epkgs.org-journal
     epkgs.org-roam

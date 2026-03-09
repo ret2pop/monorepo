@@ -3,7 +3,7 @@
 :END:
 #+title: stack
 #+author: Preston Pan
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+
 * Introduction
 A stack in programming is a data structure that satisfies the following API rules:
 1. Push: puts something on the top of the stack

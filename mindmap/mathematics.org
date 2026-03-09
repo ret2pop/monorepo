@@ -3,9 +3,7 @@
 :END:
 #+title: mathematics
 #+author: Preston Pan
-#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+
 
 * Mathematics is [[id:29ebc4f9-0fd8-4203-8bfe-84f8558e09cf][Logic]] 
 With a couple of set theory axioms. One might describe it as an extrapolation framework

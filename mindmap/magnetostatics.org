@@ -3,6 +3,7 @@
 :END:
 #+title: magnetostatics
 #+author: Preston Pan
+#+description: A simple model of magnetism.
 
 #+options: broken-links:t
 

@@ -3,6 +3,7 @@
 :END:
 #+title: quantum mechanics
 #+author: Preston Pan
+#+description: Everything is a spectral decomposition problem.
 
 #+options: broken-links:t
 * Introduction

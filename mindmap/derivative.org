@@ -3,7 +3,7 @@
 :END:
 #+title: derivative
 #+author: Preston Pan
-
+#+description: The beginning of understanding.
 #+options: broken-links:t
 
 * Derivation

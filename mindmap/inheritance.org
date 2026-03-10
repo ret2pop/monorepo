@@ -3,6 +3,7 @@
 :END:
 #+title: inheritance
 #+author: Preston Pan
+#+description: No, not the thing I stole from your grandmother.
 
 #+options: broken-links:t
 

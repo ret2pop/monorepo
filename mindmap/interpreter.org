@@ -3,6 +3,7 @@
 :END:
 #+title: interpreter
 #+author: Preston Pan
+#+description: Computers understanding language.
 
 #+options: broken-links:t
 * Introduction

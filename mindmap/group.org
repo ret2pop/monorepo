@@ -3,6 +3,7 @@
 :END:
 #+title: group
 #+author: Preston Pan
+#+description: "Get into groups of three, class"
 
 #+options: broken-links:t
 

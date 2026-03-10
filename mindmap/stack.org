@@ -3,6 +3,7 @@
 :END:
 #+title: stack
 #+author: Preston Pan
+#+description: pop; ret
 
 * Introduction
 A stack in programming is a data structure that satisfies the following API rules:

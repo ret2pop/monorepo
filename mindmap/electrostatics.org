@@ -3,6 +3,7 @@
 :END:
 #+title: electrostatics
 #+author: Preston Pan
+#+description: Let's start with the simple stuff.
 
 #+options: broken-links:t
 

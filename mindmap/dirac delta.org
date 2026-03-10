@@ -3,6 +3,7 @@
 :END:
 #+title: dirac delta
 #+author: Preston Pan
+#+description: Essential in the theory of distributions.
 
 #+options: broken-links:t
 

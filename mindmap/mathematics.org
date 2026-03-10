@@ -3,7 +3,7 @@
 :END:
 #+title: mathematics
 #+author: Preston Pan
-
+#+description: Building frameworks for studying frameworks.
 
 * Mathematics is [[id:29ebc4f9-0fd8-4203-8bfe-84f8558e09cf][Logic]] 
 With a couple of set theory axioms. One might describe it as an extrapolation framework

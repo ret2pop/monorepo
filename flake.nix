@@ -40,9 +40,17 @@
         inherit specialArgs;
       };
 
+      affinity = nixmacs.nixosConfigurations.affinity.extendModules {
+        inherit specialArgs;
+      };
+
       installer-iso = installer.config.system.build.isoImage;
 
       spontaneityHost = spontaneity.config.monorepo.vars.orgHost;
+
+      secretsPath = affinity.config.home-manager.sops.defaultSymlinkPath;
+
+      ntfyFile = affinity.config.monorepo.vars.ntfySecret;
 
       topology = nixmacs.topology.x86_64-linux.config.output;
 
@@ -145,6 +153,7 @@ fi
           pkgs.pandoc
           pkgs.rsass
           pkgs.minify
+          pkgs.woff2
 
           (pkgs.texlive.combine {
             inherit (pkgs.texlive)
@@ -169,6 +178,7 @@ cp -a . $HOME/monorepo/
 cd $HOME/monorepo
 mkdir -p mindmap/img
 rsass style.scss | minify --type=css > style.css
+minify --type=css -o syntax.css syntax.css
 
 cat <<EOF > $TMPDIR/policy.xml
 <policymap>
@@ -221,7 +231,8 @@ emacs -q --batch \
   --eval '(require (quote htmlize))' \
   --eval '(require (quote nix-mode))' \
   --eval '(setq org-html-htmlize-output-type (quote css))' \
-  --eval '(org-publish-all t)' || (echo "FAIL:" && cat /build/*.log && exit 1)
+  --eval '(org-publish-all t)' \
+  --eval '(org-publish-all nil)' || (echo "FAIL:" && cat /build/*.log && exit 1)
 
 echo "Setting up Graph View..."
 ${publish-org-roam-ui.packages.${system}.default}/bin/build-org-roam-graph \
@@ -241,6 +252,11 @@ cp -L ${pkgs.stix-two}/share/fonts/truetype/STIXTwoMath-Regular.ttf $out/fonts/
 cp ${garamond}/ttf/CormorantGaramond-Medium.ttf $out/fonts/
 cp ${garamond}/ttf/CormorantGaramond-MediumItalic.ttf $out/fonts/
 cp ${garamond}/ttf/CormorantGaramond-Bold.ttf $out/fonts/
+
+for font in $out/fonts/*.ttf; do
+   woff2_compress "$font"
+   rm "$font"
+done
 
 cp -r $HOME/website_html/. $out/
 cp ${topology}/main.svg $out/img/topology.svg
@@ -272,12 +288,15 @@ ${pre-commit-check.shellHook}
 git config branch.main.mergeoptions "--no-ff"
 alias gprune='git branch --merged | grep -v -E "^\*|main|master|dev" | xargs -r git branch -d'
 alias serve='cd result; python3 -m http.server 10005'
+alias build='nix build .#website && curl -u "ret2pop:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "Website build done!" https://ntfy.ret2pop.net'
 '';
           buildInputs = [
             deadnix
             lychee
             python3
             miniserve
+            rsass
+            imagemagickBig
           ];
         };
       };

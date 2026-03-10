@@ -4,6 +4,7 @@
 :END:
 #+title: vector space
 #+author: Preston Pan
+#+description: Everything is a vector space. If it isn't just igore it.
 
 #+options: broken-links:t
 

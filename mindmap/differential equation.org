@@ -3,6 +3,7 @@
 :END:
 #+title: differential equation
 #+author: Preston Pan
+#+description: Do you want to model everything?
 
 #+options: broken-links:t
 * Introduction

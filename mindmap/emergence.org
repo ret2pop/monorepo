@@ -3,6 +3,7 @@
 :END:
 #+title: emergence
 #+author: Preston Pan
+#+description: there's a lot of layers to this.
 
 #+options: broken-links:t
 

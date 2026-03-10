@@ -3,7 +3,7 @@
 :END:
 #+title: natural number
 #+author: Preston Pan
-
+#+description: How hard could counting be?
 
 * What is a Natural Number?
 We can formulate the natural numbers from set construction, or by Peano arithmetic.

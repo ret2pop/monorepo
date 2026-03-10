@@ -3,6 +3,7 @@
 :END:
 #+title: limit
 #+author: Preston Pan
+#+description: Pushing math to its limit
 
 #+options: broken-links:t
 

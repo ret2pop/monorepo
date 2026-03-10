@@ -3,7 +3,7 @@
 :END:
 #+title: inner product space
 #+author: Preston Pan
-
+#+description: It need not be complete, without Hilbert.
 #+options: broken-links:t
 
 * Introduction

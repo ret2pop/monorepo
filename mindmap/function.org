@@ -3,6 +3,7 @@
 :END:
 #+title: function
 #+author: Preston Pan
+#+description: Not the best explanation, but it functions.
 
 #+options: broken-links:t
 

@@ -4,6 +4,7 @@
 :END:
 #+title: metric space
 #+author: Preston Pan
+#+description: The basis of modern analysis.
 
 #+options: broken-links:t
 

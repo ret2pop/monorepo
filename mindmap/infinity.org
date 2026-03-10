@@ -3,6 +3,7 @@
 :END:
 #+title: infinity
 #+author: Preston Pan
+#+description: What crypto bros think their ponzi will be worth.
 
 #+options: broken-links:t
 

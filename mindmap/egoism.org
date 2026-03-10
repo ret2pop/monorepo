@@ -3,6 +3,7 @@
 :END:
 #+title: egoism
 #+author: Preston Pan
+#+description: I am the leopard eating your face.
 
 #+options: broken-links:t
 * Introduction

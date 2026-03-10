@@ -3,10 +3,9 @@
 :END:
 #+title: recursion
 #+author: Preston Pan
-
-#+startup: latexpreview
-#+OPTIONS: broken-links:t
 #+description: A description of recursive hierarchies in everything.
+
+#+OPTIONS: broken-links:t
 * Recursion is Recursion
 Exactly as I say in the title.
 ** but what is recursion?

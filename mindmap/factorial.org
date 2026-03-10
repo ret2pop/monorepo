@@ -3,6 +3,7 @@
 :END:
 #+title: factorial
 #+author: Preston Pan
+#+description: combinatorial combinations of combining other combinations.
 #+options: num:nil
 
 

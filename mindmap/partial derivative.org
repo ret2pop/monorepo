@@ -3,6 +3,7 @@
 :END:
 #+title: partial derivative
 #+author: Preston Pan
+#+description: Let's take a slice of a larger pie.
 
 #+options: broken-links:t
 

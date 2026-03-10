@@ -4,6 +4,7 @@
 :END:
 #+title: framework
 #+author: Preston Pan
+#+description: But isn't this just another framework? Nooooo...
 
 #+options: broken-links:t
 * Introduction

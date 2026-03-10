@@ -3,6 +3,7 @@
 :END:
 #+title: duality
 #+author: Preston Pan
+#+description: Are you two?
 
 #+date: <2023-06-10 Sat>
 * is it One or is it Two?

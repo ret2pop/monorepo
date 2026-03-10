@@ -3,6 +3,7 @@
 :END:
 #+title: normed vector space
 #+author: Preston Pan
+#+description: Length matters!
 
 #+options: broken-links:t
 

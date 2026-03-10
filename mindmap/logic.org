@@ -3,6 +3,7 @@
 :END:
 #+title: logic
 #+author: Preston Pan
+#+description: A logical explanation of logic.
 
 #+options: broken-links:t
 

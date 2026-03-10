@@ -88,6 +88,8 @@ if [ -d "$RESULT_PATH" ]; then
     curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "CI checks done!" https://ntfy.ret2pop.net/ci-build
 else
   echo "Website build failed, skipping lychee."
+
+  curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "CI checks failed!" https://ntfy.ret2pop.net/ci-build
   exit 1
 fi
 ''}";

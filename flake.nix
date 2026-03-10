@@ -48,7 +48,11 @@
 
       spontaneityHost = spontaneity.config.monorepo.vars.orgHost;
 
-      secretsPath = affinity.config.home-manager.sops.defaultSymlinkPath;
+      userName = spontaneity.config.monorepo.vars.userName;
+
+      internetName = spontaneity.config.monorepo.vars.internetName;
+
+      secretsPath = affinity.config.home-manager.users."${userName}".sops.defaultSymlinkPath;
 
       ntfyFile = affinity.config.monorepo.vars.ntfySecret;
 
@@ -288,7 +292,7 @@ ${pre-commit-check.shellHook}
 git config branch.main.mergeoptions "--no-ff"
 alias gprune='git branch --merged | grep -v -E "^\*|main|master|dev" | xargs -r git branch -d'
 alias serve='cd result; python3 -m http.server 10005'
-alias build='nix build .#website && curl -u "ret2pop:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "Website build done!" https://ntfy.ret2pop.net'
+alias build='nix build .#website && curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "Website build done!" https://ntfy.ret2pop.net/ci-build'
 '';
           buildInputs = [
             deadnix

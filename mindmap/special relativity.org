@@ -3,9 +3,8 @@
 :END:
 #+title: special relativity
 #+author: Preston Pan
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
-#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+description: Where are you, but also at what time?
+
 #+options: broken-links:t
 
 * Motivation
@@ -33,15 +32,15 @@ no information can either; light in this case can be replaced with something els
 once the light reaches the roof from the floor, where this distance is $d$ meters, $\frac{d}{c}$ seconds will have passed for Bob.
 
 #+caption: A very scientifically accurate drawing of the situation
-#+attr_html: :width 300px
-[[../img/relativity1.jpg]]
+#+attr_html: :width 1800 :height 1800
+[[../img/relativity1.webp]]
 
 Now this image is from Bob's perspective; when we switch to Alice's perspective, we gain a new insight; that /light has to travel the same speed for her/, but
 it has a larger distance to travel because of the train's velocity.
 
 #+caption: Light ray from Alice's perspective
-#+attr_html: :width 300px
-[[../img/relativity2.jpg]]
+#+attr_html: :width 1800 :height 1800
+[[../img/relativity2.webp]]
 
 from this diagram, we can gather that the amount of time it takes for light to reach the roof will be longer.
 Also, we can see that if Alice believes in Bob's clock, her time would be:

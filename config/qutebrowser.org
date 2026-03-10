@@ -3,7 +3,6 @@
 #+date: <2023-06-09 Fri>
 #+description: a catppuccin configuration for qutebrowser.
 #+auto_tangle: t
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 
 * Configuration
 ** Imports

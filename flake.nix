@@ -5,15 +5,18 @@
     self.submodules = true;
 
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+
     git-hooks = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
     nixmacs.url = "path:./nix";
 
     publish-org-roam-ui = {
       url = "git://nullring.xyz/publish-org-roam-ui.git";
     };
+
     garamond = {
       url = "github:fontalternative/cormorant-garamond";
       flake = false;
@@ -37,9 +40,21 @@
         inherit specialArgs;
       };
 
+      affinity = nixmacs.nixosConfigurations.affinity.extendModules {
+        inherit specialArgs;
+      };
+
       installer-iso = installer.config.system.build.isoImage;
 
       spontaneityHost = spontaneity.config.monorepo.vars.orgHost;
+
+      userName = spontaneity.config.monorepo.vars.userName;
+
+      internetName = spontaneity.config.monorepo.vars.internetName;
+
+      secretsPath = affinity.config.home-manager.users."${userName}".sops.defaultSymlinkPath;
+
+      ntfyFile = affinity.config.monorepo.vars.ntfySecret;
 
       topology = nixmacs.topology.x86_64-linux.config.output;
 
@@ -69,8 +84,12 @@ if [ -d "$RESULT_PATH" ]; then
     --verbose \
     --no-progress \
     "$RESULT_PATH/**/*.html"
+
+    curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "CI checks done!" https://ntfy.ret2pop.net/ci-build
 else
   echo "Website build failed, skipping lychee."
+
+  curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "CI checks failed!" https://ntfy.ret2pop.net/ci-build
   exit 1
 fi
 ''}";
@@ -138,6 +157,12 @@ fi
           pkgs.jq
           pkgs.lora
           pkgs.inconsolata
+          pkgs.stix-two
+          pkgs.pandoc
+          pkgs.rsass
+          pkgs.minify
+          pkgs.woff2
+
           (pkgs.texlive.combine {
             inherit (pkgs.texlive)
               scheme-full
@@ -160,6 +185,8 @@ mkdir -p $HOME/monorepo
 cp -a . $HOME/monorepo/
 cd $HOME/monorepo
 mkdir -p mindmap/img
+rsass style.scss | minify --type=css > style.css
+minify --type=css -o syntax.css syntax.css
 
 cat <<EOF > $TMPDIR/policy.xml
 <policymap>
@@ -196,26 +223,24 @@ emacs -q --batch \
   --eval '(setq org-confirm-babel-evaluate nil)' \
   --eval '(setq load-prefer-newer t)' \
   --eval '(setq gc-cons-threshold 100000000)' \
+  --eval '(setq vc-handled-backends nil)' \
+  --eval '(setq make-backup-files nil auto-save-default nil create-lockfiles nil)' \
   -l ${nixmacs}/init.el \
   --eval '(setq custom-safe-themes t)' \
-  --eval "(org-babel-do-load-languages 'org-babel-load-languages '((latex . t)))" \
   --eval '(setq org-roam-directory (expand-file-name "mindmap" (expand-file-name "~/monorepo")))' \
   --eval '(setq org-id-track-globally t)' \
   --eval '(org-roam-db-sync)' \
   --eval '(setq term-file-prefix nil)' \
-  --eval '(load-theme (quote doom-rouge) t)' \
   --eval '(force-mode-line-update)' \
   --eval '(setq org-html-link-use-abs-url nil)' \
   --eval '(setq default-directory (expand-file-name "~/monorepo"))' \
   --eval '(setq org-html-link-use-abs-url nil)' \
   --eval '(setq org-html-link-org-files-as-html t)' \
-  --eval '(setq vc-handled-backends nil)' \
   --eval '(require (quote htmlize))' \
   --eval '(require (quote nix-mode))' \
-  --eval '(setq make-backup-files nil auto-save-default nil create-lockfiles nil)' \
   --eval '(setq org-html-htmlize-output-type (quote css))' \
-  --eval '(setq org-html-head-extra "<link rel=\"stylesheet\" type=\"text/css\" href=\"/syntax.css\" />\n<script> window.MathJax = { tex: { tags: \"ams\", tagSide: \"left\", tagIndent: \"1em\" }, chtml: { displayAlign: \"left\", displayIndent: \"3em\" } }; </script>")' \
-  --eval '(org-publish-all t)' || (echo "FAIL:" && cat /build/*.log && exit 1)
+  --eval '(org-publish-all t)' \
+  --eval '(org-publish-all nil)' || (echo "FAIL:" && cat /build/*.log && exit 1)
 
 echo "Setting up Graph View..."
 ${publish-org-roam-ui.packages.${system}.default}/bin/build-org-roam-graph \
@@ -229,9 +254,17 @@ mkdir -p $out/fonts
 
 cp -L ${pkgs.lora}/share/fonts/truetype/*.ttf $out/fonts/
 cp -L ${pkgs.inconsolata}/share/fonts/truetype/inconsolata/*.ttf $out/fonts
+
+cp -L ${pkgs.stix-two}/share/fonts/truetype/STIXTwoMath-Regular.ttf $out/fonts/
+
 cp ${garamond}/ttf/CormorantGaramond-Medium.ttf $out/fonts/
 cp ${garamond}/ttf/CormorantGaramond-MediumItalic.ttf $out/fonts/
 cp ${garamond}/ttf/CormorantGaramond-Bold.ttf $out/fonts/
+
+for font in $out/fonts/*.ttf; do
+   woff2_compress "$font"
+   rm "$font"
+done
 
 cp -r $HOME/website_html/. $out/
 cp ${topology}/main.svg $out/img/topology.svg
@@ -263,12 +296,15 @@ ${pre-commit-check.shellHook}
 git config branch.main.mergeoptions "--no-ff"
 alias gprune='git branch --merged | grep -v -E "^\*|main|master|dev" | xargs -r git branch -d'
 alias serve='cd result; python3 -m http.server 10005'
+alias build='nix build .#website && curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "Website build done!" https://ntfy.ret2pop.net/ci-build'
 '';
           buildInputs = [
             deadnix
             lychee
             python3
             miniserve
+            rsass
+            imagemagickBig
           ];
         };
       };

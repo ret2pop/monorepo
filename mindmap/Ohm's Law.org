@@ -3,9 +3,7 @@
 :END:
 #+title: Ohm's Law
 #+author: Preston Pan
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
-#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+description: Of great importance to circuit analysis.
 #+options: broken-links:t
 * Introduction
 The name is a misnomer; Ohm's law simply refers to the tendency for real world materials to obey this relation:

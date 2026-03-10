@@ -2,7 +2,7 @@
 #+title: Mindmap
 #+author: Preston Pan
 #+date: <2023-06-10 Sat>
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+description: A tool for knowing everything.
 
 * Introducing: the Mindmap
 Do you want to know everything like me and be a smart person instead of dumb?

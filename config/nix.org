@@ -1,7 +1,6 @@
 #+title: NixOS Configuration
 #+AUTHOR: Preston Pan
 #+DESCRIPTION: My NixOS system, written entirely in a literate configuration
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 
 * Introduction
 This is my NixOS configuration. It is a part of my monorepo, and this file automatically tangles
@@ -389,6 +388,12 @@ you own:
       key_groups:
         - age:
           - *vps
+
+    - path_regex: secrets/common_secrets.yaml$
+      key_groups:
+        - age:
+          - *primary
+          - *vps
 #+end_src
 also note that you will have to write your own secrets.yaml file, with an entry called ~mail~,
 which is used for the imaps and smtps password.
@@ -579,6 +584,13 @@ largely self-documenting.
         description = "Linux timezone";
       };
 
+      ntfySecret = lib.mkOption {
+        type = lib.types.str;
+        default = "ntfy";
+        example = "ntfy-env";
+        description = "Name of Ntfy secret for notification handling";
+      };
+
       monitors = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [
@@ -703,6 +715,7 @@ to relevant places.
           content = (builtins.concatStringsSep "\n" (builtins.map (x: "machine mail.${config.monorepo.vars.orgHost} login ${x}@${config.monorepo.vars.orgHost} password ${config.sops.placeholder."mail_monorepo_password_pi"}") config.monorepo.vars.projects)) + ''
   machine mail.${config.monorepo.vars.orgHost} login discussion@${config.monorepo.vars.orgHost} password ${config.sops.placeholder."mail_monorepo_password_pi"}'';
         };
+
         "matterbridge" = {
           owner = "matterbridge";
           content = ''
@@ -767,15 +780,19 @@ to relevant places.
         znc = {
           format = "yaml";
         };
+
         znc_password_salt = {
           format = "yaml";
         };
+
         znc_password_hash = {
           format = "yaml";
         };
+
         matrix_bridge = {
           format = "yaml";
         };
+
         mail_password = {
           format = "yaml";
           owner = "maddy";
@@ -789,12 +806,15 @@ to relevant places.
         mautrix_env = {
           format = "yaml";
         };
+
         telegram_token = {
           format = "yaml";
         };
+
         discord_token = {
           format = "yaml";
         };
+
         mpd_password = {
           format = "yaml";
           owner = "nginx";
@@ -1580,12 +1600,13 @@ I want to have notifications on my phone, and run my own server to do this.
   let
     serverName = "ntfy.${config.monorepo.vars.remoteHost}";
     port = 2586;
-    ntfySecret = "ntfy";
+    ntfySecret = config.monorepo.vars.ntfySecret;
   in
   {
     sops.secrets."${ntfySecret}" = lib.mkIf config.services.ntfy-sh.enable {
       format = "yaml";
       owner = "ntfy-sh";
+      sopsFile = ../secrets/common_secrets.yaml;
     };
 
     services.ntfy-sh = {
@@ -1668,6 +1689,7 @@ to the outside world under a domain.
       user = "nginx";
       recommendedGzipSettings = true;
       recommendedOptimisation = true;
+      recommendedBrotliSettings = true;
       recommendedTlsSettings = true;
       recommendedProxySettings = false;
       virtualHosts = {
@@ -1677,6 +1699,18 @@ to the outside world under a domain.
           root = "${monorepoSelf.packages.${pkgs.system}.website}";
           addSSL = true;
           enableACME = true;
+          locations."/" = {
+            extraConfig = ''
+        add_header Cache-Control "no-cache, must-revalidate";
+        expires off;
+      '';
+          };
+          locations."~* \\.(?:woff2|ttf|otf|eot|woff|ico|css|js|gif|jpe?g|png|svg|mp3|mp4|iso|webmanifest)$" = {
+            extraConfig = ''
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        access_log off;
+      '';
+          };
         };
 
         # the port comes from ssh tunnelling
@@ -3238,6 +3272,12 @@ These are some secrets that I use regularly for my programs in home.
           format = "yaml";
           path = "${config.sops.defaultSymlinkPath}/dn42";
         };
+
+        ntfy = {
+          format = "yaml";
+          path = "${config.sops.defaultSymlinkPath}/${super.monorepo.vars.ntfySecret}";
+          sopsFile = ../../secrets/common_secrets.yaml;
+        };
       } else {
       };
       defaultSymlinkPath = "/run/user/1000/secrets";
@@ -3371,6 +3411,7 @@ I want to separate out these packages so that my parent flake which builds my we
     epkgs.mu4e
     epkgs.minuet
     epkgs.nix-mode
+    epkgs.org-contrib
     epkgs.org-fragtog
     epkgs.org-journal
     epkgs.org-roam
@@ -4886,8 +4927,6 @@ This contains the installation script I use to install my systems.
       };
     };
 
-    users.extraUsers.root.password = "nixos";
-    users.extraUsers.nixos.password = "nixos";
     users.users = {
       root.openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICts6+MQiMwpA+DfFQxjIN214Jn0pCw/2BDvOzPhR/H2 preston@continuity-dell"

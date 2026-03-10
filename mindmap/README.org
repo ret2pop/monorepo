@@ -3,7 +3,6 @@
 #+author: Preston Pan
 #+description: My online journal
 #+language: en
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
 #+OPTIONS: broken-links:t
 
 * Mindmap!!

@@ -2,8 +2,9 @@
 #+title: Configurations
 #+author: Preston Pan
 #+date: <2023-06-10 Sat>
+#+description: My configurations for my computer programs.
 #+language: en
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+
 #+OPTIONS: broken-links:t
 * What is this magic?
 They're configurations for extremely obscure programs I use. Yeah, I know, I'm somewhat of a hipster myself.

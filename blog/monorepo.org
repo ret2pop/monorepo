@@ -3,7 +3,7 @@
 #+date: [2025-01-01]
 #+subtitle: By {{{author}}}, 2025
 #+description: NixOS configurations for infrastructure, workstations, and laptops
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+
 #+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 #+html_head: <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 #+html_head: <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">

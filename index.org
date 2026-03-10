@@ -2,21 +2,14 @@
 #+author: Preston Pan
 #+date: <2023-06-09 Fri>
 #+description: A website full of wonder and explanation
-#+html_head: <link rel="stylesheet" type="text/css" href="style.css" />
-#+html_head: <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-#+html_head: <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-#+html_head: <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-#+html_head: <link rel="manifest" href="/site.webmanifest">
-#+html_head: <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
-#+html_head: <meta name="msapplication-TileColor" content="#da532c">
-#+html_head: <meta name="theme-color" content="#ffffff">
 #+language: en
 #+OPTIONS: broken-links:t
 #+OPTIONS: html-preamble:nil
+#+HTML_HEAD: <link rel="preload" fetchpriority="high" as="image" href="/img/logo.webp" type="image/webp">
 
-#+attr_html: :width 50%
+#+attr_html: :width 595 :height 746
 #+caption: All Hope Abandon, Ye Who Enter Here
-[[./img/drawing-old.png]]
+[[./img/logo.webp]]
 
 Hello! I'm a person on the internet that does things, such as:
 - Music
@@ -71,12 +64,10 @@ It's meant to be a general purpose mailing list as well as a collaborative space
 Who is the man behind ret2pop? How do you contact him? So many mysteries await…
 ** About this Website
 I wrote this website in org mode. For more information, see the [[file:README.org][README]]. Here is how I upload my
-website:
+website (with my nix config):
 #+begin_src shell :exports code :results silent
-git add .
-rsync -azvP --chmod="Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r" ~/website_html/ root@nullring.xyz:/usr/share/nginx/ret2pop/
+  remote-build preston@nullring.xyz
 #+end_src
-Then I run magit after.
 * Donate
 If you like anything that I do, donate! But [[file:blog/crypto.org][should you use cryptocurrency]]? Should
 it be used as a means of exchange? Probably not, but it's cool and free for me to do so here you go.
@@ -84,14 +75,16 @@ Alternatively for all of these addresses, you can use ~ret2pop.eth~, if you can 
 ** XMR
 An anonymous form of ecash, the only one out of these that is actually being used for the purpose
 of currency (on the dark web):
-[[./img/monero.png]]
+#+attr_html: :width 240 :height 240
+[[./img/monero.webp]]
 #+begin_example
 88DQVgiowjJLwsHfTaNjNgJ9Wu4Pw9msie89M2fMrTVJeDEnzqwYMQjX9nAnEDegWrU9LsJdNYp5EKkzxT73DuD6EGa9eWf
 #+end_example
 ** ETH (And associated tokens)
 Utility in the form of smart contracts (which are perhaps useful for something important in the future),
 with first mover advantage in this regard:
-[[./img/eth.png]]
+#+attr_html: :width 147 :height 147
+[[./img/eth.webp]]
 #+begin_example
 0x135Ed80afB7Cd06E494e5Bb737Da8D4B23153480
 #+end_example
@@ -99,7 +92,8 @@ Note that this includes subprojects such as LINK which I find to have some value
 ** BTC
 The standard, and probably will continue to be used as a prediction market/speculative asset for the
 efficacy of other cryptocurrencies:
-[[./img/bitcoin.png]]
+#+attr_html: :width 147 :height 147
+[[./img/bitcoin.webp]]
 #+begin_example
 bc1qaymk2ky8unwq7jdydjw6y9a5xr9z60mkds9ttq
 #+end_example

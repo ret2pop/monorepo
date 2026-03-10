@@ -3,7 +3,7 @@
 :END:
 #+title: self-assembly
 #+author: Preston Pan
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+#+description: This article speaks for itself.
 
 * Introduction
 Self assembly is the process by which a system decreases entropy in its surrounding area

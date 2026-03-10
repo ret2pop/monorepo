@@ -3,9 +3,8 @@
 :END:
 #+title: egoism
 #+author: Preston Pan
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
-#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+description: I am the leopard eating your face.
+
 #+options: broken-links:t
 * Introduction
 Egoism, broadly defined, is the philosophical view that one should maximize for their own utility function, or well-being,

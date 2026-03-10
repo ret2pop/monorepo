@@ -2,7 +2,7 @@
 #+author: Preston Pan
 #+date: <2023-06-11 Sun>
 #+language: en
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+
 #+OPTIONS: broken-links:t
 
 * My Literate Configs

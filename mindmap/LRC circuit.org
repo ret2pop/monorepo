@@ -4,9 +4,8 @@
 :END:
 #+title: LRC circuit
 #+author: Preston Pan
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
-#+html_head: <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-#+html_head: <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+#+description: Explanation of LRC Circuits
+
 #+options: broken-links:t
 
 * Introduction
@@ -39,6 +38,7 @@ another circuit diagram will include a possibly variable voltage source.
 #+end_export
 
 #+CAPTION: LRC Circuit without voltage source
+#+attr_html: :width 400 :height 310
 [[./lrc_circuit.png]]
 
 * Mass-Spring Equation Equivalence
@@ -115,6 +115,7 @@ Here is the circuit diagram for the LRC circuit with a voltage source:
 #+end_export
 
 #+CAPTION: LRC Circuit
+#+attr_html: :width 400 :height 319
 [[./lrc_circuit_source.png]]
 This new [[id:4be41e2e-52b9-4cd1-ac4c-7ecb57106692][differential equation]] looks like this:
 \begin{align*}

@@ -3,8 +3,9 @@
 :END:
 #+title: induction
 #+author: Preston Pan
+#+description: I can tell you what induction is, when I have a definition for all the other words.
 #+options: num:nil
-#+html_head: <link rel="stylesheet" type="text/css" href="../style.css" />
+
 #+options: tex:dvipng
 
 * Introduction

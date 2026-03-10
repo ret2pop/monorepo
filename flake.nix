@@ -84,6 +84,8 @@ if [ -d "$RESULT_PATH" ]; then
     --verbose \
     --no-progress \
     "$RESULT_PATH/**/*.html"
+
+    curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "CI checks done!" https://ntfy.ret2pop.net/ci-build
 else
   echo "Website build failed, skipping lychee."
   exit 1

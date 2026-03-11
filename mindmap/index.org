@@ -7,7 +7,7 @@
 * Introducing: the Mindmap
 Do you want to know everything like me and be a smart person instead of dumb?
 Well, you've come to the right place! 👍
-* [[file:../graph_view/index.html][Graph View]]
+* [[https://graph.ret2pop.net][Graph View]]
 Everyone should experience the graph view of the wonderful *mindmap!!!!!*
 ** What is this?
 It's a place that hopes to explain *EVERYTHING!!*

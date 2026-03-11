@@ -8,6 +8,7 @@
 #+HTML_HEAD: <link rel="preload" fetchpriority="high" as="image" href="/img/logo.webp" type="image/webp">
 
 #+attr_html: :width 595 :height 746
+#+attr_html: :alt My ret2pop logo
 #+caption: All Hope Abandon, Ye Who Enter Here
 [[./img/logo.webp]]
 
@@ -35,6 +36,7 @@ Click the hyperlink to find out! In case you didn't see:
 - [[file:mindmap/index.org][Mindmap]]
 - [[file:mindmap/index.org][Mindmap]]
 * [[file:config/index.org][Configurations]]
+#+attr_html: :alt nix topology graph of all my systems
 [[./img/topology.svg]]
 
 Most of my configurations/dotfiles for various programs are literate configurations, and I
@@ -76,6 +78,7 @@ Alternatively for all of these addresses, you can use ~ret2pop.eth~, if you can 
 An anonymous form of ecash, the only one out of these that is actually being used for the purpose
 of currency (on the dark web):
 #+attr_html: :width 240 :height 240
+#+attr_html: :alt XMR QR code
 [[./img/monero.webp]]
 #+begin_example
 88DQVgiowjJLwsHfTaNjNgJ9Wu4Pw9msie89M2fMrTVJeDEnzqwYMQjX9nAnEDegWrU9LsJdNYp5EKkzxT73DuD6EGa9eWf
@@ -84,6 +87,7 @@ of currency (on the dark web):
 Utility in the form of smart contracts (which are perhaps useful for something important in the future),
 with first mover advantage in this regard:
 #+attr_html: :width 147 :height 147
+#+attr_html: :alt ETH QR code
 [[./img/eth.webp]]
 #+begin_example
 0x135Ed80afB7Cd06E494e5Bb737Da8D4B23153480
@@ -93,6 +97,7 @@ Note that this includes subprojects such as LINK which I find to have some value
 The standard, and probably will continue to be used as a prediction market/speculative asset for the
 efficacy of other cryptocurrencies:
 #+attr_html: :width 147 :height 147
+#+attr_html: :alt bitcoin QR code
 [[./img/bitcoin.webp]]
 #+begin_example
 bc1qaymk2ky8unwq7jdydjw6y9a5xr9z60mkds9ttq

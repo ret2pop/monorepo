@@ -3,6 +3,7 @@
 :END:
 #+title: philosophy
 #+author: Preston Pan
+#+description: But what is philosophy?
 
 #+options: broken-links:t
 * Introduction

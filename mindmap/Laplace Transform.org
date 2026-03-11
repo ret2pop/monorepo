@@ -3,6 +3,7 @@
 :END:
 #+title: Laplace Transform
 #+author: Preston Pan
+#+description: The algebra of differential equations.
 
 #+options: broken-links:t
 

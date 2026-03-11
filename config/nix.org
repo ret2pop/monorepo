@@ -202,7 +202,7 @@ and now for the main flake:
   fi
   echo "Merge to main detected. Building VM for ${hostname}..."
   if nix build .#nixosConfigurations.${hostname}.config.system.build.vm --no-link; then
-      echo "Build succeeded. Proceeding with merge."
+      echo "Build succeeded."
       exit 0
   else
       echo "Build failed! Aborting."
@@ -227,10 +227,6 @@ and now for the main flake:
                   serviceName = "sshd";
                   enabled = super.services.openssh.enable;
                 }
-                # {
-                #   serviceName = "conduit";
-                #   enabled = super.services.matrix-conduit.enable;
-                # }
                 {
                   serviceName = "git-daemon";
                   enabled = super.services.gitDaemon.enable;
@@ -312,6 +308,10 @@ and now for the main flake:
           };
         in
           {
+            lib = {
+              inherit mkHostModules;
+            };
+
             checks."${system}" = integrationTests // {
               inherit pre-commit-check;
             };
@@ -333,14 +333,35 @@ and now for the main flake:
             devShell."${system}" = with pkgs; mkShell {
               buildInputs = [
                 fira-code
-                python3
-                poetry
                 statix
                 deadnix
+                (python3.withPackages (ps: with ps; [
+                  octodns
+                  octodns-providers.cloudflare
+                  octodns-providers.bind
+                ]))
               ];
               shellHook = ''
   ${pre-commit-check.shellHook}
   git config branch.main.mergeoptions "--no-ff"
+
+  CURRENT_HOST="$(hostname)"
+
+  TARGET_USER_RAW=$(nix eval .#nixosConfigurations."$CURRENT_HOST".config.home-manager.users --apply "u: builtins.head (builtins.attrNames u)" --raw 2>/dev/null)
+
+  TARGET_USER=$(echo "$TARGET_USER_RAW" | xargs)
+  SOPS_BASE=$(nix eval .#nixosConfigurations."$CURRENT_HOST".config.home-manager.users."$TARGET_USER".sops.defaultSymlinkPath --raw 2>/dev/null)
+
+  if [ -n "$SOPS_BASE" ] && [ -f "$SOPS_BASE/cloudflare-dns" ]; then
+    export CLOUDFLARE_TOKEN="$(cat "$SOPS_BASE/cloudflare-dns" | tr -d '\n')"
+    echo "Authenticated via sops-nix for host: $CURRENT_HOST"
+  else
+    echo "Could not resolve sops path for $CURRENT_HOST or secret is missing. Set CLOUDFLARE_TOKEN manually."
+  fi
+
+  alias update-dns="octodns-sync --config-file ${self.packages."${system}".octodns} --doit --force"
+  alias fake-update-dns="octodns-sync --config-file ${self.packages."${system}".octodns} --force "
+  alias gprune='git branch --merged | grep -v -E "^\*|main|master|dev" | xargs -r git branch -d'
   '';
             };
 
@@ -468,7 +489,7 @@ graph by running ~nix build .#topology.x86_64-linux.config.output~.
 Variables used for regular configuration in your system ~default.nix~ file. The options are
 largely self-documenting.
 #+begin_src nix :tangle ../nix/modules/vars.nix
-  { lib, ... }:
+  { config, lib, ... }:
   let
     vars = import ../flakevars.nix;
   in
@@ -591,6 +612,13 @@ largely self-documenting.
         description = "Name of Ntfy secret for notification handling";
       };
 
+      ntfyUrl = lib.mkOption {
+        type = lib.types.str;
+        default = "ntfy.${config.monorepo.vars.remoteHost}";
+        example = "ntfy.nullring.xyz";
+        description = "Name of ntfy server";
+      };
+
       monitors = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [
@@ -612,11 +640,12 @@ Again, these are self documenting variables that you may see used below. These a
 under ~default.nix~ in the ~systems~ folder.
 #+begin_src nix :tangle ../nix/modules/default.nix
   { lib, config, pkgs, ... }:
+  let
+    dirContents = builtins.readDir ./.;
+    files = lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".nix" name && name != "default.nix") dirContents;
+  in
   {
-    imports = [
-      ./configuration.nix
-      ./vars.nix
-    ];
+    imports = lib.mapAttrsToList (name: _: ./. + "/${name}") files;
 
     options = {
       monorepo = {
@@ -708,14 +737,6 @@ to relevant places.
 
 
       templates = if config.monorepo.profiles.server.enable then {
-        "public-inbox-netrc" = {
-          owner = "public-inbox";
-          group = "public-inbox";
-          mode = "0400";
-          content = (builtins.concatStringsSep "\n" (builtins.map (x: "machine mail.${config.monorepo.vars.orgHost} login ${x}@${config.monorepo.vars.orgHost} password ${config.sops.placeholder."mail_monorepo_password_pi"}") config.monorepo.vars.projects)) + ''
-  machine mail.${config.monorepo.vars.orgHost} login discussion@${config.monorepo.vars.orgHost} password ${config.sops.placeholder."mail_monorepo_password_pi"}'';
-        };
-
         "matterbridge" = {
           owner = "matterbridge";
           content = ''
@@ -1017,7 +1038,6 @@ This is an internet radio which will host a ton of music.
   </mount>
   '';
     };
-    admin.password = "changeme";
   }
 #+end_src
 ** IRC
@@ -1356,15 +1376,15 @@ This is a basic ActivityPub server.
 #+end_src
 ** TODO matrix-appservice-irc
 #+begin_src nix :tangle ../nix/modules/matrix-appservice-irc.nix
-  { lib, config, ... }:
+  { ... }:
   {
-    enable = lib.mkDefault config.monorepo.profiles.server.enable;
-    registrationUrl = "localhost";
+    # enable = lib.mkDefault config.monorepo.profiles.server.enable;
+    # registrationUrl = "localhost";
 
-    settings = {
-      homeserver.url = "https://matrix.nullring.xyz";
-      homserver.domain = "matrix.nullring.xyz";
-    };
+    # settings = {
+    #   homeserver.url = "https://matrix.nullring.xyz";
+    #   homserver.domain = "matrix.nullring.xyz";
+    # };
   }
 #+end_src
 ** Gitolite
@@ -1598,7 +1618,7 @@ I want to have notifications on my phone, and run my own server to do this.
 #+begin_src nix :tangle ../nix/modules/ntfy-sh.nix
   { pkgs, lib, config, ... }:
   let
-    serverName = "ntfy.${config.monorepo.vars.remoteHost}";
+    serverName = "${config.monorepo.vars.ntfyUrl}";
     port = 2586;
     ntfySecret = config.monorepo.vars.ntfySecret;
   in
@@ -1701,16 +1721,21 @@ to the outside world under a domain.
           enableACME = true;
           locations."/" = {
             extraConfig = ''
-        add_header Cache-Control "no-cache, must-revalidate";
-        expires off;
+  add_header Cache-Control "no-cache, must-revalidate";
+  expires off;
       '';
           };
+
           locations."~* \\.(?:woff2|ttf|otf|eot|woff|ico|css|js|gif|jpe?g|png|svg|mp3|mp4|iso|webmanifest)$" = {
             extraConfig = ''
-        add_header Cache-Control "public, max-age=31536000, immutable";
-        access_log off;
+  add_header Cache-Control "public, max-age=31536000, immutable";
+  access_log off;
       '';
           };
+          extraConfig = ''
+  include ${monorepoSelf.packages.${pkgs.system}.website}/csp_header.conf;
+  rewrite ^/graph_view/?(.*)$ https://graph.${config.monorepo.vars.remoteHost}/$1 permanent;
+  '';
         };
 
         # the port comes from ssh tunnelling
@@ -1738,6 +1763,20 @@ to the outside world under a domain.
           addSSL = true;
           enableACME = true;
         };
+
+        "graph.${config.monorepo.vars.remoteHost}" = lib.mkIf (monorepoSelf != null) {
+          serverName = "graph.${config.monorepo.vars.remoteHost}";
+          root = "${monorepoSelf.packages.${pkgs.system}.website}";
+          addSSL = true;
+          enableACME = true;
+          locations."/" = {
+            extraConfig = "rewrite ^/$ /graph_view/index.html break;";
+          };
+
+          extraConfig = ''
+  add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; object-src 'none';";
+    '';
+        };
       };
     };
 
@@ -1747,6 +1786,8 @@ to the outside world under a domain.
       "${config.monorepo.vars.remoteHost}" = {};
       "${config.monorepo.vars.orgHost}" = {};
       "${config.monorepo.vars.internetName}.${config.monorepo.vars.orgHost}" = {};
+      "music.${config.monorepo.vars.remoteHost}" = {};
+      "graph.${config.monorepo.vars.remoteHost}" = {};
     };
   }
 #+end_src
@@ -1837,10 +1878,21 @@ There is a non declarative part of setting dkims and spf.
     password_path = "mail_monorepo_password";
   in
   {
-    sops.secrets = lib.mkIf config.services.maddy.enable {
-      "${password_path}" = lib.mkIf config.services.maddy.enable {
-        format = "yaml";
-        owner = "maddy";
+    sops = lib.mkIf config.services.maddy.enable {
+      secrets = {
+        "${password_path}" = {
+          format = "yaml";
+          owner = "maddy";
+        };
+      };
+      templates = lib.mkIf config.services.public-inbox.enable {
+        "public-inbox-netrc" = {
+          owner = "public-inbox";
+          group = "public-inbox";
+          mode = "0400";
+          content = (builtins.concatStringsSep "\n" (builtins.map (x: "machine ${emailServerName} login ${x}@${config.monorepo.vars.orgHost} password ${config.sops.placeholder."mail_monorepo_password_pi"}") config.monorepo.vars.projects)) + ''
+  machine ${emailServerName} login discussion@${config.monorepo.vars.orgHost} password ${config.sops.placeholder."mail_monorepo_password_pi"}'';
+        };
       };
     };
 
@@ -1895,18 +1947,16 @@ There is a non declarative part of setting dkims and spf.
     '';
       
       serviceConfig = {
-        # Allow the service to see the file it just created
         BindPaths = [ 
           "/var/lib/public-inbox" 
           "${config.users.users.git.home}"
         ];
         ReadOnlyPaths = [ "/var/lib/public-inbox/style.css" ];
-        # Ensure it can actually write to the directory during preStart
         ReadWritePaths = [ "/var/lib/public-inbox" ];
       };
     } else {};
 
-    systemd.services.public-inbox-watch = if config.monorepo.profiles.server.enable then {
+    systemd.services.public-inbox-watch = if config.services.public-inbox.enable then {
       after = [ "sops-nix.service" ];
       confinement.enable = lib.mkForce false;
       preStart = ''
@@ -1936,7 +1986,7 @@ There is a non declarative part of setting dkims and spf.
     } else {};
 
     services.public-inbox = {
-      enable = lib.mkDefault config.monorepo.profiles.server.enable;
+      enable = lib.mkDefault config.services.maddy.enable;
       settings = {
         coderepo = lib.genAttrs config.monorepo.vars.projects (name: {
           dir = "${config.users.users.git.home}/${name}.git";
@@ -2333,35 +2383,6 @@ because they enhance security.
     vmHosts = map (dom: "127.0.0.1 ${dom}") allDomains;
   in
   {
-    imports = [
-      ./cgit.nix
-      ./public_inbox.nix
-      ./matterbridge.nix
-      ./mautrix.nix
-      ./xserver.nix
-      ./ssh.nix
-      ./pipewire.nix
-      ./tor.nix
-      ./kubo.nix
-      ./nvidia.nix
-      ./cuda.nix
-      ./nginx.nix
-      ./secrets.nix
-      ./git-daemon.nix
-      ./ollama.nix
-      ./i2pd.nix
-      ./conduit.nix
-      ./bitcoin.nix
-      ./ngircd.nix
-      ./znc.nix
-      ./docker.nix
-      ./impermanence.nix
-      ./maddy.nix
-      ./ntfy-sh.nix
-      ./fail2ban.nix
-      ./nixpkgs-options.nix
-    ];
-
     environment.etc."wpa_supplicant.conf".text = ''
   country=CA
   '';
@@ -2375,6 +2396,7 @@ because they enhance security.
       memoryPercent = 50;
     };
 
+    # Shim for testing
     virtualisation.vmVariant = {
       sops.validateSopsFiles = false;
       disko.devices = lib.mkForce {};
@@ -2403,6 +2425,8 @@ because they enhance security.
       systemd.services.sops-nix = {
         unitConfig.RequiresMountsFor = "/home/preston/.config/sops/age";
       };
+
+      security.acme.defaults.server = lib.mkForce "https://127.0.0.1:14000/dir";
     };
 
     documentation = {
@@ -2717,7 +2741,6 @@ because they enhance security.
     programs = {
       nix-ld.enable = true;
       zsh.enable = true;
-      light.enable = true;
       ssh.enableAskPassword = false;
     };
 
@@ -2925,10 +2948,13 @@ This is all configuration common to any GPT partitioned drive. I dynamically cho
 *** ESP Boot Partition
 #+begin_src nix :tangle ../nix/disko/esp-boot.nix
   {
-    type = "filesystem";
-    format = "vfat";
-    mountpoint = "/boot";
-    mountOptions = [ "umask=0077" ];
+    type = "EF00";
+    content = {
+      type = "filesystem";
+      format = "vfat";
+      mountpoint = "/boot";
+      mountOptions = [ "umask=0077" ];
+    };
   }
 #+end_src
 *** Btrfs
@@ -2936,10 +2962,8 @@ This is a fully featured drive configuration and the recommended configuration t
 Btrfs enables you to enable impermanence and also encrypt the drive with ~/tmp/secret.key~.
 #+begin_src nix :tangle ../nix/disko/btrfs.nix
   {
-    ESP = {
+    ESP = (import ./esp-boot.nix) // {
       size = "512M";
-      type = "EF00";
-      content = import ./esp-boot.nix;
     };
     luks = {
       size = "100%";
@@ -2993,11 +3017,9 @@ This configuration is used for simple partitioning schemes with EFI. A simple ex
 should be using EFI if you can.
 #+begin_src nix :tangle ../nix/disko/ext4.nix
   {
-    ESP = {
-      type = "EF00";
+    ESP = (import ./esp-boot.nix) // {
       size = "500M";
       priority = 1;
-      content = import ./esp-boot.nix;
     };
     root = {
       size = "100%";
@@ -3042,31 +3064,14 @@ As you can see, I have my installed home packages installed based on the profile
 I have many imports that we'll go through next.
 #+begin_src nix :tangle ../nix/modules/home/default.nix
   { lib, config, pkgs, sops-nix, super, ... }:
+  let
+    dirContents = builtins.readDir ./.;
+    files = lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".nix" name && name != "default.nix" && name != "emacs-packages.nix") dirContents;
+  in
   {
     imports = [
       sops-nix.homeManagerModules.sops
-      ../vars.nix
-      ./fcitx.nix
-      ./emacs.nix
-      ./firefox.nix
-      ./git.nix
-      ./hyprland.nix
-      ./mpv.nix
-      ./yt-dlp.nix
-      ./wofi.nix
-      ./kitty.nix
-      ./waybar.nix
-      ./zsh.nix
-      ./mbsync.nix
-      ./msmtp.nix
-      ./gammastep.nix
-      ./mpd.nix
-      ./mako.nix
-      ./user.nix
-      ./gtk.nix
-      ./secrets.nix
-      ./pantalaimon.nix
-    ];
+    ] ++ lib.mapAttrsToList (name: _: ./. + "/${name}") files;
 
     options = {
       monorepo.profiles = {
@@ -3869,15 +3874,15 @@ just set the options to the ones you want in your system ~default.nix~.
 This mpd configuration uses pipewire by default, and it should just work if you place music
 in the ~~/music~ directory and then run ~mpc add /~ afterwards.
 #+begin_src nix :tangle ../nix/modules/home/mpd.nix
-  { lib, config, ... }:
+  { lib, config, super, ... }:
   {
     services.mpd = {
     enable = lib.mkDefault config.monorepo.profiles.music.enable;
-    dbFile = "/home/${config.monorepo.vars.userName}/.config/mpd/db";
-    dataDir = "/home/${config.monorepo.vars.userName}/.config/mpd/";
+    dbFile = "/home/${super.monorepo.vars.userName}/.config/mpd/db";
+    dataDir = "/home/${super.monorepo.vars.userName}/.config/mpd/";
     network.port = 6600;
-    musicDirectory = "/home/${config.monorepo.vars.userName}/music";
-    playlistDirectory = "/home/${config.monorepo.vars.userName}/.config/mpd/playlists";
+    musicDirectory = "/home/${super.monorepo.vars.userName}/music";
+    playlistDirectory = "/home/${super.monorepo.vars.userName}/.config/mpd/playlists";
     network.listenAddress = "0.0.0.0";
     extraConfig = ''
         audio_output {
@@ -3965,7 +3970,7 @@ here:
 This is the bar I use for my hyprland configuration. You will need to adjust the monitors field
 in the ~default.nix~ for it to really appear.
 #+begin_src nix :tangle ../nix/modules/home/waybar.nix
-  { lib, config, ... }:
+  { lib, config, super, ... }:
   {
     programs.waybar = {
       enable = lib.mkDefault config.monorepo.profiles.hyprland.enable;
@@ -4221,7 +4226,7 @@ in the ~default.nix~ for it to really appear.
           position = "top";
           height = 50;
 
-          output = config.monorepo.vars.monitors;
+          output = super.monorepo.vars.monitors;
 
           modules-left = [ "hyprland/workspaces" ];
           modules-center = [ "hyprland/window" ];
@@ -4475,7 +4480,7 @@ A classic program that allows you to download from youtube. Also has integration
 My zsh config has some useful aliases that one should read through. Otherwise it is pretty
 standard.
 #+begin_src nix :tangle ../nix/modules/home/zsh.nix
-  { config, pkgs, systemHostName, ... }:
+  { pkgs, systemHostName, super, ... }:
   {
     programs.zsh = {
       enable = true;
@@ -4510,9 +4515,9 @@ standard.
         build-installer = "nix build $HOME/monorepo/nix#nixosConfigurations.installer.config.system.build.isoImage";
         rb = "sudo nixos-rebuild switch --flake $HOME/monorepo/nix#${systemHostName}";
         nfu = "cd ~/monorepo/nix && git add . && git commit -m \"new flake lock\" &&  nix flake update";
-        usync =  "rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/monorepo/result/ root@${config.monorepo.vars.remoteHost}:/var/www/${config.monorepo.vars.internetName}-website/";
+        usync =  "rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/monorepo/result/ root@${super.monorepo.vars.remoteHost}:/var/www/${super.monorepo.vars.internetName}-website/";
         usite
-        = "cd ~/src/publish-org-roam-ui && bash local.sh && rm -rf ~/website_html/graph_view; cp -r ~/src/publish-org-roam-ui/out ~/website_html/graph_view && rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/website_html/ root@${config.monorepo.vars.remoteHost}:/var/www/${config.monorepo.vars.internetName}-website/";
+        = "cd ~/src/publish-org-roam-ui && bash local.sh && rm -rf ~/website_html/graph_view; cp -r ~/src/publish-org-roam-ui/out ~/website_html/graph_view && rsync -azvP --chmod=\"Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r\" ~/website_html/ root@${super.monorepo.vars.remoteHost}:/var/www/${super.monorepo.vars.internetName}-website/";
         sai = "eval \"$(ssh-agent -s)\" && ssh-add ~/.ssh/id_ed25519 && ssh-add -l";
       };
       loginExtra = ''
@@ -4528,33 +4533,33 @@ This configuration is the backbone configuration for the default user. It specif
 generally useful packages and something every home should have, as well as some dependencies
 for these configurations.
 #+begin_src nix :tangle ../nix/modules/home/user.nix
-  { lib, config, pkgs, ... }:
+  { lib, config, pkgs, super, ... }:
   {
     home = {
       activation.startup-files = lib.hm.dag.entryAfter [ "installPackages" ] ''
-      if [ ! -d "/home/${config.monorepo.vars.userName}/email/${config.monorepo.vars.internetName}/" ]; then
-        mkdir -p /home/${config.monorepo.vars.userName}/email/${config.monorepo.vars.internetName}/
+      if [ ! -d "/home/${super.monorepo.vars.userName}/email/${super.monorepo.vars.internetName}/" ]; then
+        mkdir -p /home/${super.monorepo.vars.userName}/email/${super.monorepo.vars.internetName}/
       fi
 
-      if [ ! -d "/home/${config.monorepo.vars.userName}/music" ]; then
-        mkdir -p /home/${config.monorepo.vars.userName}/music
+      if [ ! -d "/home/${super.monorepo.vars.userName}/music" ]; then
+        mkdir -p /home/${super.monorepo.vars.userName}/music
       fi
 
-      if [ ! -d /home/${config.monorepo.vars.userName}/org ]; then
-        mkdir -p /home/${config.monorepo.vars.userName}/org
+      if [ ! -d /home/${super.monorepo.vars.userName}/org ]; then
+        mkdir -p /home/${super.monorepo.vars.userName}/org
       fi
 
-      if [ ! -d /home/${config.monorepo.vars.userName}/src ]; then
-        mkdir -p /home/${config.monorepo.vars.userName}/src
+      if [ ! -d /home/${super.monorepo.vars.userName}/src ]; then
+        mkdir -p /home/${super.monorepo.vars.userName}/src
       fi
 
-      touch /home/${config.monorepo.vars.userName}/org/agenda.org
-      touch /home/${config.monorepo.vars.userName}/org/notes.org
+      touch /home/${super.monorepo.vars.userName}/org/agenda.org
+      touch /home/${super.monorepo.vars.userName}/org/notes.org
       '';
 
       enableNixpkgsReleaseCheck = false;
-      username = config.monorepo.vars.userName;
-      homeDirectory = "/home/${config.monorepo.vars.userName}";
+      username = super.monorepo.vars.userName;
+      homeDirectory = "/home/${super.monorepo.vars.userName}";
       stateVersion = "24.11";
 
       packages = with pkgs; (if config.monorepo.profiles.graphics.enable then [

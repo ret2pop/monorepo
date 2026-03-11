@@ -56,40 +56,94 @@
 
       ntfyFile = affinity.config.monorepo.vars.ntfySecret;
 
+      ntfyHost = "https://${spontaneity.config.monorepo.vars.ntfyUrl}";
+
       topology = nixmacs.topology.x86_64-linux.config.output;
+
+      mkNotification = msg: ''curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "${msg}" ${ntfyHost}/ci-build'';
 
       pre-commit-check = git-hooks.lib.${system}.run {
         src = ./.;
         hooks = {
           deadnix.enable = true;
-          website-build-check = {
+          spontaneity-smoke-test = {
             enable = true;
-            name = "website-build";
-            description = "Ensure website can build, and tests links";
+            name = "Spontaneity smoke test";
+            description = "tests if nginx is active/if the config works.";
             stages = [ "pre-merge-commit" ];
             entry = "${pkgs.writeShellScript "website-check" ''
-set -e 
-set -o pipefail 
+set -e
+set -o pipefail
 trap "echo -e '\nHook interrupted by user. Aborting merge!'; exit 1" INT TERM
 
 BRANCH=$(git branch --show-current)
 if [ "$BRANCH" != "main" ]; then
   exit 0
 fi
+
+set +e
+nix build .#checks.${system}.spontaneity-website-test --no-link
+BUILD_STATUS=$?
+set -e
+
+if [ $BUILD_STATUS -neq 0 ]; then
+  echo "Failed to build the website with spontaneity!"
+  exit $BUILD_STATUS
+fi
+''}";
+            pass_filenames = false; 
+          };
+
+          website-build-check = {
+            enable = true;
+            name = "website-build";
+            description = "Ensure website can build, and tests links";
+            stages = [ "pre-merge-commit" ];
+            entry = "${pkgs.writeShellScript "website-check" ''
+set -e
+set -o pipefail
+trap "echo -e '\nHook interrupted by user. Aborting merge!'; exit 1" INT TERM
+
+BRANCH=$(git branch --show-current)
+if [ "$BRANCH" != "main" ]; then
+  exit 0
+fi
+
+set +e
 RESULT_PATH=$(nix build .#website --no-link --print-out-paths)
-if [ -d "$RESULT_PATH" ]; then
-  echo "Running lychee link check..."
-  ${pkgs.lychee}/bin/lychee --root-dir "$RESULT_PATH" \
-    --offline \
-    --verbose \
-    --no-progress \
-    "$RESULT_PATH/**/*.html"
+BUILD_STATUS=$?
+set -e
 
-    curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "CI checks done!" https://ntfy.ret2pop.net/ci-build
+if [ $BUILD_STATUS -eq 0 ] && [ -d "$RESULT_PATH" ]; then
+    echo "Running lychee link check..."
+    set +e
+    ${pkgs.lychee}/bin/lychee --root-dir "$RESULT_PATH" \
+      --offline \
+      --verbose \
+      --no-progress \
+      "$RESULT_PATH/**/*.html"
+      LYCHEE_STATUS=$?
+    set -e
+
+    if [ $LYCHEE_STATUS -ne 0 ]; then
+      echo "Lychee found broken links!"
+      ${mkNotification "CI checks failed: Broken links!"}
+      exit 1
+    fi
+
+    INJECT_HASH="$(python3 tests/test-csp-hash.py "$RESULT_PATH/index.html")"
+    CSS_HASH="$(openssl dgst -sha256 -binary "$RESULT_PATH/combined.css" | openssl base64)"
+
+    if [ "$INJECT_HASH" != "$CSS_HASH" ]; then
+      echo "Security headers test failed!"
+      ${mkNotification "CI checks failed: CSP hash mismatch!"}
+      exit 1
+    fi
+
+    ${mkNotification "CI checks done!"}
 else
-  echo "Website build failed, skipping lychee."
-
-  curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "CI checks failed!" https://ntfy.ret2pop.net/ci-build
+  echo "Website build failed, skipping lychee and CSP tests."
+  ${mkNotification "CI checks failed!"}
   exit 1
 fi
 ''}";
@@ -162,6 +216,7 @@ fi
           pkgs.rsass
           pkgs.minify
           pkgs.woff2
+          pkgs.openssl
 
           (pkgs.texlive.combine {
             inherit (pkgs.texlive)
@@ -185,8 +240,17 @@ mkdir -p $HOME/monorepo
 cp -a . $HOME/monorepo/
 cd $HOME/monorepo
 mkdir -p mindmap/img
+
 rsass style.scss | minify --type=css > style.css
 minify --type=css -o syntax.css syntax.css
+
+# I want to do this so I can generate the CSP policy carefully
+cat style.css syntax.css > combined.css
+
+CSS_HASH=$(openssl dgst -sha256 -binary combined.css | openssl base64)
+cat <<EOF > csp_header.conf
+add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'sha256-$CSS_HASH'; font-src 'self';";
+EOF
 
 cat <<EOF > $TMPDIR/policy.xml
 <policymap>
@@ -282,6 +346,39 @@ sha256sum installer.iso > installer.iso.sha256
 
         checks."${system}" = {
           build-website = website;
+          spontaneity-website-test = nixmacs.inputs.nixpkgs.legacyPackages."${system}".testers.runNixOSTest {
+            name = "spontaneity-website-test";
+            
+            node.specialArgs = { 
+              monorepoSelf = self; 
+              isIntegrationTest = true;
+            } // nixmacs.inputs;
+
+            nodes."spontaneity" = { lib, ... }: {
+              imports = nixmacs.lib.mkHostModules "spontaneity" ++ [
+                "${nixmacs.inputs.nixpkgs}/nixos/modules/misc/nixpkgs/read-only.nix"
+                {
+                  nixpkgs.pkgs = lib.mkVMOverride self.nixosConfigurations.spontaneity.pkgs;
+                  nixpkgs.config = lib.mkForce {};
+                  systemd.services.systemd-networkd-wait-online.enable = lib.mkForce false;
+                  systemd.services.NetworkManager-wait-online.enable = lib.mkForce false;
+                  nixpkgs.overlays = lib.mkForce [];
+                }
+              ];
+              disabledModules = [
+                "${self}/nix/modules/nixpkgs-options.nix"
+                "${self}/nix/systems/spontaneity/hardware-configuration.nix"
+              ];
+            };
+
+            testScript = ''
+spontaneity.start()
+spontaneity.succeed('printf "smoke"')
+spontaneity.wait_for_unit("default.target")
+spontaneity.succeed("systemctl is-active nginx")
+spontaneity.succeed('printf "smoke again"')
+          '';
+          };
         };
 
         packages."${system}" = {
@@ -296,7 +393,8 @@ ${pre-commit-check.shellHook}
 git config branch.main.mergeoptions "--no-ff"
 alias gprune='git branch --merged | grep -v -E "^\*|main|master|dev" | xargs -r git branch -d'
 alias serve='cd result; python3 -m http.server 10005'
-alias build='nix build .#website && curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "Website build done!" https://ntfy.ret2pop.net/ci-build'
+alias build='nix build .#website && ${mkNotification "CI build done!"} '
+alias check='nix flake check; ${mkNotification "flake checks done!"} '
 '';
           buildInputs = [
             deadnix
@@ -305,6 +403,9 @@ alias build='nix build .#website && curl -H "Priority: max" -u "${internetName}:
             miniserve
             rsass
             imagemagickBig
+            google-lighthouse
+            openssl
+            git
           ];
         };
       };

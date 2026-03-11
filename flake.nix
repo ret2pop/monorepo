@@ -83,7 +83,13 @@ fi
 
 set +e
 nix build .#checks.${system}.spontaneity-website-test --no-link
+BUILD_STATUS=$?
 set -e
+
+if [ $BUILD_STATUS -neq 0 ]; then
+  echo "Failed to build the website with spontaneity!"
+  exit $BUILD_STATUS
+fi
 '';
             pass_filenames = false; 
           };
@@ -340,7 +346,7 @@ sha256sum installer.iso > installer.iso.sha256
 
         checks."${system}" = {
           build-website = website;
-          spontaneity-website-test = pkgs.testers.runNixOSTest {
+          spontaneity-website-test = nixmacs.inputs.nixpkgs.legacyPackages."${system}".testers.runNixOSTest {
             name = "spontaneity-website-test";
             
             node.specialArgs = { 
@@ -350,7 +356,7 @@ sha256sum installer.iso > installer.iso.sha256
 
             nodes."spontaneity" = { lib, ... }: {
               imports = nixmacs.lib.mkHostModules "spontaneity" ++ [
-                "${nixpkgs}/nixos/modules/misc/nixpkgs/read-only.nix"
+                "${nixmacs.inputs.nixpkgs}/nixos/modules/misc/nixpkgs/read-only.nix"
                 {
                   nixpkgs.pkgs = lib.mkVMOverride self.nixosConfigurations.spontaneity.pkgs;
                   nixpkgs.config = lib.mkForce {};
@@ -388,6 +394,7 @@ git config branch.main.mergeoptions "--no-ff"
 alias gprune='git branch --merged | grep -v -E "^\*|main|master|dev" | xargs -r git branch -d'
 alias serve='cd result; python3 -m http.server 10005'
 alias build='nix build .#website && ${mkNotification "CI build done!"} '
+alias check='nix flake check; ${mkNotification "flake checks done!"} '
 '';
           buildInputs = [
             deadnix

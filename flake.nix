@@ -346,7 +346,7 @@ sha256sum installer.iso > installer.iso.sha256
             node.specialArgs = { 
               monorepoSelf = self; 
               isIntegrationTest = true;
-            };
+            } // nixmacs.inputs;
 
             nodes."spontaneity" = { lib, ... }: {
               imports = nixmacs.lib.mkHostModules "spontaneity" ++ [
@@ -359,8 +359,9 @@ sha256sum installer.iso > installer.iso.sha256
                   nixpkgs.overlays = lib.mkForce [];
                 }
               ];
-              disabledModules = [ 
-                "${nixmacs}/systems/spontaneity/hardware-configuration.nix" 
+              disabledModules = [
+                "${self}/nix/modules/nixpkgs-options.nix"
+                "${self}/nix/systems/spontaneity/hardware-configuration.nix"
               ];
             };
 

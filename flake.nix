@@ -71,7 +71,7 @@
             name = "Spontaneity smoke test";
             description = "tests if nginx is active/if the config works.";
             stages = [ "pre-merge-commit" ];
-            entry = ''
+            entry = "${pkgs.writeShellScript "website-check" ''
 set -e
 set -o pipefail
 trap "echo -e '\nHook interrupted by user. Aborting merge!'; exit 1" INT TERM
@@ -90,7 +90,7 @@ if [ $BUILD_STATUS -neq 0 ]; then
   echo "Failed to build the website with spontaneity!"
   exit $BUILD_STATUS
 fi
-'';
+''}";
             pass_filenames = false; 
           };
 

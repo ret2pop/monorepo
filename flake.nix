@@ -60,6 +60,8 @@
 
       topology = nixmacs.topology.x86_64-linux.config.output;
 
+      mkNotification = msg: ''curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "${msg}" ${ntfyHost}/ci-build'';
+
       pre-commit-check = git-hooks.lib.${system}.run {
         src = ./.;
         hooks = {
@@ -79,20 +81,41 @@ if [ "$BRANCH" != "main" ]; then
   exit 0
 fi
 
+set +e
 RESULT_PATH=$(nix build .#website --no-link --print-out-paths)
-if [ -d "$RESULT_PATH" ]; then
-  echo "Running lychee link check..."
-  ${pkgs.lychee}/bin/lychee --root-dir "$RESULT_PATH" \
-    --offline \
-    --verbose \
-    --no-progress \
-    "$RESULT_PATH/**/*.html"
+BUILD_STATUS=$?
+set -e
 
-    curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "CI checks done!" ${ntfyHost}/ci-build
+if [ $BUILD_STATUS -eq 0 ] && [ -d "$RESULT_PATH" ]; then
+    echo "Running lychee link check..."
+    set +e
+    ${pkgs.lychee}/bin/lychee --root-dir "$RESULT_PATH" \
+      --offline \
+      --verbose \
+      --no-progress \
+      "$RESULT_PATH/**/*.html"
+      LYCHEE_STATUS=$?
+    set -e
+
+    if [ $LYCHEE_STATUS -ne 0 ]; then
+      echo "Lychee found broken links!"
+      ${mkNotification "CI checks failed: Broken links!"}
+      exit 1
+    fi
+
+    INJECT_HASH="$(python3 tests/test-csp-hash.py "$RESULT_PATH/index.html")"
+    CSS_HASH="$(openssl dgst -sha256 -binary "$RESULT_PATH/combined.css" | openssl base64)"
+
+    if [ "$INJECT_HASH" != "$CSS_HASH" ]; then
+      echo "Security headers test failed!"
+      ${mkNotification "CI checks failed: CSP hash mismatch!"}
+      exit 1
+    fi
+
+    ${mkNotification "CI checks done!"}
 else
-  echo "Website build failed, skipping lychee."
-
-  curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "CI checks failed!" ${ntfyHost}/ci-build
+  echo "Website build failed, skipping lychee and CSP tests."
+  ${mkNotification "CI checks failed!"}
   exit 1
 fi
 ''}";
@@ -165,6 +188,7 @@ fi
           pkgs.rsass
           pkgs.minify
           pkgs.woff2
+          pkgs.openssl
 
           (pkgs.texlive.combine {
             inherit (pkgs.texlive)
@@ -308,7 +332,7 @@ ${pre-commit-check.shellHook}
 git config branch.main.mergeoptions "--no-ff"
 alias gprune='git branch --merged | grep -v -E "^\*|main|master|dev" | xargs -r git branch -d'
 alias serve='cd result; python3 -m http.server 10005'
-alias build='nix build .#website && curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "Website build done!" ${ntfyHost}/ci-build'
+alias build='nix build .#website && ${mkNotification "CI build done!"} '
 '';
           buildInputs = [
             deadnix
@@ -318,6 +342,8 @@ alias build='nix build .#website && curl -H "Priority: max" -u "${internetName}:
             rsass
             imagemagickBig
             google-lighthouse
+            openssl
+            git
           ];
         };
       };

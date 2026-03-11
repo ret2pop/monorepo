@@ -66,6 +66,15 @@
         src = ./.;
         hooks = {
           deadnix.enable = true;
+          test-spontaneity-vm-with-site = {
+            enable = true;
+            name = "spontaneity-vm";
+            description = "test boot the spontaneity vm to check nginx config. Required test as we inject monorepoSelf variable.";
+            stages = [ "pre-merge-commit" ];
+            entry = "${pkgs.writeShellScript "website-check" ''
+nix build .#spontaneity
+''}";
+          };
           website-build-check = {
             enable = true;
             name = "website-build";
@@ -318,6 +327,38 @@ sha256sum installer.iso > installer.iso.sha256
 
         checks."${system}" = {
           build-website = website;
+          spontaneity-website-test = pkgs.testers.runNixOSTest {
+            name = "spontaneity-website-test";
+            
+            node.specialArgs = { 
+              monorepoSelf = self; 
+              isIntegrationTest = true;
+            };
+
+            nodes."spontaneity" = { lib, ... }: {
+              imports = nixmacs.lib.mkHostModules "spontaneity" ++ [
+                "${nixpkgs}/nixos/modules/misc/nixpkgs/read-only.nix"
+                {
+                  nixpkgs.pkgs = lib.mkVMOverride self.nixosConfigurations.spontaneity.pkgs;
+                  nixpkgs.config = lib.mkForce {};
+                  systemd.services.systemd-networkd-wait-online.enable = lib.mkForce false;
+                  systemd.services.NetworkManager-wait-online.enable = lib.mkForce false;
+                  nixpkgs.overlays = lib.mkForce [];
+                }
+              ];
+              disabledModules = [ 
+                "${nixmacs}/systems/spontaneity/hardware-configuration.nix" 
+              ];
+            };
+
+            testScript = ''
+spontaneity.start()
+spontaneity.wait_for_unit("nginx.service")
+spontaneity.wait_for_open_port(443)
+spontaneity.succeed("systemctl is-active nginx")
+spontaneity.succeed("echo 'smoke'")
+          '';
+          };
         };
 
         packages."${system}" = {

@@ -32,6 +32,7 @@ no information can either; light in this case can be replaced with something els
 once the light reaches the roof from the floor, where this distance is $d$ meters, $\frac{d}{c}$ seconds will have passed for Bob.
 
 #+caption: A very scientifically accurate drawing of the situation
+#+attr_html: :alt Bad drawing of a reference frame with velocity
 #+attr_html: :width 1800 :height 1800
 [[../img/relativity1.webp]]
 

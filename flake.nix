@@ -56,6 +56,8 @@
 
       ntfyFile = affinity.config.monorepo.vars.ntfySecret;
 
+      ntfyHost = "https://${spontaneity.config.monorepo.vars.ntfyUrl}";
+
       topology = nixmacs.topology.x86_64-linux.config.output;
 
       pre-commit-check = git-hooks.lib.${system}.run {
@@ -68,14 +70,15 @@
             description = "Ensure website can build, and tests links";
             stages = [ "pre-merge-commit" ];
             entry = "${pkgs.writeShellScript "website-check" ''
-set -e 
-set -o pipefail 
+set -e
+set -o pipefail
 trap "echo -e '\nHook interrupted by user. Aborting merge!'; exit 1" INT TERM
 
 BRANCH=$(git branch --show-current)
 if [ "$BRANCH" != "main" ]; then
   exit 0
 fi
+
 RESULT_PATH=$(nix build .#website --no-link --print-out-paths)
 if [ -d "$RESULT_PATH" ]; then
   echo "Running lychee link check..."
@@ -85,11 +88,11 @@ if [ -d "$RESULT_PATH" ]; then
     --no-progress \
     "$RESULT_PATH/**/*.html"
 
-    curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "CI checks done!" https://ntfy.ret2pop.net/ci-build
+    curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "CI checks done!" ${ntfyHost}/ci-build
 else
   echo "Website build failed, skipping lychee."
 
-  curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "CI checks failed!" https://ntfy.ret2pop.net/ci-build
+  curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "CI checks failed!" ${ntfyHost}/ci-build
   exit 1
 fi
 ''}";
@@ -185,8 +188,17 @@ mkdir -p $HOME/monorepo
 cp -a . $HOME/monorepo/
 cd $HOME/monorepo
 mkdir -p mindmap/img
+
 rsass style.scss | minify --type=css > style.css
 minify --type=css -o syntax.css syntax.css
+
+# I want to do this so I can generate the CSP policy carefully
+cat style.css syntax.css > combined.css
+
+CSS_HASH=$(openssl dgst -sha256 -binary combined.css | openssl base64)
+cat <<EOF > csp_header.conf
+add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'sha256-$CSS_HASH'; font-src 'self';";
+EOF
 
 cat <<EOF > $TMPDIR/policy.xml
 <policymap>
@@ -296,7 +308,7 @@ ${pre-commit-check.shellHook}
 git config branch.main.mergeoptions "--no-ff"
 alias gprune='git branch --merged | grep -v -E "^\*|main|master|dev" | xargs -r git branch -d'
 alias serve='cd result; python3 -m http.server 10005'
-alias build='nix build .#website && curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "Website build done!" https://ntfy.ret2pop.net/ci-build'
+alias build='nix build .#website && curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "Website build done!" ${ntfyHost}/ci-build'
 '';
           buildInputs = [
             deadnix
@@ -305,6 +317,7 @@ alias build='nix build .#website && curl -H "Priority: max" -u "${internetName}:
             miniserve
             rsass
             imagemagickBig
+            google-lighthouse
           ];
         };
       };

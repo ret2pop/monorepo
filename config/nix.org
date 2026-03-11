@@ -1733,7 +1733,7 @@ to the outside world under a domain.
       '';
           };
           extraConfig = ''
-  include ${monorepoSelf.packages.${pkgs.system}.website}/csp_headers.conf;
+  include ${monorepoSelf.packages.${pkgs.system}.website}/csp_header.conf;
   rewrite ^/graph_view/?(.*)$ https://graph.${config.monorepo.vars.remoteHost}/$1 permanent;
   '';
         };
@@ -2396,6 +2396,7 @@ because they enhance security.
       memoryPercent = 50;
     };
 
+    # Shim for testing
     virtualisation.vmVariant = {
       sops.validateSopsFiles = false;
       disko.devices = lib.mkForce {};
@@ -2424,6 +2425,8 @@ because they enhance security.
       systemd.services.sops-nix = {
         unitConfig.RequiresMountsFor = "/home/preston/.config/sops/age";
       };
+
+      security.acme.defaults.server = lib.mkForce "https://127.0.0.1:14000/dir";
     };
 
     documentation = {

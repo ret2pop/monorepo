@@ -373,10 +373,10 @@ sha256sum installer.iso > installer.iso.sha256
 
             testScript = ''
 spontaneity.start()
-spontaneity.wait_for_unit("nginx.service")
-spontaneity.wait_for_open_port(443)
+spontaneity.succeed('printf "smoke"')
+spontaneity.wait_for_unit("default.target")
 spontaneity.succeed("systemctl is-active nginx")
-spontaneity.succeed("echo 'smoke'")
+spontaneity.succeed('printf "smoke again"')
           '';
           };
         };

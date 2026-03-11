@@ -66,15 +66,28 @@
         src = ./.;
         hooks = {
           deadnix.enable = true;
-          test-spontaneity-vm-with-site = {
+          spontaneity-smoke-test = {
             enable = true;
-            name = "spontaneity-vm";
-            description = "test boot the spontaneity vm to check nginx config. Required test as we inject monorepoSelf variable.";
+            name = "Spontaneity smoke test";
+            description = "tests if nginx is active/if the config works.";
             stages = [ "pre-merge-commit" ];
-            entry = "${pkgs.writeShellScript "website-check" ''
-nix build .#spontaneity
-''}";
+            entry = ''
+set -e
+set -o pipefail
+trap "echo -e '\nHook interrupted by user. Aborting merge!'; exit 1" INT TERM
+
+BRANCH=$(git branch --show-current)
+if [ "$BRANCH" != "main" ]; then
+  exit 0
+fi
+
+set +e
+nix build .#checks.${system}.spontaneity-website-test --no-link
+set -e
+'';
+            pass_filenames = false; 
           };
+
           website-build-check = {
             enable = true;
             name = "website-build";

@@ -60,7 +60,7 @@
 
       topology = nixmacs.topology.x86_64-linux.config.output;
 
-      mkNotification = msg: ''curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "${msg}" ${ntfyHost}/ci-build'';
+      mkNotification = msg: ''curl -H "Priority: 4" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "${msg}" ${ntfyHost}/ci-build'';
 
       pre-commit-check = git-hooks.lib.${system}.run {
         src = ./.;

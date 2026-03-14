@@ -29,7 +29,7 @@
       pkgs = import nixpkgs { inherit system; };
 
       emacsPackages = import  "${nixmacs}/modules/home/emacs-packages.nix";
-      ci-emacs = pkgs.emacs-nox.pkgs.withPackages emacsPackages;
+      ci-emacs = pkgs.emacs-gtk.pkgs.withPackages emacsPackages;
       specialArgs = { monorepoSelf = self; };
 
       installer = nixmacs.nixosConfigurations.installer.extendModules {
@@ -131,10 +131,10 @@ if [ $BUILD_STATUS -eq 0 ] && [ -d "$RESULT_PATH" ]; then
       exit 1
     fi
 
-    INJECT_HASH="$(python3 tests/test-csp-hash.py "$RESULT_PATH/index.html")"
-    CSS_HASH="$(openssl dgst -sha256 -binary "$RESULT_PATH/combined.css" | openssl base64)"
+    INJECT_HASH="$(python3 tests/test-csp-hash.py "$RESULT_PATH/blog/index.html")"
+    HEADER_HASH="$(cat "$RESULT_PATH/csp_header.conf" | grep -oP "sha256-\K[^']+")"
 
-    if [ "$INJECT_HASH" != "$CSS_HASH" ]; then
+    if [ "$INJECT_HASH" != "$HEADER_HASH" ]; then
       echo "Security headers test failed!"
       ${mkNotification "CI checks failed: CSP hash mismatch!"}
       exit 1
@@ -217,6 +217,8 @@ fi
           pkgs.minify
           pkgs.woff2
           pkgs.openssl
+          pkgs.xvfb-run
+          pkgs.python3
 
           (pkgs.texlive.combine {
             inherit (pkgs.texlive)
@@ -242,15 +244,6 @@ cd $HOME/monorepo
 mkdir -p mindmap/img
 
 rsass style.scss | minify --type=css > style.css
-minify --type=css -o syntax.css syntax.css
-
-# I want to do this so I can generate the CSP policy carefully
-cat style.css syntax.css > combined.css
-
-CSS_HASH=$(openssl dgst -sha256 -binary combined.css | openssl base64)
-cat <<EOF > csp_header.conf
-add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'sha256-$CSS_HASH'; font-src 'self';";
-EOF
 
 cat <<EOF > $TMPDIR/policy.xml
 <policymap>
@@ -261,8 +254,17 @@ export MAGICK_CONFIGURE_PATH=$TMPDIR
 export FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf
 export FONTCONFIG_PATH=${pkgs.fontconfig.out}/etc/fonts/
 export XDG_CACHE_HOME=$TMPDIR/.cache
+printf "hello?\n"
 
-emacs -q --batch \
+xvfb-run -a emacs -q \
+  --eval '(setq inhibit-startup-screen t)' \
+  --eval '(setq inhibit-startup-message t)' \
+  --eval '(setq enable-local-variables :all)' \
+  --eval '(defalias (quote yes-or-no-p) (lambda (&rest args) t))' \
+  --eval '(defalias (quote y-or-n-p) (lambda (&rest args) t))' \
+  --eval '(setq message-log-max t)' \
+  --eval '(setq standard-output (quote external-debugging-output))' \
+  --eval '(princ "STEP 0: tf\n" (quote external-debugging-output))' \
   --eval '(setq noninteractive t)' \
   --eval '(setq system-email "lol@troll.com")' \
   --eval '(setq system-username "ci-runner")' \
@@ -289,12 +291,14 @@ emacs -q --batch \
   --eval '(setq gc-cons-threshold 100000000)' \
   --eval '(setq vc-handled-backends nil)' \
   --eval '(setq make-backup-files nil auto-save-default nil create-lockfiles nil)' \
+  --eval '(princ "STEP 1: init.el?\n" (quote external-debugging-output))' \
   -l ${nixmacs}/init.el \
-  --eval '(setq custom-safe-themes t)' \
+  --eval '(princ "STEP 2: init.el.\n" (quote external-debugging-output))' \
   --eval '(setq org-roam-directory (expand-file-name "mindmap" (expand-file-name "~/monorepo")))' \
   --eval '(setq org-id-track-globally t)' \
   --eval '(org-roam-db-sync)' \
   --eval '(setq term-file-prefix nil)' \
+  --eval '(princ "STEP 3: after org roam\n" (quote external-debugging-output))' \
   --eval '(force-mode-line-update)' \
   --eval '(setq org-html-link-use-abs-url nil)' \
   --eval '(setq default-directory (expand-file-name "~/monorepo"))' \
@@ -303,8 +307,15 @@ emacs -q --batch \
   --eval '(require (quote htmlize))' \
   --eval '(require (quote nix-mode))' \
   --eval '(setq org-html-htmlize-output-type (quote css))' \
+  --eval '(princ "STEP 4: before publish-all\n" (quote external-debugging-output))' \
   --eval '(org-publish-all t)' \
-  --eval '(org-publish-all nil)' || (echo "FAIL:" && cat /build/*.log && exit 1)
+  --eval '(org-publish-all nil)' \
+  --eval '(kill-emacs 0)' || (echo "FAIL:" && cat /build/*.log && exit 1)
+
+CSS_HASH="$(python3 $HOME/monorepo/tests/test-csp-hash.py $HOME/website_html/index.html)"
+cat <<EOF > $HOME/website_html/csp_header.conf
+add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'sha256-$CSS_HASH'; font-src 'self';";
+EOF
 
 echo "Setting up Graph View..."
 ${publish-org-roam-ui.packages.${system}.default}/bin/build-org-roam-graph \

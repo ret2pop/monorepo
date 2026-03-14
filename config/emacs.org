@@ -1,12 +1,140 @@
 #+title: Emacs Configuration
 #+author: Preston Pan
 #+description: my personal emacs configuration for NixOS
+#+PROPERTY: header-args :tangle yes :comments link
 
 * Introduction
 This is my Vanilla Emacs configuration, made to work with my NixOS configuration. For that
 reason, you will not see :ensure t inside any use-package declaration, for emacs packages
 are all compiled natively and reproducibly on the NixOS side. This configuration uses the
 emacs-lisp language only to configure variables for said packages, for the most part.
+* Initialization
+This must be the very first line in the tangled file to enable lexical binding.
+#+begin_src emacs-lisp :tangle ../nix/init.el
+;; -*- lexical-binding: t; -*-
+#+end_src
+** State
+This is my imperative state. Note that a lot of the state is just in the form of various macros that I use in order to write in declarative
+syntax elsewhere. Generally, however, these are all unordered and not dependent on each other loading first.
+#+begin_src emacs-lisp :tangle ../nix/init.el
+;; pure, well okay it prints but whatever
+(defmacro try (expr)
+  `(condition-case err
+       ,expr
+     (error
+      (princ (format "BLOCK FAILED: %s\n" (error-message-string err))))))
+
+;; pure
+(defmacro declare-irc-server (name server port)
+  `(defun ,name ()
+     (interactive)
+     (erc-tls :server ,server
+              :port ,port)))
+
+;; pure, well imperative when evaluated but they're all just bindings that don't depend on each other
+(defmacro create-irc-servers (&rest server-list)
+  `(progn
+     ,@(mapcar (lambda (n) `(declare-irc-server ,@n)) server-list)))
+
+;; pure
+(defun org-html-latex-environment-pandoc-fix (orig-fun latex-environment contents info)
+  "Force `ox-html' to use the convert command for LaTeX environments when set to 'html."
+  (let ((processing-type (plist-get info :with-latex)))
+    (if (eq processing-type 'html)
+        (let* ((latex-frag (org-remove-indentation (org-element-property :value latex-environment)))
+               (converted (org-format-latex-as-html latex-frag)))
+          (format "<div class=\"equation-container\">\n<span class=\"equation\">\n%s\n</span>\n</div>" converted))
+      (funcall orig-fun latex-environment contents info))))
+
+;; imperative
+(defun insert-urandom-password (&optional length)
+  (interactive "P")
+  (let ((length (or length 32))
+        (chars "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[]{};:,.<>?"))
+    (insert
+     (with-temp-buffer
+       (call-process "head" nil t nil "-c" (number-to-string length) "/dev/urandom")
+       (let ((bytes (buffer-string)))
+         (mapconcat (lambda (c)
+                      (string (elt chars (mod (string-to-char (char-to-string c)) (length chars)))))
+                    bytes ""))))))
+
+;; imperative
+(defun create-htmlize-css ()
+  (org-html-htmlize-generate-css)
+  (with-current-buffer "*html*"
+    (buffer-string)))
+
+;; imperative
+(defun minify-css (css)
+  "A functional wrapper around the external 'minify' binary."
+  (with-temp-buffer
+    (insert css)
+    (call-process-region (point-min) (point-max) "minify" t t nil "--type=css")
+    (buffer-string)))
+
+;; imperative
+(defun emacs-config ()
+  (unless noninteractive (server-start))
+
+  ;; start with sane defaults
+  (pixel-scroll-precision-mode 1)
+  (display-battery-mode 1)
+  (display-time-mode 1)
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
+  (tool-bar-mode -1)
+
+  ;; load theme, fonts, and transparency. Prettify symbols.
+  (set-face-attribute 'default nil :font "Iosevka Nerd Font" :height 130)
+  (set-face-attribute 'variable-pitch nil :font "Lora" :height 1.1)
+
+  (when (display-graphic-p)
+    (set-fontset-font t 'han (font-spec :family "Noto Sans CJK SC"))
+    (set-fontset-font t 'kana (font-spec :family "Noto Sans CJK JP"))
+    (set-fontset-font t 'symbol (font-spec :family "Noto Color Emoji"))
+    (set-fontset-font t 'symbol (font-spec :family "Symbols Nerd Font Mono") nil 'append))
+  (set-frame-parameter nil 'alpha-background 70))
+
+;; imperative
+(defun evil-config ()
+  (evil-mode 1)
+  (evil-set-undo-system 'undo-redo)
+  (evil-set-initial-state 'pdf-view-mode 'normal))
+
+;; imperative
+(defun doom-themes-config ()
+  (load-theme 'doom-rouge t)
+  (doom-themes-visual-bell-config)
+  (doom-themes-treemacs-config)
+  (doom-themes-org-config))
+
+;; imperative
+(defun org-roam-config ()
+  (org-roam-db-autosync-mode)
+  (org-roam-update-org-id-locations))
+
+;; same as above
+(defun org-electric-pair ()
+  (setq-local electric-pair-inhibit-predicate
+              (lambda (c) (if (eq c ?<) t (electric-pair-default-inhibit c)))))
+
+;; same as above
+(defun org-yasnippet-latex () (yas-activate-extra-mode 'latex-mode))
+
+;; same as above
+(defun remove-annoying-pairing () (remove-hook 'post-self-insert-hook #'yaml-electric-bar-and-angle t))
+
+#+end_src
+** Random Packages
+These are packages that I require in order to write some scripts in emacs-lisp.
+#+begin_src emacs-lisp :tangle ../nix/init.el
+(use-package tex-site)
+(use-package subr-x)
+(use-package dash)
+(use-package s)
+(use-package f)
+#+end_src
 ** Emacs
 These are all the options that need to be set at the start of the program. Because use-package
 is largely declarative, the order of many of these options should not matter. However, there
@@ -15,20 +143,27 @@ configuration as they are also defined using the use-package macros. Some of the
 have documentation strings attached, so it is easy to follow what the individual options do.
 Emacs is self documenting, after all!
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package emacs
+(use-package emacs
   :custom
   ;; global defaults
   (indent-tabs-mode nil "no real tabs, only spaces")
   (tab-width 2 "tab show as 2 spaces")
   (standard-indent 2 "base indentation")
+  (custom-safe-themes t "I already manage my themes with nix")
+  (custom-file null-device "Don't save custom configs")
 
   ;; Startup errors
   (warning-minimum-level :emergency "Supress emacs warnings")
   (confirm-kill-processes nil "Don't ask to quit")
   (debug-ignored-errors (cons 'remote-file-error debug-ignored-errors) "Remove annoying error from debug errors")
-  (browse-url-generic-program "librewolf")
-  (browse-url-secondary-browser-function 'browse-url-generic)
-  (browse-url-browser-function 'browse-url-generic)
+  (browse-url-generic-program "librewolf" "set browser to librewolf")
+  (browse-url-secondary-browser-function 'browse-url-generic "set browser")
+  (browse-url-browser-function 'browse-url-generic "set browser")
+  (default-frame-alist '((alpha-background . 70)
+                         (vertical-scroll-bars)
+                         (internal-border-width . 24)
+                         (left-fringe . 8)
+                         (right-fringe . 8)))
 
   ;; Mouse wheel
   (mouse-wheel-scroll-amount '(1 ((shift) . 1)) "Nicer scrolling")
@@ -38,88 +173,23 @@ Emacs is self documenting, after all!
   (scroll-step 1 "Scroll one line at a time")
   (debug-on-error nil "Don't make the annoying popups")
   (display-time-24hr-format t "Use 24 hour format to read the time")
-      (display-line-numbers-type 'relative "Relative line numbers for easy vim jumping")
-      (use-short-answers t "Use y instead of yes")
-      (make-backup-files nil "Don't make backups")
-      (display-fill-column-indicator-column 150 "Draw a line at 100 characters")
-      (fill-column 150)
-      (line-spacing 2 "Default line spacing")
-      (c-doc-comment-style '((c-mode . doxygen)
-    			 (c++-mode . doxygen)))
+  (display-line-numbers-type 'relative "Relative line numbers for easy vim jumping")
+  (use-short-answers t "Use y instead of yes")
+  (make-backup-files nil "Don't make backups")
+  (display-fill-column-indicator-column 150 "Draw a line at 100 characters")
+  (fill-column 150)
+  (line-spacing 2 "Default line spacing")
+  (c-doc-comment-style '((c-mode . doxygen)
+                         (c++-mode . doxygen)))
 
-      :hook ((text-mode . visual-line-mode)
-    	 (prog-mode . display-line-numbers-mode)
-    	 (prog-mode . display-fill-column-indicator-mode)
-    	 (org-mode . auto-fill-mode)
-    	 (org-mode . display-fill-column-indicator-mode)
-    	 (org-mode . display-line-numbers-mode)
-    	 (org-mode . (lambda ()
-    		       (setq prettify-symbols-alist
-    			     '(("#+begin_src" . ?)
-    			       ("#+BEGIN_SRC" . ?)
-    			       ("#+end_src" . ?)
-    			       ("#+END_SRC" . ?)
-    			       ("#+begin_example" . ?)
-    			       ("#+BEGIN_EXAMPLE" . ?)
-    			       ("#+end_example" . ?)
-    			       ("#+END_EXAMPLE" . ?)
-    			       ("#+header:" . ?)
-    			       ("#+HEADER:" . ?)
-    			       ("#+name:" . ?﮸)
-    			       ("#+NAME:" . ?﮸)
-    			       ("#+results:" . ?)
-    			       ("#+RESULTS:" . ?)
-    			       ("#+call:" . ?)
-    			       ("#+CALL:" . ?)
-    			       (":PROPERTIES:" . ?)
-    			       (":properties:" . ?)
-    			       ("lambda" . ?λ)
-    			       ("->"     . ?→)
-    			       ("map"    . ?↦)
-    			       ("/="     . ?≠)
-    			       ("!="     . ?≠)
-    			       ("=="     . ?≡)
-    			       ("<="     . ?≤)
-    			       (">="     . ?≥)
-    			       ("&&"     . ?∧)
-    			       ("||"     . ?∨)
-    			       ("sqrt"   . ?√)
-    			       ("..."    . ?…)))
-    		       (prettify-symbols-mode)))
-    	 (prog-mode .
-    		    (lambda ()
-    		      (setq prettify-symbols-alist
-    			    '(("lambda" . ?λ)
-    			      ("->"     . ?→)
-    			      ("map"    . ?↦)
-    			      ("/="     . ?≠)
-    			      ("!="     . ?≠)
-    			      ("=="     . ?≡)
-    			      ("<="     . ?≤)
-    			      (">="     . ?≥)
-    			      ("&&"     . ?∧)
-    			      ("||"     . ?∨)
-    			      ("sqrt"   . ?√)
-    			      ("..."    . ?…)))
-    		      (prettify-symbols-mode))))
-      :config
-      (require 'tex-site)
-      (require 'subr-x)
-      (server-start)
 
-      ;; start with sane defaults
-      (pixel-scroll-precision-mode 1)
-      (display-battery-mode 1)
-      (display-time-mode 1)
-      (menu-bar-mode -1)
-      (scroll-bar-mode -1)
-      (tool-bar-mode -1)
-
-      ;; load theme, fonts, and transparency. Prettify symbols.
-      (global-prettify-symbols-mode 1)
-      (set-face-attribute 'default nil :font "Iosevka Nerd Font" :height 130)
-      (set-frame-parameter nil 'alpha-background 70)
-      (add-to-list 'default-frame-alist '(alpha-background . 70)))
+  :hook ((text-mode . visual-line-mode)
+         (prog-mode . display-line-numbers-mode)
+         (prog-mode . display-fill-column-indicator-mode)
+         (org-mode . auto-fill-mode)
+         (org-mode . display-fill-column-indicator-mode)
+         (org-mode . display-line-numbers-mode))
+  :config (emacs-config))
 #+end_src
 As you can see, the config (and sometimes the init section) of most of these use-package blocks
 contain most of the imperative commands. In fact, most of the configurations are completely
@@ -134,263 +204,306 @@ of course Emacs was not designed to be fully imperative.
 ** Org Mode
 This is my org mode configuration, which also configures latex.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-    (use-package org
-      :hook
-      ((org-mode-hook . (lambda () (remove-hook 'post-self-insert-hook #'yaml-electric-bar-and-angle t))))
-      :custom
-      (org-confirm-babel-evaluate nil "Don't ask to evaluate code block")
-      (org-export-with-broken-links t "publish website even with broken links")
-      (org-src-fontify-natively t "Colors!")
-      (org-latex-preview-image-directory (expand-file-name "~/.cache/ltximg/") "don't use weird cache location")
-      (org-preview-latex-image-directory (expand-file-name "~/.cache/ltximg/") "don't use weird cache location")
-      (TeX-PDF-mode t)
-      (org-latex-compiler "xelatex" "Use latex as default")
-      (org-latex-pdf-process '("xelatex -interaction=nonstopmode -output-directory=%o %f") "set xelatex as default")
-      (TeX-engine 'xetex "set xelatex as default engine")
-      (preview-default-option-list '("displaymath" "textmath" "graphics") "preview latex")
-      (preview-image-type 'png "Use PNGs")
-  ;;    (org-format-latex-options (plist-put org-format-latex-options :scale 1.5) "space latex better")
-      (org-return-follows-link t "be able to follow links without mouse")
-      (org-habit-preceding-days 7 "See org habit entries")
-      (org-habit-following-days 35 "See org habit entries")
-      (org-habit-show-habits t "See org habit entries")
-      (org-habit-show-habits-only-for-today nil "See org habit entries")
-      (org-habit-show-all-today t "Show org habit graph")
-      (org-startup-indented t "Indent the headings")
-      (org-image-actual-width '(300) "Cap width") 
-      (org-startup-with-latex-preview t "see latex previews on opening file")
-      (org-startup-with-inline-images t "See images on opening file")
-      (org-hide-emphasis-markers t "prettify org mode")
-      (org-use-sub-superscripts "{}" "Only display superscripts and subscripts when enclosed in {}")
-      (org-pretty-entities t "prettify org mode")
-      (org-agenda-files (list "~/monorepo/agenda.org" "~/org/notes.org" "~/org/agenda.org") "set default org files")
-      (org-default-notes-file (concat org-directory "/notes.org") "Notes file")
-      (org-html-with-latex 'html "let my html handler handle latex")
-      (org-html-mathjax-options nil "disable mathjax, use MathML")
-      (org-html-mathjax-template "" "disable mathjax, use MathML")
-      (org-html-head-include-default-style nil "use my own css for everything")
-      (org-html-head-include-scripts nil "use my own js for everything")
-      (org-html-divs '((preamble "header" "preamble")
-                        (content "main" "content")
-                        (postamble "footer" "postamble")) "semantic html exports")
-      (org-html-head-extra (concat "<meta name=\"theme-color\" content=\"#ffffff\">\n<link rel=\"preload\" href=\"/fonts/Inconsolata-Medium.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n<meta name=\"theme-color\" content=\"#ffffff\">\n<link rel=\"preload\" href=\"/fonts/Lora-Medium.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n<link rel=\"preload\" href=\"/fonts/CormorantGaramond-Bold.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n<link rel=\"preload\" href=\"/fonts/CormorantGaramond-Medium.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n<link rel=\"manifest\" href=\"/site.webmanifest\">\n<link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"/favicon-16x16.png\">\n<link rel=\"mask-icon\" href=\"/safari-pinned-tab.svg\" color=\"#5bbad5\">\n<link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"/favicon-32x32.png\">\n<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/apple-touch-icon.png\"><meta name=\"msapplication-TileColor\" content=\"#da532c\">\n"
-                                   "<style>"
-                                   (with-temp-buffer (insert-file-contents-literally "~/monorepo/combined.css") (buffer-substring-no-properties (point-min) (point-max)))
-                                   "</style>") "add all these different headers for performance and compliance")
-      (org-latex-to-html-convert-command 
-        "printf '%%s' %i | pandoc -f latex -t html --mathml | tr -d '\\n' | sed -e 's/^<p>//' -e 's/<\\/p>$//'" "latex to MathML with special character handling")
-      (org-html-viewport '((width "device-width") 
-                           (initial-scale "1.0") 
-                           (minimum-scale "1.0")) "Prevent zooming out past default size")
-      (org-publish-project-alist
-       '(("website-org"
-          :base-directory "~/monorepo"
-          :base-extension "org"
-          :exclude "nix/README\\.org"
-          :publishing-directory "~/website_html"
-          :with-author t
-          :with-date t
-          :recursive t
-          :publishing-function org-html-publish-to-html
-          :headline-levels 4
-          :html-preamble t
-          :html-preamble-format (("en" "<p class=\"preamble\"><a href=\"/index.html\">home</a> | <a href=\"./index.html\">section main page</a></p><hr>")))
-         ("website-static"
-          :base-directory "~/monorepo"
-          :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|ico\\|asc\\|pub\\|webmanifest\\|xml\\|svg\\|txt\\|webp\\|conf"
-          :publishing-directory "~/website_html/"
-          :recursive t
-          :publishing-function org-publish-attachment)
-         ("website" :auto-sitemap t :components ("website-org" "website-static"))) "functions to publish website")
-      (org-html-postamble (concat "Copyright © 2024 " system-fullname) "set copyright notice on bottom of site")
-      :config
-      (require 'ox-publish)
-      (require 'org-tempo)
-      (require 'org-habit)
-      (require 'ob-latex)
+(use-package org
+  :after (f s dash nix-mode)
+  :hook
+  ((org-mode-hook . remove-annoying-pairing))
+  :custom
+  ;; Fix terrible indentation issues
+  (org-edit-src-content-indentation 0)
+  (org-src-tab-acts-natively t)
+  (org-src-preserve-indentation t)
 
-      (defun my-org-html-latex-environment-pandoc-fix (orig-fun latex-environment contents info)
-        "Force `ox-html' to use the convert command for LaTeX environments when set to 'html."
-        (let ((processing-type (plist-get info :with-latex)))
-          (if (eq processing-type 'html)
-              (let* ((latex-frag (org-remove-indentation
-                                  (org-element-property :value latex-environment)))
-                     (converted (org-format-latex-as-html latex-frag)))
-                (format "<div class=\"equation-container\">\n<span class=\"equation\">\n%s\n</span>\n</div>"
-                        converted))
-            (funcall orig-fun latex-environment contents info))))
+  (TeX-PDF-mode t)
+  (org-confirm-babel-evaluate nil "Don't ask to evaluate code block")
+  (org-export-with-broken-links t "publish website even with broken links")
+  (org-src-fontify-natively t "Colors!")
 
-      (advice-add 'org-html-latex-environment :around #'my-org-html-latex-environment-pandoc-fix)
+  ;; org-latex
+  (org-preview-latex-image-directory (expand-file-name "~/.cache/ltximg/") "don't use weird cache location")
+  (org-latex-preview-ltxpng-directory (expand-file-name "~/.cache/ltximg/") "don't use weird cache location")
+  (org-latex-to-html-convert-command "printf '%%s' %i | pandoc -f latex -t html --mathml | tr -d '\\n' | sed -e 's/^<p>//' -e 's/<\\/p>$//'" "latex to MathML with special character handling")
+  (org-latex-to-mathml-convert-command "printf '%%s' %i | pandoc -f latex -t html --mathml | tr -d '\\n' | sed -e 's/^<p>//' -e 's/<\\/p>$//'" "latex to MathML with special character handling")
 
-      (org-babel-do-load-languages 'org-babel-load-languages
-                                   '((shell . t)
-                                     (python . t)
-                                     (nix . t)
-                                     (latex . t))))
+  (TeX-engine 'xetex "set xelatex as default engine")
+  (preview-default-option-list '("displaymath" "textmath" "graphics") "preview latex")
+  (preview-image-type 'png "Use PNGs")
+  (org-format-latex-options
+   '(:foreground default
+                 :background default
+                 :scale 2
+                 :html-foreground "Black"
+                 :html-background "Transparent"
+                 :html-scale 1.5
+                 :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")) "space latex better")
+  (org-return-follows-link t "be able to follow links without mouse")
+  (org-startup-indented t "Indent the headings")
+  (org-image-actual-width '(300) "Cap width") 
+  (org-startup-with-latex-preview t "see latex previews on opening file")
+  (org-startup-with-inline-images t "See images on opening file")
+  (org-hide-emphasis-markers t "prettify org mode")
+  (org-use-sub-superscripts "{}" "Only display superscripts and subscripts when enclosed in {}")
+  (org-pretty-entities t "prettify org mode")
+  (org-agenda-files (list "~/monorepo/agenda.org" "~/org/notes.org" "~/org/agenda.org") "set default org files")
+  (org-default-notes-file (concat org-directory "/notes.org") "Notes file")
+
+  ;; ricing
+  (org-auto-align-tags nil)
+  (org-tags-column 0)
+  (org-catch-invisible-edits 'show-and-error)
+  (org-special-ctrl-a/e t)
+  (org-insert-heading-respect-content t)
+  (org-hide-emphasis-markers t)
+  (org-pretty-entities t)
+  (org-agenda-tags-column 0)
+  (org-ellipsis "…")
+  :config
+  (org-babel-do-load-languages 'org-babel-load-languages
+                               '((shell . t)
+                                 (python . t)
+                                 (nix . t)
+                                 (latex . t))))
+
+(use-package org-tempo
+  :after org)
+
+(use-package org-habit
+  :after org
+  :custom
+  (org-habit-preceding-days 7 "See org habit entries")
+  (org-habit-following-days 35 "See org habit entries")
+  (org-habit-show-habits t "See org habit entries")
+  (org-habit-show-habits-only-for-today nil "See org habit entries")
+  (org-habit-show-all-today t "Show org habit graph"))
+
+(use-package htmlize
+  :after (doom-themes catppuccin-theme))
+
+(use-package ox-latex
+  :after (org)
+  :custom
+  (org-latex-compiler "xelatex" "Use latex as default")
+  (org-latex-pdf-process '("xelatex -interaction=nonstopmode -output-directory=%o %f") "set xelatex as default"))
+
+(use-package ox-html
+  :after (org htmlize)
+  :custom
+  (org-html-htmlize-output-type 'css "allow styling from CSS file")
+  (org-html-with-latex 'html "let my html handler handle latex")
+  (org-html-mathjax-options nil "disable mathjax, use MathML")
+  (org-html-mathjax-template "" "disable mathjax, use MathML")
+  (org-html-head-include-default-style nil "use my own css for everything")
+  (org-html-head-include-scripts nil "use my own js for everything")
+  (org-html-postamble (concat "Copyright © 2024 " system-fullname) "set copyright notice on bottom of site")
+  (org-html-divs '((preamble "header" "preamble")
+                   (content "main" "content")
+                   (postamble "footer" "postamble")) "semantic html exports")
+  (org-html-viewport '((width "device-width")
+                       (initial-scale "1.0")
+                       (minimum-scale "1.0")) "Prevent zooming out past default size")
+  :config (advice-add 'org-html-latex-environment :around #'org-html-latex-environment-pandoc-fix))
+
+(use-package ox-publish
+  :after (org f s dash ox-html)
+  :custom
+  (org-publish-project-alist
+   `(("website-org"
+      :base-directory "~/monorepo"
+      :base-extension "org"
+      :exclude "nix/README\\.org"
+      :publishing-directory "~/website_html"
+      :with-author t
+      :with-date t
+      :recursive t
+      :publishing-function org-html-publish-to-html
+      :headline-levels 4
+      :html-head ,(concat "<meta name=\"theme-color\" content=\"#ffffff\">\n<link rel=\"preload\" href=\"/fonts/Inconsolata-Medium.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n<meta name=\"theme-color\" content=\"#ffffff\">\n<link rel=\"preload\" href=\"/fonts/Lora-Medium.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n<link rel=\"preload\" href=\"/fonts/CormorantGaramond-Bold.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n<link rel=\"preload\" href=\"/fonts/CormorantGaramond-Medium.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n<link rel=\"manifest\" href=\"/site.webmanifest\">\n<link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"/favicon-16x16.png\">\n<link rel=\"mask-icon\" href=\"/safari-pinned-tab.svg\" color=\"#5bbad5\">\n<link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"/favicon-32x32.png\">\n<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/apple-touch-icon.png\"><meta name=\"msapplication-TileColor\" content=\"#da532c\">\n"
+                          "<style>"
+                          (->> (create-htmlize-css)
+                               (s-replace-regexp "<style[^>]*>" "")
+                               (s-replace "</style>" "")
+                               (s-trim)
+                               (minify-css))
+                          (f-read-text "~/monorepo/style.css" 'utf-8)
+                          "</style>")
+      :html-preamble t
+      :html-preamble-format (("en" "<p class=\"preamble\"><a href=\"/index.html\">home</a> | <a href=\"./index.html\">section main page</a></p><hr>")))
+     ("website-static"
+      :base-directory "~/monorepo"
+      :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|ico\\|asc\\|pub\\|webmanifest\\|xml\\|svg\\|txt\\|webp\\|conf"
+      :publishing-directory "~/website_html/"
+      :recursive t
+      :publishing-function org-publish-attachment)
+     ("website" :auto-sitemap t :components ("website-org" "website-static"))) "functions to publish website"))
 #+end_src
 As you can see, I only have one real entry in config here (I don't count requires even though
 they have to be on the top)
-* Unicode
-I want emacs to have unicode fonts.
+* All The Icons
+I already pull in all-the-icons, but we need the emacs package to load it correctly.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package unicode-fonts
-    :init (unicode-fonts-setup))
+(use-package all-the-icons
+  :if (display-graphic-p))
+#+end_src
+* Variable Pitch Font
+I use this in org-mode so that I can read/write with variable pitched font. Feels like I'm reading a blog article or something.
+#+begin_src emacs-lisp :tangle ../nix/init.el
+(use-package mixed-pitch
+  :hook ((text-mode . mixed-pitch-mode)
+         (org-mode . mixed-pitch-mode))
+  :custom (mixed-pitch-set-height t)
+  :config
+  (dolist (face '(org-latex-and-related
+                  org-priority
+                  org-block
+                  org-table
+                  org-formula))
+    (add-to-list 'mixed-pitch-fixed-pitch-faces face)))
+#+end_src
+* Writeroom
+#+begin_src emacs-lisp :tangle ../nix/init.el
+(use-package writeroom-mode
+  :custom (writeroom-width 150))
+#+end_src
+* Indent Bars
+I want to show indent lines in emacs so that I can line things up.
+#+begin_src emacs-lisp :tangle ../nix/init.el
+(use-package indent-bars
+  :after (nix-mode)
+  :hook ((python-mode yaml-mode nix-mode) . indent-bars-mode))
 #+end_src
 * Autopair
 Use electric-pair to automatically complete pairs of things. We need to change
 what electric-pair does based on the mode.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package electric-pair
-    :hook ((prog-mode . electric-pair-mode)
-           (org-mode . (lambda () (setq-local electric-pair-inhibit-predicate (lambda (c) (if (eq c ?<) t (electric-pair-default-inhibit c))))))))
+(use-package electric-pair
+  :hook ((prog-mode . electric-pair-mode)
+         (org-mode . org-electric-pair)))
 #+end_src
 * Search and Replace
 wgrep is a program that allows you to do more intelligent search and replace.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package wgrep
-    :after grep)
-#+end_src
-* Passwords
-This is a function that inserts a random password into the buffer. I use this to manage sops-nix.
-#+begin_src emacs-lisp :tangle ../nix/init.el
-  (defun insert-urandom-password (&optional length)
-    (interactive "P")
-    (let ((length (or length 32))
-          (chars "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[]{};:,.<>?"))
-      (insert
-       (with-temp-buffer
-         (call-process "head" nil t nil "-c" (number-to-string length) "/dev/urandom")
-         (let ((bytes (buffer-string)))
-           (mapconcat (lambda (c)
-                        (string (elt chars (mod (string-to-char (char-to-string c)) (length chars)))))
-                      bytes ""))))))
+(use-package wgrep
+  :after grep)
 #+end_src
 * Fragtog
 This package is used to generate previews automatically when your cursor hovers over a latex
 snippet.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package org-fragtog :hook (org-mode . org-fragtog-mode))
+(use-package org-fragtog :hook (org-mode . org-fragtog-mode))
 #+end_src
 * Snippets
 Yasnippets are useful for macros that automatically complete to an arbitrary form.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package yasnippet
-    :config
-    (add-to-list 'yas-snippet-dirs "~/monorepo/yasnippet/")
-    (yas-global-mode 1)
-    :hook (org-mode . (lambda () (yas-minor-mode) (yas-activate-extra-mode 'latex-mode))))
+(use-package yasnippet
+  :demand t
+  :hook (org-mode . org-yasnippet-latex)
+  :custom (yas-snippet-dirs '("~/monorepo/yasnippet/" "~/.emacs.d/snippets"))
+  :config (yas-global-mode 1))
+
+(use-package yasnippet-snippets
+  :after yasnippet)
 #+end_src
 * Completion
 Company-mode! We need this to do autocomplete stuff.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package company
-    :config
-    '(add-to-list 'company-backends '(company-ispell company-capf company-yasnippet company-files))
-    :hook ((after-init . global-company-mode)))
+(use-package company
+  :custom (company-backends '(company-ispell company-capf company-yasnippet company-files) "Set company backends")
+  :hook ((after-init . global-company-mode)))
+(use-package company-box
+  :hook (company-mode . company-box-mode))
 #+end_src
 * Spelling
 This loads a dictionary so that I can save certain words to be not misspelled and also have
 this spellcheck during org mode.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package ispell
-    :custom
-    (ispell-program-name "aspell" "use aspell")
-    (ispell-silently-savep t "Save changes to dict without confirmation")
-    (ispell-dictionary "en" "Use english dictionary")
-    (ispell-alternate-dictionary "~/.local/share/dict" "dict location"))
+(unless noninteractive (use-package ispell
+                         :custom
+                         (ispell-program-name "aspell" "use aspell")
+                         (ispell-local-dictionary-alist
+                          '(("en" "[[:alpha:]]" "[^[:alpha:]]" "[']" t ("-d" "en") nil utf-8)))
+                         (ispell-dictionary "en" "Use english dictionary")
+                         (ispell-extra-args my-ispell-args "Force aspell to use normal mode instead of nroff")
+                         (ispell-silently-savep t "Save changes to dict without confirmation")
+                         (ispell-alternate-dictionary my-ispell-dictionary "dict location")))
 
-  (use-package flyspell
-    :hook (text-mode . flyspell-mode))
+(unless noninteractive (use-package flyspell
+                         :hook (text-mode . flyspell-mode)))
 #+end_src
 * Packages
 First, some small configurations and some evil-mode initilaization because I like vim keybindings:
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package evil
-    :custom
-    (evil-want-keybinding nil "Don't load a whole bunch of default keybindings")
-    :config
-    (evil-mode 1)
-    (evil-set-undo-system 'undo-redo)
-    (evil-set-initial-state 'pdf-view-mode 'normal)
-    ;; bind / and ? safely after evil is loaded
-    (define-key evil-normal-state-map (kbd "/") 'swiper)
-    (define-key evil-normal-state-map (kbd "?")
-      (lambda () (interactive) (swiper "--reverse"))))
+(use-package evil
+  :demand t
+  :custom (evil-want-keybinding nil "Don't load a whole bunch of default keybindings")
+  :bind
+  (:map evil-normal-state-map
+        ("/" . swiper)
+        ("?" . (lambda () (interactive) (swiper "--reverse"))))
+  :config (evil-config))
 
-  (use-package evil-collection
-    :after (evil)
-    :config
-    (with-eval-after-load 'evil-maps
-      (define-key evil-motion-state-map (kbd "SPC") nil)
-      (define-key evil-motion-state-map (kbd "RET") nil)
-      (define-key evil-motion-state-map (kbd "TAB") nil))
-    (evil-collection-init))
+(use-package evil-collection
+  :demand t
+  :after (evil)
+  :bind (:map evil-motion-state-map
+              ("SPC" . nil)
+              ("RET" . nil)
+              ("TAB" . nil))
+  :config (evil-collection-init))
 
-  (use-package evil-commentary
-    :after (evil)
-    :config
-    (evil-commentary-mode))
+(use-package evil-commentary
+  :after (evil)
+  :config (evil-commentary-mode))
 
-  (use-package evil-org
-    :after (evil org)
-    :hook (org-mode . (lambda () evil-org-mode))
-    :config
-    (require 'evil-org-agenda)
-    (evil-org-agenda-set-keys))
+(use-package evil-org
+  :after (evil org)
+  :hook (org-mode . evil-org-mode))
 
-  (use-package which-key
-    :config
-    (which-key-mode))
+(use-package evil-org-agenda
+  :after (evil-org)
+  :config (evil-org-agenda-set-keys))
 
-  (use-package page-break-lines
-    :init
-    (page-break-lines-mode))
+(use-package which-key
+  :config (which-key-mode))
+
+(use-package page-break-lines
+  :config (page-break-lines-mode))
 #+end_src
 ** Journal
 I use org-journal to journal about my life, and it's a part of my website:
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package org-journal
-    :after (org)
-    :custom
-    (org-journal-dir "~/monorepo/journal/" "Set journal directory")
-    (org-journal-date-format "%A, %d %B %Y" "Date format")
-    (org-journal-file-format "%Y%m%d.org" "Automatic file creation format based on date")
-    (org-journal-enable-agenda-integration t "All org-journal entries are org-agenda entries")
-    :init
-    (defun org-journal-file-header-func (time)
-      "Custom function to create journal header."
-      (concat
-       (pcase org-journal-file-type
-         (`daily "#+TITLE: Daily Journal\n#+STARTUP: showeverything\n#+DESCRIPTION: My daily journal entry\n#+AUTHOR: Preston Pan\n#+options: broken-links:t")
-         (`weekly "#+TITLE: Weekly Journal\n#+STARTUP: folded")
-         (`monthly "#+TITLE: Monthly Journal\n#+STARTUP: folded")
-         (`yearly "#+TITLE: Yearly Journal\n#+STARTUP: folded"))))
-    (setq org-journal-file-header 'org-journal-file-header-func))
+(use-package org-journal
+  :after (org)
+  :custom
+  (org-journal-dir "~/monorepo/journal/" "Set journal directory")
+  (org-journal-date-format "%A, %d %B %Y" "Date format")
+  (org-journal-file-format "%Y%m%d.org" "Automatic file creation format based on date")
+  (org-journal-enable-agenda-integration t "All org-journal entries are org-agenda entries")
+  (org-journal-file-header "#+TITLE: Daily Journal\n#+STARTUP: showeverything\n#+DESCRIPTION: My daily journal entry\n#+AUTHOR: Preston Pan\n#+date:\n#+options: broken-links:t" "set header files on new org journal entry"))
 #+end_src
 ** Doom Modeline
 The default modeline is ugly. I replace it with the doom modeline because it's better.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package doom-modeline
-    :config
-    (doom-modeline-mode 1))
+(use-package doom-modeline
+  :config (doom-modeline-mode 1))
 #+end_src
 *** Doom Theme
 I used to use catppuccin, but the doom themes are so good that I am willing to break some theme consistency with my desktop in order
 to use doom themes. I mean it looks better anyways if emacs is a distinct theme.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package doom-themes
-    :ensure t
-    :custom
-    (doom-themes-enable-bold t)
-    (doom-themes-enable-italic t)
-    (doom-themes-treemacs-theme "doom-rouge")
-    :config
-    (load-theme 'doom-rouge t)
+(use-package doom-themes
+  :custom
+  (doom-themes-enable-bold t "use bold letters")
+  (doom-themes-enable-italic t "use italic letters")
+  (doom-themes-treemacs-theme "doom-colors" "set theme to something like catppuccin but doom")
+  :config
+  (unless noninteractive (doom-themes-config)))
 
-    (doom-themes-visual-bell-config)
-    (doom-themes-treemacs-config)
-    (doom-themes-org-config))
-  ;; (load-theme 'catppuccin :no-confirm)
+(use-package catppuccin-theme
+  :config (when noninteractive (try (load-theme 'catppuccin-theme t))))
+
+(use-package solaire-mode
+  :after doom-themes
+  :config (solaire-global-mode +1))
 #+end_src
 ** Grammar
 I want to write good! I grammar good too.
@@ -401,239 +514,240 @@ I want to write good! I grammar good too.
 ** Make Org Look Better
 Org superstar adds those nice looking utf-8 bullets:
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package org-superstar
-    :after (org)
-    :hook (org-mode . (lambda () (org-superstar-mode 1))))
+(use-package org-modern
+  :after (org)
+  :hook (org-mode . org-modern-mode)
+  :custom
+  (org-modern-block-fringe t)
+  (org-modern-block-name t)
+  (org-modern-star '("◉" "○" "◈" "◇"))
+  (org-modern-block-name '((t . t)))
+  (org-modern-keyword '((t . t)))
+  :config
+  (global-org-modern-mode))
 #+end_src
 ** LSP
 We set up eglot, the LSP manager for emacs, now built in:
 #+begin_src emacs-lisp :tangle ../nix/init.el
-   (use-package lsp
-     :hook
-     (prog-mode . lsp))
+(use-package lsp
+  :custom
+  (lsp-use-plists t)
+  (lsp-typescript-format-enable t)
+  (lsp-typescript-indent-size 4)
+  (lsp-typescript-tab-size 4)
+  (lsp-typescript-indent-style "spaces")
+  :hook ((prog-mode . lsp)))
 
-  (with-eval-after-load 'lsp-mode
-    (setq lsp-typescript-format-enable t
-          lsp-typescript-indent-size 4
-          lsp-typescript-tab-size 4
-          lsp-typescript-indent-style "spaces"))
+(use-package editorconfig
+  :config (editorconfig-mode 1))
 
-  (use-package editorconfig
-    :config
-    (editorconfig-mode 1))
+(use-package flycheck
+  :config (global-flycheck-mode))
 
-   (use-package flycheck
-     :config (global-flycheck-mode))
-
-   (use-package platformio-mode
+(use-package platformio-mode
   :hook (prog-mode . platformio-conditionally-enable))
 #+end_src
 *** C/C++
 Specific configuration for C (I also use the clangd lsp):
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package irony
-    :hook (
-    (c++-mode . irony-mode)
-    (c-mode . irony-mode)
-    (objc-mode . irony-mode)
-    (irony-mode . irony-cdb-autosetup-compile-options)))
+(use-package irony
+  :hook ((c++-mode . irony-mode)
+         (c-mode . irony-mode)
+         (objc-mode . irony-mode)
+         (irony-mode . irony-cdb-autosetup-compile-options)))
 
-  (use-package irony-eldoc
-    :hook ((irony-mode . irony-eldoc)))
+(use-package irony-eldoc
+  :hook ((irony-mode . irony-eldoc)))
 #+end_src
 *** Solidity
 For writing solidity:
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package solidity-mode)
-  (use-package company-solidity)
-  (use-package solidity-flycheck
-    :custom
-    (solidity-flycheck-solc-checker-active t))
+(use-package solidity-mode)
+(use-package company-solidity
+  :after company)
+(use-package solidity-flycheck
+  :after flycheck
+  :custom (solidity-flycheck-solc-checker-active t))
 #+end_src
 ** Projectile
 Manages projects and shit.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package projectile
-    :custom
-    (projectile-project-search-path '("~/org" "~/src" "~/monorepo" "~/projects") "search path for projects")
-    :config
-    (projectile-mode +1))
+(use-package projectile
+  :custom
+  (projectile-project-search-path '("~/org" "~/src" "~/monorepo" "~/projects") "search path for projects")
+  :config (projectile-mode +1))
 #+end_src
 ** Dashboard
 We want our emacs initialization to be pretty and display useful things.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package dashboard
-    :after (projectile)
-    :custom
-    (dashboard-banner-logo-title "Welcome, Commander!" "Set title for dashboard")
-    (dashboard-icon-type 'nerd-icons "Use nerd icons")
-    (dashboard-vertically-center-content t "Center content")
-    (dashboard-set-init-info t)
-    (dashboard-week-agenda t "Agenda in dashboard")
-    (dashboard-items '((recents   . 5)
-  			(bookmarks . 5)
-  			(projects  . 5)
-  			(agenda    . 5)
-  			(registers . 5)) "Look at some items")
-    :config
-    (dashboard-setup-startup-hook))
+(use-package dashboard
+  :after (projectile)
+  :custom
+  (dashboard-banner-logo-title "Welcome, Commander!" "Set title for dashboard")
+  (dashboard-icon-type 'nerd-icons "Use nerd icons")
+  (dashboard-vertically-center-content t "Center content")
+  (dashboard-set-init-info t)
+  (dashboard-week-agenda t "Agenda in dashboard")
+  (dashboard-items '((recents   . 5)
+                     (bookmarks . 5)
+                     (projects  . 5)
+                     (agenda    . 5)
+                     (registers . 5)) "Look at some items")
+  :config
+  (dashboard-setup-startup-hook))
 #+end_src
 ** Ivy
 Ivy is a pretty cool general program for displaying stuff:
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package counsel)
+(use-package ivy
+  :demand t
+  :custom
+  (ivy-use-virtual-buffers t "Make searching more efficient")
+  (enable-recursive-minibuffers t "Don't get soft locked when in a minibuffer")
+  :bind
+  ("C-j" . ivy-immediate-done)
+  ("C-c C-r" . ivy-resume)
+  :init (ivy-mode)
+  :config (ivy-rich-mode))
 
-  (use-package ivy
-    :custom
-    (ivy-use-virtual-buffers t "Make searching more efficient")
-    (enable-recursive-minibuffers t "Don't get soft locked when in a minibuffer")
-    :bind
-    ("C-s" . swiper)
-    ("C-c C-r" . ivy-resume)
-    ("M-x" . counsel-M-x)
-    ("C-x C-f" . counsel-find-file)
-    ("<f1> f" . counsel-describe-function)
-    ("<f1> v" . counsel-describe-variable)
-    ("<f1> o" . counsel-describe-symbol)
-    ("<f1> l" . counsel-find-library)
-    ("<f2> i" . counsel-info-lookup-symbol)
-    ("<f2> u" . counsel-unicode-char)
-    ("C-c g" . counsel-git)
-    ("C-c j" . counsel-git-grep)
-    ("C-c k" . counsel-ag)
-    ("C-x l" . counsel-locate)
-    :config
-    (ivy-mode))
-  (define-key ivy-minibuffer-map (kbd "C-j") 'ivy-immediate-done)
+(use-package counsel
+  :after ivy
+  :bind
+  ("M-x" . counsel-M-x)
+  ("C-x C-f" . counsel-find-file)
+  ("<f1> f" . counsel-describe-function)
+  ("<f1> v" . counsel-describe-variable)
+  ("<f1> o" . counsel-describe-symbol)
+  ("<f1> l" . counsel-find-library)
+  ("<f2> i" . counsel-info-lookup-symbol)
+  ("<f2> u" . counsel-unicode-char)
+  ("C-c g" . counsel-git)
+  ("C-c j" . counsel-git-grep)
+  ("C-c k" . counsel-ag)
+  ("C-x l" . counsel-locate))
+
+(use-package swiper
+  :after ivy
+  :bind ("C-s" . swiper))
+
+(use-package ivy-posframe
+  :custom
+  (ivy-posframe-display-functions-alist '((t . ivy-posframe-display)))
+  :config (ivy-posframe-mode 1))
+
+(use-package all-the-icons-ivy-rich
+  :after (ivy all-the-icons)
+  :config (all-the-icons-ivy-rich-mode 1))
 #+end_src
 I use it for an M-x replacement and a dired replacement, among other things.
 ** Magit
 I use magit in order to do all my git management in emacs.
 #+begin_src emacs-lisp :tangle ../nix/init.el
 (use-package magit)
+(use-package git-gutter
+  :config
+  (global-git-gutter-mode +1))
 #+end_src
 ** IRC
 Configure IRC to use my username.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package erc
-    :hook
-    ((erc-mode . erc-notifications-mode))
-    :custom
-    (erc-nick system-username "sets erc username to the one set in nix config")
-    (erc-user-full-name system-fullname "sets erc fullname to the one set in nix config"))
+(use-package erc
+  :hook ((erc-mode . erc-notifications-mode))
+  :custom
+  (erc-nick system-username "sets erc username to the one set in nix config")
+  (erc-user-full-name system-fullname "sets erc fullname to the one set in nix config"))
 #+end_src
 ** Keybindings
 Global keybindings for everything that I care about globally. It's all here! I use general
 to manage my global keybindings in a declarative way. These are in part inspired by the doom
 emacs keybindings.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package general
-    :init
-    (defun znc ()
-      (interactive)
-      (erc-tls :server "ret2pop.net"
-               :port "5000"))
+(use-package general
+  :after (evil evil-collection)
+  :init (general-create-definer leader-key :prefix "SPC")
+  :config
+  ;; these are just bindings but the symbols are all lazily handled by general
+  (create-irc-servers
+   (znc "ret2pop.net" "5000")
+   (prestonpan "nullring.xyz" "6697")
+   (libera-chat "irc.libera.chat" "6697")
+   (efnet "irc.prison.net" "6697")
+   (matrix-org "matrix.org" "8448")
+   (gimp-org "irc.gimp.org" "6697"))
 
-    (defun prestonpan ()
-      (interactive)
-      (erc-tls :server "nullring.xyz"
-  	     :port   "6697"))
+  (leader-key 'normal
+    "o c" '(org-capture :wk "Capture")
+    ;; Org Mode
+    "n" '(:ignore t :wk "Org mode plugins")
+    "n j j" '(org-journal-new-entry :wk "Make new journal entry")
+    "n r f" '(org-roam-node-find :wk "Find roam node")
+    "n r i" '(org-roam-node-insert :wk "Insert roam node")
+    "n r a" '(org-roam-alias-add :wk "Add alias to org roam node")
+    "n r g" '(org-roam-graph :wk "Graph roam database")
+    "m I" '(org-id-get-create :wk "Make org id")
 
-    (defun liberachat ()
-      (interactive)
-      (erc-tls :server "irc.libera.chat"
-  	     :port   "6697"))
+    ;; Programming Projects
+    "." '(counsel-find-file :wk "find file")
+    "p a" '(projectile-add-known-project :wk "Add to project list")
+    
+    "N f" '(nix-flake :wk "nix flake menu")
+    "f" '(:ignore t :wk "file operations")
+    "f p" '(projectile-switch-project :wk "find project to switch to")
+    "f f" '(counsel-fzf :wk "find file in project")
+    "f s" '(counsel-rg :wk "find string in project")
 
-    (defun efnet ()
-      (interactive)
-      (erc-tls :server "irc.prison.net"
-  	     :port   "6697"))
+    "y n s" '(yas-new-snippet :wk "Create new snippet")
 
-    (defun matrix-org ()
-      (interactive)
-      (ement-connect))
+    "g" '(:ignore t :wk "Magit")
+    "g /" '(magit-dispatch :wk "git commands")
+    "g P" '(magit-push :wk "git push")
+    "g c" '(magit-commit :wk "git commit")
+    "g p" '(magit-pull :wk "Pull from git")
+    "g s" '(magit-status :wk "Change status of files")
+    "g i" '(magit-init :wk "init new git project")
+    "g r" '(magit-rebase :wk "Rebase branch")
+    "g m" '(magit-merge :wk "Merge branches")
+    "g b" '(magit-branch :wk "Git branch")
 
-    (defun gimp-org ()
-      (interactive)
-      (erc-tls :server "irc.gimp.org"
-  	     :port "6697"))
+    "o p" '(treemacs :wk "Project Drawer")
+    "o P" '(treemacs-projectile :wk "Import Projectile project to treemacs")
 
-    :config
-    (general-create-definer leader-key :prefix "SPC")
-    (leader-key 'normal
-      "o c" '(org-capture :wk "Capture")
+    "w r" '(writeroom-mode :wk "focus mode for writing")
 
-      ;; Org Mode
-      "n" '(:ignore t :wk "Org mode plugins")
-      "n j j" '(org-journal-new-entry :wk "Make new journal entry")
-      "n r f" '(org-roam-node-find :wk "Find roam node")
-      "n r i" '(org-roam-node-insert :wk "Insert roam node")
-      "n r a" '(org-roam-alias-add :wk "Add alias to org roam node")
-      "n r g" '(org-roam-graph :wk "Graph roam database")
-      "m I" '(org-id-get-create :wk "Make org id")
+    ;; Applications
+    "o" '(:ignore t :wk "Open application")
+    "o t" '(vterm :wk "Terminal")
+    "o e" '(eshell :wk "Elisp Interpreter")
+    "o m" '(mu4e :wk "Email")
+    "o M" '(matrix-org :wk "Connect to matrix")
+    "o r s" '(elfeed :wk "rss feed")
+    "o a" '(org-agenda :wk "Open agenda")
+    "o w" '(eww :wk "web browser")
+    "m m" '(emms :wk "Music player")
+    "s m" '(proced :wk "System Manager")
+    "l p" '(list-processes :wk "List Emacs Processes")
 
-      ;; Programming Projects
-      "." '(counsel-find-file :wk "find file")
-      "p a" '(projectile-add-known-project :wk "Add to project list")
-      
-      "N f" '(nix-flake :wk "nix flake menu")
-      "f" '(:ignore t :wk "file operations")
-      "f p" '(projectile-switch-project :wk "find project to switch to")
-      "f f" '(counsel-fzf :wk "find file in project")
-      "f s" '(counsel-rg :wk "find string in project")
+    "m P p" '(org-publish :wk "Publish website components")
+    "s e" '(sudo-edit :wk "Edit file with sudo")
 
-      "y n s" '(yas-new-snippet :wk "Create new snippet")
+    ;; "f f" '(eglot-format :wk "Format code buffer")
+    "i p c" '(prestonpan :wk "Connect to my IRC server")
+    "i l c" '(liberachat :wk "Connect to libera chat server")
+    "i e c" '(efnet :wk "Connect to efnet chat server")
+    "i g c" '(gimp-org :wk "Connect to gimp chat server")
+    "i z c" '(znc :wk "Connect to my ZNC instance")
 
-      "g" '(:ignore t :wk "Magit")
-      "g /" '(magit-dispatch :wk "git commands")
-      "g P" '(magit-push :wk "git push")
-      "g c" '(magit-commit :wk "git commit")
-      "g p" '(magit-pull :wk "Pull from git")
-      "g s" '(magit-status :wk "Change status of files")
-      "g i" '(magit-init :wk "init new git project")
-      "g r" '(magit-rebase :wk "Rebase branch")
-      "g m" '(magit-merge :wk "Merge branches")
-      "g b" '(magit-branch :wk "Git branch")
+    ;; Documentation
+    "h" '(:ignore t :wk "Documentation")
+    "h v" '(counsel-describe-variable :wk "Describe variable")
+    "h f" '(counsel-describe-function :wk "Describe function")
+    "h h" '(help :wk "Help")
+    "h m" '(woman :wk "Manual")
+    "h i" '(info :wk "Info")
 
-      "o p" '(treemacs :wk "Project Drawer")
-      "o P" '(treemacs-projectile :wk "Import Projectile project to treemacs")
+    "s i p" '(insert-urandom-password :wk "insert random password to buffer (for sops)")
 
-      "w r" '(writeroom-mode :wk "focus mode for writing")
-
-      ;; Applications
-      "o" '(:ignore t :wk "Open application")
-      "o t" '(vterm :wk "Terminal")
-      "o e" '(eshell :wk "Elisp Interpreter")
-      "o m" '(mu4e :wk "Email")
-      "o M" '(matrix-org :wk "Connect to matrix")
-      "o r s" '(elfeed :wk "rss feed")
-      "o a" '(org-agenda :wk "Open agenda")
-      "o w" '(eww :wk "web browser")
-      "m m" '(emms :wk "Music player")
-      "s m" '(proced :wk "System Manager")
-      "l p" '(list-processes :wk "List Emacs Processes")
-
-      "m P p" '(org-publish :wk "Publish website components")
-      "s e" '(sudo-edit :wk "Edit file with sudo")
-
-      ;; "f f" '(eglot-format :wk "Format code buffer")
-      "i p c" '(prestonpan :wk "Connect to my IRC server")
-      "i l c" '(liberachat :wk "Connect to libera chat server")
-      "i e c" '(efnet :wk "Connect to efnet chat server")
-      "i g c" '(gimp-org :wk "Connect to gimp chat server")
-      "i z c" '(znc :wk "Connect to my ZNC instance")
-
-      ;; Documentation
-      "h" '(:ignore t :wk "Documentation")
-      "h v" '(counsel-describe-variable :wk "Describe variable")
-      "h f" '(counsel-describe-function :wk "Describe function")
-      "h h" '(help :wk "Help")
-      "h m" '(woman :wk "Manual")
-      "h i" '(info :wk "Info")
-
-      "s i p" '(insert-urandom-password :wk "insert random password to buffer (for sops)")
-
-      "h r r" '(lambda () (interactive) (org-babel-load-file (expand-file-name "~/monorepo/config/emacs.org")))))
+    "h r r" '(lambda () (interactive) (load-file (expand-file-name "~/monorepo/nix/init.el")))))
 #+end_src
 ** LLM
 I use LLMs in order to help me come up with ideas. I use a local LLM so that I can have a
@@ -642,228 +756,224 @@ competitive LLM that doesn't cost money.
 Minuet does my code completion, showing the potential code completion as a ghost and automatically completing the code when my cursor is
 still. It is kind of like copilot but it works with local LLMs, which is better. Though, it's obviously not always the most accurate.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package minuet
-      :bind
-      (("M-y" . #'minuet-complete-with-minibuffer)
-       ("C-c m" . #'minuet-show-suggestion)
-       :map minuet-active-mode-map
-       ("C-c r" . #'minuet-dismiss-suggestion)
-       ("TAB" . #'minuet-accept-suggestion))
-
-      :init
-      (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
-
-      :custom
-      (minuet-request-timeout 40 "Max timeout in seconds")
-      (minuet-provider 'openai-fim-compatible "FIM compatible OpenAI-like API (Ollama)")
-      (minuet-n-completions 1 "I am using ghost text so I only need one possible completion")
-      (minuet-context-window 1024 "how much context do I want?")
-
-      :config
-      (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:11434/v1/completions")
-
-      (plist-put minuet-openai-fim-compatible-options :name "Ollama")
-      (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
-      (plist-put minuet-openai-fim-compatible-options :model "qwen2.5-coder:14b")
-
-      (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 50))
+(use-package minuet
+  :bind
+  (("M-y" . #'minuet-complete-with-minibuffer)
+   ("C-c m" . #'minuet-show-suggestion)
+   :map minuet-active-mode-map
+   ("C-c r" . #'minuet-dismiss-suggestion)
+   ("TAB" . #'minuet-accept-suggestion))
+  :hook ((prog-mode-hook . minuet-auto-suggestion-mode))
+  :custom
+  (minuet-request-timeout 40 "Max timeout in seconds")
+  (minuet-provider 'openai-fim-compatible "FIM compatible OpenAI-like API (Ollama)")
+  (minuet-n-completions 1 "I am using ghost text so I only need one possible completion")
+  (minuet-context-window 1024 "how much context do I want?")
+  (minuet-openai-fim-compatible-options
+   '(
+     :end-point "http://localhost:11434/v1/completions"
+     :name "Ollama"
+     :api-key "TERM"
+     :template (
+                :prompt minuet--default-fim-prompt-function
+                :suffix minuet--default-fim-suffix-function)
+     :transform ()
+     :get-text-fn minuet--openai-fim-get-text-fn
+     :optional (:max-tokens 50)
+     :model "qwen2.5-coder:14b")))
 #+end_src
 ** RSS Feed
 I use really simple syndication (RSS) in order to read news. As a result, I use
 elfeed to fetch feeds found on my website:
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package elfeed
-    :custom
-    (elfeed-search-filter "@1-month-ago +unread" "Only display unread articles from a month ago")
+(use-package elfeed
+  :hook ((elfeed-search-mode . elfeed-update))
+  :custom (elfeed-search-filter "@1-month-ago +unread" "Only display unread articles from a month ago")
+  :config (run-with-timer 0 (* 60 3) 'elfeed-update))
 
-    :config
-    (run-with-timer 0 (* 60 60 4) 'elfeed-update)
-
-    :hook ((elfeed-search-mode . elfeed-update)))
-
-  (use-package elfeed-org
-    :custom
-    (rmh-elfeed-org-files '("~/monorepo/config/elfeed.org") "Use elfeed config in repo as default")
-    :config
-    (elfeed-org))
+(use-package elfeed-org
+  :after (elfeed org)
+  :demand t
+  :custom (rmh-elfeed-org-files '("~/monorepo/config/elfeed.org") "Use elfeed config in repo as default")
+  :config (elfeed-org))
 #+end_src
 *** Youtube
 Then we set up elfeed-tube for Youtube video RSS feeds (so I don't ever have to use the web
 interface and can control it from emacs):
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package elfeed-tube
-    :after elfeed
-    :demand t
-    :config
-    (elfeed-tube-setup)
-    :bind (:map elfeed-show-mode-map
-           ("F" . elfeed-tube-fetch)
-           ([remap save-buffer] . elfeed-tube-save)
-           :map elfeed-search-mode-map
-           ("F" . elfeed-tube-fetch)
-           ([remap save-buffer] . elfeed-tube-save)))
+(use-package elfeed-tube
+  :after elfeed
+  :demand t
+  :bind (:map elfeed-show-mode-map
+              ("F" . elfeed-tube-fetch)
+              ([remap save-buffer] . elfeed-tube-save)
+              :map elfeed-search-mode-map
+              ("F" . elfeed-tube-fetch)
+              ([remap save-buffer] . elfeed-tube-save))
+  :config (elfeed-tube-setup))
 
-  (use-package elfeed-tube-mpv
-    :bind (:map elfeed-show-mode-map
-                ("C-c C-f" . elfeed-tube-mpv-follow-mode)
-                ("C-c C-c" . elfeed-tube-mpv)
-                ("C-c C-w" . elfeed-tube-mpv-where)
-           :map elfeed-search-mode-map
-  	        ("M" . elfeed-tube-mpv)))
+(use-package elfeed-tube-mpv
+  :bind (:map elfeed-show-mode-map
+              ("C-c C-f" . elfeed-tube-mpv-follow-mode)
+              ("C-c C-c" . elfeed-tube-mpv)
+              ("C-c C-w" . elfeed-tube-mpv-where)
+              :map elfeed-search-mode-map
+              ("M" . elfeed-tube-mpv)))
 #+end_src
 ** Project Drawer
 I use treemacs as my sidebar for projects, so that I can easily navigate to any file in the
 project directory.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package treemacs)
-  (use-package treemacs-evil
-    :after (treemacs evil))
-  (use-package treemacs-projectile
-    :after (treemacs projectile))
-  (use-package treemacs-magit
-    :after (treemacs magit))
+(use-package treemacs
+  :after doom-themes)
+
+(use-package treemacs-evil
+  :after (treemacs evil))
+
+(use-package treemacs-projectile
+  :after (treemacs projectile))
+
+(use-package treemacs-magit
+  :after (treemacs magit))
+
+(use-package treemacs-all-the-icons
+  :after (treemacs all-the-icons))
 #+end_src
 ** Eww
 Used only for the purpose of viewing RSS feed items in emacs if I can, only resorting
 to Chromium if I have to:
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package eww
-    :custom
-    (search-engines
-  	'((("google" "g") "https://google.com/search?q=%s")
-            (("duckduckgo" "d" "ddg") "https://duckduckgo.com/?q=%s")
-            (("rfc" "r") "https://www.rfc-editor.org/rfc/rfc%s.txt")
-            (("rfc-kw" "rk") "https://www.rfc-editor.org/search/rfc_search_detail.php?title=%s"))
-  	"use this set of search engines")
-
-    (search-engine-default "google" "Use google as default")
-    (eww-search-prefix "https://google.com/search?q=" "Google prefix")
-    :hook ((eww-mode . (lambda () (local-set-key (kbd "y Y") #'eww-copy-page-url)))))
+(use-package eww
+  :bind (:map eww-mode-map
+              ("y Y" . eww-copy-page-url))
+  :custom
+  (search-engines
+   '((("google" "g") "https://google.com/search?q=%s")
+     (("duckduckgo" "d" "ddg") "https://duckduckgo.com/?q=%s")
+     (("rfc" "r") "https://www.rfc-editor.org/rfc/rfc%s.txt")
+     (("rfc-kw" "rk") "https://www.rfc-editor.org/search/rfc_search_detail.php?title=%s"))
+   "use this set of search engines")
+  (search-engine-default "google" "Use google as default")
+  (eww-search-prefix "https://google.com/search?q=" "Google prefix"))
 #+end_src
 ** Nix Mode
 Load Nix mode so our exported website has syntax highlighting for Nix blocks.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package nix-mode
-    :mode "\\.nix\\'")
+(use-package nix-mode
+  :mode "\\.nix\\'")
 #+end_src
 ** Org Roam
 For all my mathematics and programming notes:
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package org-roam
-    :after (org)
-    :custom
-    (org-roam-db-update-on-save t "Update org-roam db")
-    (org-roam-graph-viewer "librewolf" "Use librewolf to view org-roam graph")
-    (org-roam-directory (file-truename "~/monorepo/mindmap") "Set org-roam directory inside monorepo")
-    (org-roam-capture-templates '(("d" "default" plain "%?"
-  				 :target (file+head "${title}.org"
-  						    "#+title: ${title}\n#+author: Preston Pan\n#+description:\n#+options: broken-links:t")
-  				 :unnarrowed t)) "org-roam files start with this snippet by default")
-    :config
-    (org-roam-db-autosync-mode)
-    ;; Otherwise links are broken when publishing
-    (org-roam-update-org-id-locations))
+(use-package org-roam
+  :after (org)
+  :custom
+  (org-roam-db-update-on-save t "Update org-roam db")
+  (org-roam-graph-viewer "librewolf" "Use librewolf to view org-roam graph")
+  (org-roam-directory (file-truename "~/monorepo/mindmap") "Set org-roam directory inside monorepo")
+  (org-roam-capture-templates '(("d" "default" plain "%?"
+                                 :target (file+head "${title}.org"
+                                                    "#+title: ${title}\n#+author: Preston Pan\n#+description:\n#+options: broken-links:t")
+                                 :unnarrowed t)) "org-roam files start with this snippet by default")
+  :config (org-roam-config))
 
-  (use-package org-roam-ui
-    :after org-roam
-    :hook (after-init . org-roam-ui-mode)
-    :custom
-    (org-roam-ui-sync-theme t "Use emacs theme for org-roam-ui")
-    (org-roam-ui-follow t "Have cool visual while editing org-roam")
-    (org-roam-ui-update-on-save t "This option is obvious")
-    (org-roam-ui-open-on-start t "Have cool visual open in librewolf when emacs loads"))
+(unless noninteractive (use-package org-roam-ui
+                         :after org-roam
+                         :hook (after-init . org-roam-ui-mode)
+                         :custom
+                         (org-roam-ui-sync-theme t "Use emacs theme for org-roam-ui")
+                         (org-roam-ui-follow t "Have cool visual while editing org-roam")
+                         (org-roam-ui-update-on-save t "This option is obvious")
+                         (org-roam-ui-open-on-start t "Have cool visual open in librewolf when emacs loads")))
 #+end_src
 
 ** Pinentry
 Set up pinentry so that I can use emacs as my pinentry frontend:
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package pinentry
-    :custom (epa-pinentry-mode `loopback "Set this option to match gpg-agent.conf")
-    :config (pinentry-start))
+(unless noninteractive (use-package pinentry
+                         :custom (epa-pinentry-mode `loopback "Set this option to match gpg-agent.conf")
+                         :config (pinentry-start)))
 #+end_src
 ** Email
 Email in emacs can be done with Mu4e.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package smtpmail
-    :custom
-    (user-mail-address system-email "Use our email")
-    (user-full-name system-fullname "Use our full name")
-    (sendmail-program "msmtp" "Use msmtp in order to send emails")
-    (send-mail-function 'smtpmail-send-it "This is required for this to work")
-    (message-sendmail-f-is-evil t "Use evil-mode for sendmail")
-    (message-sendmail-extra-arguments '("--read-envelope-from") "idk what this does")
-    (message-send-mail-function 'message-send-mail-with-sendmail "Use sendmail"))
+(use-package smtpmail
+  :custom
+  (user-mail-address system-email "Use our email")
+  (user-full-name system-fullname "Use our full name")
+  (sendmail-program "msmtp" "Use msmtp in order to send emails")
+  (send-mail-function 'smtpmail-send-it "This is required for this to work")
+  (message-sendmail-f-is-evil t "Use evil-mode for sendmail")
+  (message-sendmail-extra-arguments '("--read-envelope-from") "idk what this does")
+  (message-send-mail-function 'message-send-mail-with-sendmail "Use sendmail"))
 
-  (use-package mu4e
-    :after smtpmail
-    :hook
-    ((mu4e-compose-mode . mml-secure-message-sign-pgpmime))
-    :custom
-    (mu4e-drafts-folder "/Drafts" "Set drafts folder mu db")
-    (mu4e-sent-folder   "/Sent" "Set sent folder in mu db")
-    (mu4e-trash-folder  "/Trash" "Set trash folder in mu db")
-    (mu4e-attachment-dir  "~/Downloads" "Set downloads folder for attachments")
-    (mu4e-view-show-addresses 't "Show email addresses in main view")
-    (mu4e-confirm-quit nil "Don't ask to quit")
-    (message-kill-buffer-on-exit t "Kill buffer when I exit mu4e")
-    (mu4e-compose-dont-reply-to-self t "Don't include self in replies")
-    (mu4e-change-filenames-when-moving t)
-    (mu4e-get-mail-command (concat "mbsync " system-username) "Use mbsync for imap")
-    (mu4e-compose-reply-ignore-address (list "no-?reply" system-email) "ignore my own address and noreply")
-    (mu4e-html2text-command "w3m -T text/html" "Use w3m to convert html to text")
-    (mu4e-update-interval 300 "Update duration")
-    (mu4e-headers-auto-update t "Auto-updates feed")
-    (mu4e-view-show-images t "Shows images")
-    (mu4e-compose-signature-auto-include nil)
-    (mml-secure-openpgp-sign-with-sender t)
-    (mml-secure-openpgp-signers (list system-gpgkey))
-    (mail-user-agent 'mu4e-user-agent)
-    (message-mail-user-agent 'mu4e-user-agent)
-    (mu4e-use-fancy-chars t "Random option to make mu4e look nicer"))
+(use-package mu4e
+  :after smtpmail
+  :hook
+  ((mu4e-compose-mode . mml-secure-message-sign-pgpmime))
+  :custom
+  (mu4e-drafts-folder "/Drafts" "Set drafts folder mu db")
+  (mu4e-sent-folder   "/Sent" "Set sent folder in mu db")
+  (mu4e-trash-folder  "/Trash" "Set trash folder in mu db")
+  (mu4e-attachment-dir  "~/Downloads" "Set downloads folder for attachments")
+  (mu4e-view-show-addresses 't "Show email addresses in main view")
+  (mu4e-confirm-quit nil "Don't ask to quit")
+  (message-kill-buffer-on-exit t "Kill buffer when I exit mu4e")
+  (mu4e-compose-dont-reply-to-self t "Don't include self in replies")
+  (mu4e-change-filenames-when-moving t)
+  (mu4e-get-mail-command (concat "mbsync " system-username) "Use mbsync for imap")
+  (mu4e-compose-reply-ignore-address (list "no-?reply" system-email) "ignore my own address and noreply")
+  (mu4e-html2text-command "w3m -T text/html" "Use w3m to convert html to text")
+  (mu4e-update-interval 300 "Update duration")
+  (mu4e-headers-auto-update t "Auto-updates feed")
+  (mu4e-view-show-images t "Shows images")
+  (mu4e-compose-signature-auto-include nil)
+  (mml-secure-openpgp-sign-with-sender t)
+  (mml-secure-openpgp-signers (list system-gpgkey))
+  (mail-user-agent 'mu4e-user-agent)
+  (message-mail-user-agent 'mu4e-user-agent)
+  (mu4e-use-fancy-chars t "Random option to make mu4e look nicer"))
 #+end_src
 ** Music
 Set up emms in order to play music from my music directory:
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package emms
-    :custom
-    (emms-source-file-default-directory (expand-file-name "~/music/") "Use directory specified in Nix")
-    (emms-player-mpd-music-directory (expand-file-name "~/music/") "Use directory specified in Nix")
-    (emms-player-mpd-server-name "localhost" "Connect to localhost")
-    (emms-player-mpd-server-port "6600" "Connect to port 6600")
-    (emms-player-list '(emms-player-mpd) "Use mpd")
-    (emms-lyrics-display-on-modeline t)
-    :hook
-    ((emms-playlist-mode . emms-lyrics-mode)
-     (emms-player-started . emms-lyrics-lrclib-get))
-    :init
-    (emms-all)
-    (add-to-list 'emms-info-functions 'emms-info-mpd)
-    (add-to-list 'emms-player-list 'emms-player-mpd)
-    :config (emms-player-mpd-connect))
+(unless noninteractive (use-package emms
+                         :custom
+                         (emms-source-file-default-directory (expand-file-name "~/music/") "Use directory specified in Nix")
+                         (emms-player-mpd-music-directory (expand-file-name "~/music/") "Use directory specified in Nix")
+                         (emms-player-mpd-server-name "localhost" "Connect to localhost")
+                         (emms-player-mpd-server-port "6600" "Connect to port 6600")
+                         (emms-player-list '(emms-player-mpd) "Use mpd")
+                         (emms-lyrics-display-on-modeline t "Display lyrics for reading")
+                         (emms-info-functions '(emms-info-mpd emms-info-native emms-info-cueinfo) "functions for displaying information about tracks")
+                         :hook
+                         ((emms-playlist-mode . emms-lyrics-mode)
+                          (emms-player-started . emms-lyrics-lrclib-get))
+                         :init (emms-all)
+                         :config (emms-player-mpd-connect)))
 #+end_src
 ** Tabs
 I use tabs because sometimes I like using the mouse (it's actually more efficient to have the option for both, trust me. Keyboards aren't all it).
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package centaur-tabs
-    :custom
-    (centaur-tabs-set-icons t "use icons for centaur-tabs")
-    (centaur-tabs-set-modified-marker t "show when buffer modified")
-    (centaur-tabs-icon-type 'all-the-icons "use all-the-icons for icons")
-    :demand
-    :config
-    (centaur-tabs-mode t)
-    :bind
-    ("C-<prior>" . centaur-tabs-backward)
-    ("C-<next>" . centaur-tabs-forward))
+(use-package centaur-tabs
+  :custom
+  (centaur-tabs-set-icons t "use icons for centaur-tabs")
+  (centaur-tabs-set-modified-marker t "show when buffer modified")
+  (centaur-tabs-icon-type 'all-the-icons "use all-the-icons for icons")
+  :bind
+  ("C-<prior>" . centaur-tabs-backward)
+  ("C-<next>" . centaur-tabs-forward)
+  :demand t
+  :config (centaur-tabs-mode t))
 #+end_src
 * Unpinned
 ** Lean4
 For some reason, lean4-mode is not in MELPA currently so I have to do this ugly thing:
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (unless noninteractive (use-package lean4-mode
-    :commands lean4-mode
-    :vc (:url "https://github.com/leanprover-community/lean4-mode.git"
-         :rev "76895d8939111654a472cfc617cfd43fbf5f1eb6")))
+(unless noninteractive (use-package lean4-mode
+                         :commands lean4-mode
+                         :vc (:url "https://github.com/leanprover-community/lean4-mode.git"
+                                   :rev "76895d8939111654a472cfc617cfd43fbf5f1eb6")))
 #+end_src
 and actually pull something from the internet instead of pinning. Thankfully this reproduction issue is probably localized to lean files. Also,
 we're pulling a specific commit so it is still pinned. If it fails to fetch, lean4 is broken I guess.

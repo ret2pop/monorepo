@@ -9,6 +9,19 @@ $fonts: (
     ('CormorantGaramond', 'CormorantGaramond-MediumItalic', 700, italic),
 );
 
+$breakpoints: (
+    'mobile': 768px,
+    'toc': 1250px
+);
+
+/* text color, background color (hex) */
+$isa: (
+    ("info", #00529b, #bde5f8),
+    ("success", #4f8a10, #dff2bf),
+    ("warning", #9f6000, #fad776),
+    ("error", #d8000c, #feebe3)
+);
+
 @each $family, $file, $weight, $style in $fonts {
     @font-face {
         font-family: '#{$family}';
@@ -18,14 +31,6 @@ $fonts: (
         font-display: swap;
     }
 }
-
-/* text color, background color (hex) */
-$isa: (
-    ("info", #00529b, #bde5f8),
-    ("success", #4f8a10, #dff2bf),
-    ("warning", #9f6000, #fad776),
-    ("error", #d8000c, #feebe3)
-);
 
 @each $name, $textcolor, $bgcolor in $isa {
     .isa_#{$name} {
@@ -48,11 +53,6 @@ $isa: (
     overflow-x: auto;
 }
 
-$breakpoints: (
-    'mobile': 768px,
-    'toc': 1250px
-);
-
 @mixin bp($name) {
   $value: map.get($breakpoints, $name);
 
@@ -65,17 +65,15 @@ $breakpoints: (
   }
 }
 
-@function accent_rgba($aval) {
-    @return rgb(from var(--accent) r g b / $aval);
-}
+@function accent_rgba($aval) { @return rgb(from var(--accent) r g b / $aval); }
 
 :root {
     --bg-main: #FBF8F1;
     --text-main: #4A3F35;
     --text-highlight: #ffe066;
     --accent: #D4A373;
-    --toc-bg: #F3E4D4;
-    --link-color: #8C6239;
+    --toc-bg: #F2EFE7;
+    --link-color: #B0413E;
 
     --code-bg: #1e1e2e;
     --code-text: #cdd6f4;
@@ -96,6 +94,29 @@ $breakpoints: (
     box-sizing: border-box;
 }
 
+/* scrollbar */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track { background: var(--bg-main); }
+
+::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--accent) 60%, var(--bg-main));
+    border-radius: 8px;
+    border: 3px solid var(--bg-main); 
+
+    &:hover {
+        background-color: var(--accent);
+    }
+}
+
+html {
+    scrollbar-color: color-mix(in srgb, var(--accent) 60%, var(--bg-main)) var(--bg-main);
+    scrollbar-width: thin;
+}
+
 body {
     background:
         radial-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
@@ -111,12 +132,9 @@ body {
     line-height: 1.75;
     font-weight: 500;
     font-variant-ligatures: common-ligatures;
-    -webkit-font-smoothing: antialiased;
-
-    // display: flex;
-    flex-direction: column;
-    align-items: center; 
     min-height: 100vh;
+
+    -webkit-font-smoothing: antialiased;
 
     @include bp('toc') {
         padding-left: 0;
@@ -166,12 +184,13 @@ h6 { font-size: 0.85rem; font-weight: 400; text-transform: uppercase; letter-spa
 p, ul, ol { margin-top: 1rem; margin-bottom: 1rem; }
 li { margin-top: 0.3rem; }
 
-a {
+a, .org-link {
     color: var(--link-color);
     text-decoration: underline;
     text-decoration-thickness: 2px;
     text-underline-offset: 4px;
     transition: all 0.2s ease-in-out;
+
     &:hover {
         color: color-mix(in srgb, var(--link-color) 80%, black); 
         text-decoration-thickness: 4px;
@@ -198,6 +217,23 @@ img {
     width: auto;
     height: auto;
     @include bp('mobile') { max-width: 100%; }
+}
+
+/* inline code blocks */
+:not(pre) > code {
+    font-family: var(--font-mono), monospace;
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.85em;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+pre {
+    font-family: var(--font-mono), monospace;
+    &.src-stem::before { content: "Stem"; }
 }
 
 blockquote {
@@ -250,11 +286,6 @@ math {
     }
 }
 
-
-#content {
-    padding-top: 0;
-}
-
 h1.title {
     padding-top: 1.5rem; 
     margin-top: 0.5rem;
@@ -299,41 +330,6 @@ h1.title {
         text-align: center;
     } 
     &:not(:last-child)::after { content: ", "; font-style: normal; }
-}
-
-#preamble {
-    margin-top: 10px;
-    margin-bottom: 0;
-
-    .preamble {
-        font-family: var(--font-mono), monospace;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: color-mix(in srgb, var(--text-main) 50%, transparent); 
-    }
-    
-    a {
-        color: var(--text-main);
-        text-decoration: none;
-        padding: 4px 8px;
-        border-radius: 4px;
-        transition: all 0.2s ease;
-        &:hover {
-            background: color-mix(in srgb, var(--accent) 15%, transparent);
-            color: var(--link-color);
-        }
-    }
-
-    & hr {
-        border: none;
-        height: 1px;
-        background: linear-gradient(to right, var(--accent), transparent);
-        opacity: 0.5;
-
-        width: 100%;
-        margin: 1rem 0 0 0;
-    }
 }
 
 .todo, .done, .tag {
@@ -390,23 +386,7 @@ h1.title {
     @include bp('mobile') { columns: 1; }
 }
 
-/* inline code blocks */
-:not(pre) > code {
-    font-family: var(--font-mono), monospace;
-    background: var(--code-bg);
-    color: var(--code-text);
-    padding: 0.15em 0.4em;
-    border-radius: 4px;
-    font-size: 0.85em;
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-pre {
-    font-family: var(--font-mono), monospace;
-    &.src-stem::before { content: "Stem"; }
-}
-
+.org-svg { width: 100%; max-width: none; }
 
 .src, .example {
     @include hide-scrollbar;
@@ -434,8 +414,6 @@ pre {
     }
 }
 
-.org-svg { width: 100%; max-width: none; }
-
 .org-src-container {
     position: relative;
     margin: 1.2em 0;
@@ -443,7 +421,6 @@ pre {
     pre.src {
         overflow: visible; 
         margin: 0;
-        // padding: 0;
         border: none;
 
         & > code {
@@ -502,6 +479,41 @@ pre {
     font-weight: 700;
     font-family: var(--font-serif);
     color: var(--text-main);
+}
+
+#preamble {
+    margin-top: 10px;
+    margin-bottom: 0;
+
+    .preamble {
+        font-family: var(--font-mono), monospace;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: color-mix(in srgb, var(--text-main) 50%, transparent); 
+    }
+    
+    a {
+        color: var(--text-main);
+        text-decoration: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        &:hover {
+            background: color-mix(in srgb, var(--accent) 15%, transparent);
+            color: var(--link-color);
+        }
+    }
+
+    & hr {
+        border: none;
+        height: 1px;
+        background: linear-gradient(to right, var(--accent), transparent);
+        opacity: 0.5;
+
+        width: 100%;
+        margin: 1rem 0 0 0;
+    }
 }
 
 #table-of-contents {
@@ -577,8 +589,11 @@ pre {
             }
         }
     }
+
     h2 { display: none; }
     @include bp('toc') { display: none; }
 }
 
 #postamble { text-align: center; }
+
+#content { padding-top: 0; }

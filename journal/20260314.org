@@ -1,0 +1,14 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Saturday, 14 March 2026
+** 02:12 
+I've started journaling again because I just realized that this feature existed. Honestly, it's pretty
+cool that this even exists. Not just the journaling feature (which I didn't make obviously but it's cool)
+but also my website and my entire CI pipeline that builds it. I'm pretty proud of myself for doing all that.
+
+For reference, for the past week or so I've been in the coal mines, writing nix and a bit of emacs-lisp code
+in order to build my website and do a whole bunch of other things.

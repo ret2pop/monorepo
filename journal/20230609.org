@@ -2,7 +2,6 @@
 #+STARTUP: showeverything
 #+DESCRIPTION: My daily journal entry
 #+AUTHOR: Preston Pan
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css" />
 * Friday, 09 June 2023
 ** 23:34
 Today, I've decided to try using org-journal to write a journal

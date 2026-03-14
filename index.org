@@ -5,7 +5,7 @@
 #+language: en
 #+OPTIONS: broken-links:t
 #+OPTIONS: html-preamble:nil
-#+HTML_HEAD: <link rel="preload" fetchpriority="high" as="image" href="/img/logo.webp" type="image/webp">
+#+HTML_HEAD_EXTRA: <link rel="preload" fetchpriority="high" as="image" href="/img/logo.webp" type="image/webp">
 
 #+attr_html: :width 595 :height 746
 #+attr_html: :alt My ret2pop logo

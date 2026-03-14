@@ -256,62 +256,15 @@ export FONTCONFIG_PATH=${pkgs.fontconfig.out}/etc/fonts/
 export XDG_CACHE_HOME=$TMPDIR/.cache
 printf "hello?\n"
 
-xvfb-run -a emacs -q \
-  --eval '(setq inhibit-startup-screen t)' \
-  --eval '(setq inhibit-startup-message t)' \
-  --eval '(setq enable-local-variables :all)' \
-  --eval '(defalias (quote yes-or-no-p) (lambda (&rest args) t))' \
-  --eval '(defalias (quote y-or-n-p) (lambda (&rest args) t))' \
-  --eval '(setq message-log-max t)' \
-  --eval '(setq standard-output (quote external-debugging-output))' \
-  --eval '(princ "STEP 0: tf\n" (quote external-debugging-output))' \
-  --eval '(setq noninteractive t)' \
-  --eval '(setq system-email "lol@troll.com")' \
-  --eval '(setq system-username "ci-runner")' \
-  --eval '(setq system-fullname "Preston Pan")' \
-  --eval '(setq system-gpgkey "00000000")' \
-  --eval '(defun package-vc-install (&rest args) (message "blocked package-vc-install for %s" args))' \
-  --eval '(defun package-vc--unpack (&rest args) nil)' \
-  --eval '(setq package-archives nil)' \
-  --eval '(setq use-package-always-ensure nil)' \
-  --eval '(setq package-vc-selected-packages nil)' \
-  --eval '(defalias (quote scroll-bar-mode) (quote ignore))' \
-  --eval '(defalias (quote tool-bar-mode) (quote ignore))' \
-  --eval '(defalias (quote menu-bar-mode) (quote ignore))' \
-  --eval '(provide (quote lean4-mode))' \
-  --eval '(provide (quote irony-mode))' \
-  --eval '(provide (quote irony))' \
-  --eval '(defalias (quote irony-cdb-autosetup-compile-options) (quote ignore))' \
-  --eval "(setq org-latex-pdf-process (quote (\"xelatex -shell-escape -interaction nonstopmode %f\")))" \
-  --eval '(setq org-startup-with-latex-preview nil)' \
-  --eval '(setq org-startup-indented nil)' \
-  --eval '(setq org-export-with-latex t)' \
-  --eval '(setq org-confirm-babel-evaluate nil)' \
-  --eval '(setq load-prefer-newer t)' \
-  --eval '(setq gc-cons-threshold 100000000)' \
-  --eval '(setq vc-handled-backends nil)' \
-  --eval '(setq make-backup-files nil auto-save-default nil create-lockfiles nil)' \
-  --eval '(princ "STEP 1: init.el?\n" (quote external-debugging-output))' \
-  -l ${nixmacs}/init.el \
-  --eval '(princ "STEP 2: init.el.\n" (quote external-debugging-output))' \
-  --eval '(setq org-roam-directory (expand-file-name "mindmap" (expand-file-name "~/monorepo")))' \
-  --eval '(setq org-id-track-globally t)' \
-  --eval '(org-roam-db-sync)' \
-  --eval '(setq term-file-prefix nil)' \
-  --eval '(princ "STEP 3: after org roam\n" (quote external-debugging-output))' \
-  --eval '(force-mode-line-update)' \
-  --eval '(setq org-html-link-use-abs-url nil)' \
-  --eval '(setq default-directory (expand-file-name "~/monorepo"))' \
-  --eval '(setq org-html-link-use-abs-url nil)' \
-  --eval '(setq org-html-link-org-files-as-html t)' \
-  --eval '(require (quote htmlize))' \
-  --eval '(require (quote nix-mode))' \
-  --eval '(setq org-html-htmlize-output-type (quote css))' \
-  --eval '(princ "STEP 4: before publish-all\n" (quote external-debugging-output))' \
-  --eval '(org-publish-all t)' \
-  --eval '(org-publish-all nil)' \
-  --eval '(kill-emacs 0)' || (echo "FAIL:" && cat /build/*.log && exit 1)
+export NIXMACS_DIR="${nixmacs}"
 
+xvfb-run -a emacs -q -l ${self}/tests/ci-runner.el || {
+  echo "FAIL: Emacs build crashed."
+  cat /build/*.log
+  exit 1
+}
+
+printf "after emacs\n"
 CSS_HASH="$(python3 $HOME/monorepo/tests/test-csp-hash.py $HOME/website_html/index.html)"
 cat <<EOF > $HOME/website_html/csp_header.conf
 add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'sha256-$CSS_HASH'; font-src 'self';";

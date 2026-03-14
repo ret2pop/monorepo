@@ -393,6 +393,7 @@ spontaneity.succeed('printf "smoke again"')
         };
 
         packages."${system}" = {
+          default = website;
           website = website;
           installer = installer-iso;
           spontaneity = self.nixosConfigurations.spontaneity.config.system.build.toplevel;

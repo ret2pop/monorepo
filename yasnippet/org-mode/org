@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: org
+# key: org
+# --
+#+title: $1
+#+author: $2
+#+description: $3
+#+date: [`(format-time-string "%Y-%m-%d %a")`]
+
+#+language: en
+#+OPTIONS: broken-links:t
+$0

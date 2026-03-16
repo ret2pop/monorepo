@@ -43,21 +43,21 @@ another circuit diagram will include a possibly variable voltage source.
 
 * Mass-Spring Equation Equivalence
 We know these relations for the given circuit elements above:
-\begin{equation}
+\begin{align}
 v(t) = L\frac{di}{dt} \\
 i(t) = C\frac{dv}{dt} \\
 v = iR
-\end{equation}
+\end{align}
 if we analyze the current signal, Kirchhoff's voltage law tells us that the total voltage
 drop throughout this circuit is zero. We use the capacitor equation in integral form and sum the voltages:
 \begin{equation}
 L\frac{di}{dt} + \frac{1}{C}\int i(t)dt + iR = 0
 \end{equation}
 We then take a derivative to remove the integral:
-\begin{equation}
+\begin{align}
 L\frac{d^{2}i}{dt^{2}} + R\frac{di}{dt} + \frac{1}{C}i = 0 \\
 (LD^{2} + RD + \frac{1}{C}) i(t) = 0
-\end{equation}
+\end{align}
 it is clear that the characteristic polynomial of this homogeneous linear [[id:4be41e2e-52b9-4cd1-ac4c-7ecb57106692][differential equation]] is:
 \begin{align*}
 L\lambda^{2} + R\lambda + \frac{1}{C} = 0
@@ -143,7 +143,7 @@ i(t) = V_{0}e^{i\phi}\mathcal{L}^{-1}\{\frac{1}{(s - z_{1})(s - z_{2})(s - z_{3}
 where $z_{2}$ and $z_{3}$ are the two roots we found for the homogeneous case. We then use partial fraction decomposition:
 \begin{align}
 \label{}
-\frac{1}{(s - z_{1})(s - z_{2})(s - z_{3})} &= \frac{A}{s - z_{1}} + \frac{B}{s - z_{2}} + \frac{C}{s - z_{3}} \\
+\frac{1}{(s - z_{1})(s - z_{2})(s - z_{3})} = \frac{A}{s - z_{1}} + \frac{B}{s - z_{2}} + \frac{C}{s - z_{3}} \\
 A(s - z_{2})(s - z_{3}) + B(s - z_{1})(s - z_{3}) + C(s - z_{1})(s - z_{2}) &= 1
 \end{align}
 from this we know:
@@ -185,9 +185,9 @@ C = \frac{z_{2} - z_{1}}{z_{2}z_{3}^{2} + z_{1}z_{2}^{2} + z_{1}^{2}z_{3} - z_{1
 \end{align}
 So we have the three coefficients:
 \begin{align}
-A &= \frac{z_{3} - z_{2}}{z_{2}z_{3}^{2} + z_{1}z_{2}^{2} + z_{1}^{2}z_{3} - z_{1}z_{3}^{2} - z_{1}^{2}z_{2} - z_{2}^{2}z_{3}} \\
-B &= \frac{z_{1} - z_{3}}{z_{2}z_{3}^{2} + z_{1}z_{2}^{2} + z_{1}^{2}z_{3} - z_{1}z_{3}^{2} - z_{1}^{2}z_{2} - z_{2}^{2}z_{3}} \\
-C &= \frac{z_{2} - z_{1}}{z_{2}z_{3}^{2} + z_{1}z_{2}^{2} + z_{1}^{2}z_{3} - z_{1}z_{3}^{2} - z_{1}^{2}z_{2} - z_{2}^{2}z_{3}}
+A = \frac{z_{3} - z_{2}}{z_{2}z_{3}^{2} + z_{1}z_{2}^{2} + z_{1}^{2}z_{3} - z_{1}z_{3}^{2} - z_{1}^{2}z_{2} - z_{2}^{2}z_{3}} \\
+B = \frac{z_{1} - z_{3}}{z_{2}z_{3}^{2} + z_{1}z_{2}^{2} + z_{1}^{2}z_{3} - z_{1}z_{3}^{2} - z_{1}^{2}z_{2} - z_{2}^{2}z_{3}} \\
+C = \frac{z_{2} - z_{1}}{z_{2}z_{3}^{2} + z_{1}z_{2}^{2} + z_{1}^{2}z_{3} - z_{1}z_{3}^{2} - z_{1}^{2}z_{2} - z_{2}^{2}z_{3}}
 \end{align}
 The resulting solution looks like this:
 \begin{align}
@@ -224,10 +224,10 @@ so the full solution including the terms used for the [[id:bc7e9e01-9721-4b3e-a8
 i(t) = V_{0}e^{i\phi}(Ae^{z_{1}t} + Be^{z_{2}t} + Ce^{z_{3}t}) + (i'(0) + i(0))(De^{z_{2}t} + Ee^{z_{3}t})
 \end{align}
 the sinusoidal part of the solution looks like this:
-\begin{equation}
+\begin{align}
 \label{}
 \frac{(z_{3} - z_{2})V_{0}e^{i\phi}e^{2\pi i\omega t}}{z_{2}z_{3}^{2} + z_{1}z_{2}^{2} + z_{1}^{2}z_{3} - z_{1}z_{3}^{2} - z_{1}^{2}z_{2} - z_{2}^{2}z_{3}}
-\end{equation}
+\end{align}
 
 * Mass-Spring System
 Starting from [[id:6e2a9d7b-7010-41da-bd41-f5b2dba576d3][Newtonian mechanics]] in a single dimension:

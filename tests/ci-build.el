@@ -11,9 +11,9 @@
 (princ "STEP 0: tf\n" (quote external-debugging-output))
 
 (setq noninteractive t)
-(setq system-email "lol@troll.com")
+(setq system-email "ci-runner@nullring.xyz")
 (setq system-username "ci-runner")
-(setq system-fullname "Preston Pan")
+(setq system-fullname "Preston Pan") ;; needed for postamble
 (setq system-gpgkey "00000000")
 (defun package-vc-install (&rest args) (message "blocked package-vc-install for %s" args))
 (defun package-vc--unpack (&rest args) nil)
@@ -39,5 +39,9 @@
 (setq gc-cons-threshold 100000000)
 (setq vc-handled-backends nil)
 (setq make-backup-files nil auto-save-default nil create-lockfiles nil)
+
+(require 'catppuccin-theme)
+(setq catppuccin-flavor 'mocha)
+(load-theme 'catppuccin t)
 
 (princ "STEP 1: init.el?\n" (quote external-debugging-output))

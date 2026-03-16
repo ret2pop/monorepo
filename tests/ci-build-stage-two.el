@@ -22,10 +22,6 @@
 
 (princ "STEP 5: before catppuccin\n" (quote external-debugging-output))
 
-(require 'catppuccin-theme)
-(setq catppuccin-flavor 'mocha)
-(load-theme 'catppuccin t)
-
 (defun my-ci-force-fontification ()
   "Ensure the buffer is fully colorized before htmlize touches it."
   (font-lock-ensure)

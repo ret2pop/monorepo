@@ -2,7 +2,6 @@
 #+STARTUP: showeverything
 #+DESCRIPTION: My daily journal entry
 #+AUTHOR: Preston Pan
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css" />
 * Saturday, 10 June 2023
 ** 15:04
 Today, I am with my friends, one of which wants to view my emacs configuration.

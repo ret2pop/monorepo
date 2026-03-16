@@ -1,49 +1,45 @@
-@font-face {
-    font-family: 'Lora';
-    font-style: normal;
-    font-weight: 500;
-    src: url('/fonts/Lora-Medium.woff2') format('woff2');
-    font-display: swap;
+@use 'sass:map';
+
+$fonts: (
+    ('Lora', 'Lora-Medium', 500, normal),
+    ('Inconsolata', 'Inconsolata-Regular', 400, normal),
+    ('STIX Two Math', 'STIXTwoMath-Regular', 400, normal),
+    ('CormorantGaramond', 'CormorantGaramond-Medium', 600, normal),
+    ('CormorantGaramond', 'CormorantGaramond-Bold', 700, normal),
+    ('CormorantGaramond', 'CormorantGaramond-MediumItalic', 700, italic),
+);
+
+$breakpoints: (
+    'mobile': 768px,
+    'toc': 1250px
+);
+
+/* text color, background color (hex) */
+$isa: (
+    ("info", #00529b, #bde5f8),
+    ("success", #4f8a10, #dff2bf),
+    ("warning", #9f6000, #fad776),
+    ("error", #d8000c, #feebe3)
+);
+
+@each $family, $file, $weight, $style in $fonts {
+    @font-face {
+        font-family: '#{$family}';
+        font-style: $style;
+        font-weight: $weight;
+        src: url('/fonts/#{$file}.woff2') format('woff2');
+        font-display: swap;
+    }
 }
 
-@font-face {
-    font-family: 'Inconsolata';
-    font-style: normal;
-    font-weight: 400;
-    src: url('/fonts/Inconsolata-Regular.woff2') format('woff2');
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'STIX Two Math';
-    font-style: normal;
-    font-weight: 400;
-    src: url('/fonts/STIXTwoMath-Regular.woff2') format('woff2');
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'CormorantGaramond';
-    font-style: normal;
-    font-weight: 600;
-    src: url('/fonts/CormorantGaramond-Medium.woff2') format('woff2');
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'CormorantGaramond';
-    font-style: normal;
-    font-weight: 700;
-    src: url('/fonts/CormorantGaramond-Bold.woff2') format('woff2');
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'CormorantGaramond';
-    font-style: italic;
-    font-weight: 500;
-    src: url('/fonts/CormorantGaramond-MediumItalic.woff2') format('woff2');
-    font-display: swap;
+@each $name, $textcolor, $bgcolor in $isa {
+    .isa_#{$name} {
+        color: $textcolor;
+        background-color: $bgcolor;
+        width: 90%;
+        margin: 10px 0;
+        padding: 12px;
+    }
 }
 
 @mixin hide-scrollbar {
@@ -53,17 +49,31 @@
 }
 
 @mixin horizontal-scroll {
-    display: block !important;
+    display: block;
     overflow-x: auto;
 }
+
+@mixin bp($name) {
+  $value: map.get($breakpoints, $name);
+
+  @if $value {
+    @media (max-width: $value) {
+      @content;
+    }
+  } @else {
+    @error "Screen size '#{$name}' is not defined in the $breakpoints map.";
+  }
+}
+
+@function accent_rgba($aval) { @return rgb(from var(--accent) r g b / $aval); }
 
 :root {
     --bg-main: #FBF8F1;
     --text-main: #4A3F35;
-    --toc-bg: #EAE3D2;
-    --toc-text: #4A3F35;
+    --text-highlight: #ffe066;
     --accent: #D4A373;
-    --link-color: #8C6239;
+    --toc-bg: #F2EFE7;
+    --link-color: #B0413E;
 
     --code-bg: #1e1e2e;
     --code-text: #cdd6f4;
@@ -72,14 +82,40 @@
     --font-serif: "Lora", serif;
     --font-mono: "Inconsolata", monospace;
     --font-header: "CormorantGaramond", serif;
+    --font-math: "STIX Two Math",'Latin Modern Math', serif;
 }
 
 ::selection {
-    color: white;
-    background: #ff4081;
+    color: var(--text-main);
+    background: var(--text-highlight);
 }
 
-*, *::before, *::after { box-sizing: border-box; }
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* scrollbar */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track { background: var(--bg-main); }
+
+::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--accent) 60%, var(--bg-main));
+    border-radius: 8px;
+    border: 3px solid var(--bg-main); 
+
+    &:hover {
+        background-color: var(--accent);
+    }
+}
+
+html {
+    scrollbar-color: color-mix(in srgb, var(--accent) 60%, var(--bg-main)) var(--bg-main);
+    scrollbar-width: thin;
+}
 
 body {
     background:
@@ -96,17 +132,21 @@ body {
     line-height: 1.75;
     font-weight: 500;
     font-variant-ligatures: common-ligatures;
-    -webkit-font-smoothing: antialiased;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center; 
     min-height: 100vh;
 
-    @media (max-width: 1250px) {
+    -webkit-font-smoothing: antialiased;
+
+    @include bp('toc') {
         padding-left: 0;
         font-size: 20px; 
     }
+}
+
+main, header, footer {
+    width: 100%;
+    max-width: 85ch;
+    padding: 1rem 20px;
+    margin: 0 auto;
 }
 
 h1, h2, h3 { line-height: 1.2; font-family: var(--font-header), serif; }
@@ -133,7 +173,7 @@ h2 {
     margin-top: 2.5rem;
     margin-bottom: 0.6rem;
 
-    @media (max-width: 768px) { font-size: 1.5rem; }
+    @include bp('mobile') { font-size: 1.5rem; }
 }
 
 h3 { font-size: 1.25rem; font-weight: 700; margin-top: 2rem; margin-bottom: 0.4rem; letter-spacing: 0.02em; }
@@ -142,16 +182,15 @@ h5 { font-size: 1rem; font-weight: 700; color: var(--link-color); }
 h6 { font-size: 0.85rem; font-weight: 400; text-transform: uppercase; letter-spacing: 1px; color: color-mix(in srgb, var(--text-main) 60%, transparent); }
 
 p, ul, ol { margin-top: 1rem; margin-bottom: 1rem; }
-p { margin: 1.2rem 0; }
-li { margin: 0.3rem 0; }
+li { margin-top: 0.3rem; }
 
-a {
-    cursor: pointer;
+a, .org-link {
     color: var(--link-color);
     text-decoration: underline;
     text-decoration-thickness: 2px;
     text-underline-offset: 4px;
     transition: all 0.2s ease-in-out;
+
     &:hover {
         color: color-mix(in srgb, var(--link-color) 80%, black); 
         text-decoration-thickness: 4px;
@@ -164,7 +203,7 @@ figure {
 }
 
 figcaption {
-    font-family: var(--text-serif);
+    font-family: var(--font-serif);
     font-size: 0.9rem;
     color: color-mix(in srgb, var(--text-main) 80%, gray);
     margin-top: 0.5rem;
@@ -177,6 +216,24 @@ img {
     max-width: 50%;
     width: auto;
     height: auto;
+    @include bp('mobile') { max-width: 100%; }
+}
+
+/* inline code blocks */
+:not(pre) > code {
+    font-family: var(--font-mono), monospace;
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.85em;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+pre {
+    font-family: var(--font-mono), monospace;
+    &.src-stem::before { content: "Stem"; }
 }
 
 blockquote {
@@ -191,6 +248,11 @@ blockquote {
     position: relative;
     background: color-mix(in srgb, var(--accent) 15%, transparent);
 
+    @include bp('mobile') {
+        padding: 1em 15px 1em 40px;
+        width: 100%;
+    }
+
     &::before {
         font-family: var(--font-serif), serif;
         content: "\201C";
@@ -203,114 +265,48 @@ blockquote {
     }
 }
 
-input {
-    padding: 10px 16px;
-    margin: 2px 0;
-    border: 2px solid #dabebe;
-    border-radius: 6px;
-    background: var(--bg-main);
-    color: var(--text-main);
-    font-size: 16px;
-    transition: 0.5s;
-    outline: none;
-    &:focus { border: 2px solid var(--text-main); }
-}
-
 math {
     display: inline-block;
     white-space: nowrap;
 
     &[display="block"] {
-        font-family: 'STIX Two Math', 'Latin Modern Math', serif;
+        font-family: var(--font-math);
         font-size: 1.3em;
-        min-width: 0 !important;
-        overflow-y: hidden !important;
+        min-width: 0;
+        overflow-y: hidden;
 
         & mtable {
-            margin-left: 0 !important;
-            text-align: left !important;
+            margin-left: 0;
+            text-align: left;
         }
 
-        & mtd { text-align: left !important; }
-
+        & mtd { text-align: left; }
         @include hide-scrollbar;
         @include horizontal-scroll;
     }
 }
 
-
-.button {
-    background-color: var(--bg-main);
-    border: none;
-    color: black;
-    padding: 6px 14px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    transition-duration: 0.4s;
-    cursor: pointer;
-    border: 2px solid var(--text-main);
-    border-radius: 6px;
-    &:hover { background-color: var(--text-main); color: white; }
-}
-
-header, .title + p, .subtitle + p {
-    margin-bottom: 3rem;
-    padding-bottom: 1rem;
-}
-
-#preamble {
-    padding-bottom: 0 !important;
-}
-
-#preamble hr {
-    margin-bottom: 0 !important; 
-}
-
-#content {
-    padding-top: 0 !important;
-}
-
 h1.title {
-    padding-top: 1.5rem !important; 
-}
-
-#preamble + hr, header + hr {
-    display: none !important;
-}
-
-#preamble, header {
-    padding-bottom: 0 !important;
-}
-
-h1.title {
-    margin-top: 0.5rem; /* Reduced from 3rem */
+    padding-top: 1.5rem; 
+    margin-top: 0.5rem;
 }
 
 .title {
     font-size: 2.6rem;
     margin-bottom: 0.5rem;
     text-align: center;
-}
 
-.subtitle {
-    display: block;
-    font-size: 1.2rem; 
-    text-align: center;
-    font-style: italic;
-    margin-top: 0.5rem;
-    font-family: var(--font-header), serif;
-}
-
-.title + .subtitle {
-    text-align: center;
-    font-style: italic;
-    padding-bottom: 30px;
-    margin-top: -10px;
-    color: #555;
-    display: block;
+    & .subtitle {
+        text-align: center;
+        font-style: italic;
+        padding-bottom: 30px;
+        /* maybe change */
+        margin-top: 10px;
+        color: #555;
+        display: block;
+        font-size: 1.2rem; 
+        font-family: var(--font-header), serif;
+    }
 }
 
 .author, .date {
@@ -336,39 +332,7 @@ h1.title {
     &:not(:last-child)::after { content: ", "; font-style: normal; }
 }
 
-.preamble {
-    font-family: var(--font-mono), monospace;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 10px;
-    color: color-mix(in srgb, var(--text-main) 50%, transparent); 
-    
-    a {
-        color: var(--text-main);
-        text-decoration: none;
-        padding: 4px 8px;
-        border-radius: 4px;
-        transition: all 0.2s ease;
-        &:hover {
-            background: color-mix(in srgb, var(--accent) 15%, transparent);
-            color: var(--link-color);
-        }
-    }
-
-    & + hr {
-        border: none;
-        height: 1px;
-        background: linear-gradient(to right, var(--accent), transparent);
-        margin-bottom: 0rem;
-        opacity: 0.5;
-
-        width: 100%;
-        max-width: 85ch;
-    }
-}
-
-.todo, .done {
+.todo, .done, .tag {
     font-family: var(--font-mono), monospace;
     font-size: 0.75em;
     font-weight: bold;
@@ -391,42 +355,35 @@ h1.title {
     border: 1px solid #8f9e76; 
 }
 
-.isa_info, .isa_success, .isa_warning, .isa_error { width: 90%; margin: 10px 0px; padding: 12px; }
-.isa_info { color: #00529b; background-color: #bde5f8; }
-.isa_success { color: #4f8a10; background-color: #dff2bf; }
-.isa_warning { color: #9f6000; background-color: #feefb3; }
-.isa_error { color: #d8000c; background-color: #ffd2d2; }
+.tag {
+    margin-left: 8px;
+    font-weight: normal;
+    color: color-mix(in srgb, var(--text-main) 80%, transparent);
+    background-color: color-mix(in srgb, var(--accent) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
 
 .theorem, .proof {
     display: block;
-    margin-left: 10px;
     font-style: normal;
     background: color-mix(in srgb, var(--accent) 8%, transparent);
     border-left: 3px solid var(--accent);
     padding: 1rem 1.3rem;
-    margin: 2rem 0;
+    margin-top: 2rem;
+    margin-left: 10px;
     &::before { float: left; font-weight: bold; }
 }
 
 .theorem { margin-bottom: 20px; &::before { content: "Theorem.\00a0\00a0"; } }
-.proof { margin-bottom: 30px; &::after { content: "\25FC"; float: right; } &::before { content: 'Proof.\00a0\00a0'; } }
-
-.links-page > ul { columns: 2; -webkit-columns: 2; -moz-columns: 2; }
-
-:not(pre) > code {
-    font-family: var(--font-mono), monospace;
-    background: var(--code-bg);
-    color: var(--code-text);
-    padding: 0.15em 0.4em;
-    border-radius: 4px;
-    font-size: 0.85em;
-    white-space: pre-wrap;
-    word-break: break-word;
+.proof {
+    margin-bottom: 30px;
+    &::after { content: "\25FC"; float: right; }
+    &::before { content: 'Proof.\00a0\00a0'; }
 }
 
-pre {
-    font-family: var(--font-mono), monospace;
-    &.src-stem::before { content: "Stem"; }
+.links-page > ul {
+    columns: 2;
+    @include bp('mobile') { columns: 1; }
 }
 
 .org-svg { width: 100%; max-width: none; }
@@ -441,7 +398,6 @@ pre {
     padding: 1rem;
     border-radius: 6px;
     font-size: 0.9rem;
-    box-shadow: none;
 
     &::before {
         position: absolute;
@@ -463,37 +419,15 @@ pre {
     margin: 1.2em 0;
     
     pre.src {
-        position: relative !important;
-        overflow: visible !important; 
-        background: var(--code-bg);
-        border-radius: 6px;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
+        overflow: visible; 
+        margin: 0;
+        border: none;
 
         & > code {
-            display: block;
-            overflow-x: auto;
             padding: 1.5rem 1rem 1rem 1rem;
             white-space: pre;
             @include hide-scrollbar;
-        }
-
-        &::before {
-            content: attr(data-language);
-            display: block !important;
-            position: absolute !important;
-            top: 0.5rem;
-            right: 0.5rem;
-            z-index: 20;
-            font-family: var(--font-mono), monospace;
-            font-size: 0.7rem;
-            color: var(--code-text);
-            background: var(--code-bg);
-            padding: 2px 8px;
-            border-radius: 4px;
-            opacity: 0.6;
-            pointer-events: none;
+            @include horizontal-scroll;
         }
     }
 }
@@ -506,7 +440,7 @@ pre {
     box-sizing: border-box;
 
     margin: 2rem 0;
-    background: rgba(212, 163, 115, 0.05);
+    background: accent_rgba(0.05);
     padding: 1.5rem;
     border-left: 2px solid var(--accent);
 
@@ -514,7 +448,7 @@ pre {
         grid-column: 2;
         text-align: center;
 
-        & math[display="block"] { margin: 0 !important; }
+        & math[display="block"] { margin: 0; }
         
         @include horizontal-scroll;
         @include hide-scrollbar;
@@ -532,26 +466,54 @@ pre {
     display: flex;
     flex-direction: column;
     align-items: center;
-}
 
-.figure p:last-of-type { 
-    font-size: 0.9rem; 
-    color: color-mix(in srgb, var(--text-main) 80%, gray); 
-    margin-top: 0.5rem; 
-    max-width: 80%; /* Keeps long captions from stretching too far */
+    p:last-of-type {
+        font-size: 0.9rem; 
+        color: color-mix(in srgb, var(--text-main) 80%, gray); 
+        margin-top: 0.5rem; 
+        max-width: 80%;
+    }
 }
 
 .figure-number {
     font-weight: 700;
+    font-family: var(--font-serif);
     color: var(--text-main);
 }
 
+#preamble {
+    margin-top: 10px;
+    margin-bottom: 0;
 
-#preamble, #content, #postamble, main, header {
-    width: 100%;
-    max-width: 85ch;
-    padding: 1rem 20px;
-    display: block; 
+    .preamble {
+        font-family: var(--font-mono), monospace;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: color-mix(in srgb, var(--text-main) 50%, transparent); 
+    }
+    
+    a {
+        color: var(--text-main);
+        text-decoration: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        &:hover {
+            background: color-mix(in srgb, var(--accent) 15%, transparent);
+            color: var(--link-color);
+        }
+    }
+
+    & hr {
+        border: none;
+        height: 1px;
+        background: linear-gradient(to right, var(--accent), transparent);
+        opacity: 0.5;
+
+        width: 100%;
+        margin: 1rem 0 0 0;
+    }
 }
 
 #table-of-contents {
@@ -578,7 +540,7 @@ pre {
         font-weight: bold;
         letter-spacing: 2px;
         color: var(--text-main);
-        border-bottom: 1px solid rgba(212, 163, 115, 0.2);
+        border-bottom: 1px solid accent_rgba(0.2);
         margin-bottom: 10px;
     }
 
@@ -598,8 +560,7 @@ pre {
             text-overflow: ellipsis;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             border-left: 3px solid transparent;
-            opacity: 1;
-            
+
             &, &:visited {
                 color: var(--text-main);
                 text-decoration: none;
@@ -619,34 +580,20 @@ pre {
                 font-size: 13px;
                 &:hover { padding-left: 38px; opacity: 1; }
             }
-            ul a {
-                padding-left: 64px;
-                opacity: 0.75;
-                &:hover { padding-left: 54px; }
+            ul{
+                a {
+                    padding-left: 64px;
+                    opacity: 0.75;
+                    &:hover { padding-left: 54px; }
+                }
             }
         }
     }
 
-    h2 { display: none !important; }
-
-    @media (max-width: 1250px) { display: none !important; }
+    h2 { display: none; }
+    @include bp('toc') { display: none; }
 }
 
 #postamble { text-align: center; }
 
-
-@media (max-width: 768px) {
-    blockquote, .src, .example {
-        max-width: 100%;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    img {
-        max-width: 100%;
-        width: auto; 
-    }
-
-    blockquote { padding: 1em 15px 1em 40px; }
-    .links-page > ul { columns: 1; -webkit-columns: 1; -moz-columns: 1; }
-}
+#content { padding-top: 0; }

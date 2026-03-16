@@ -11,6 +11,15 @@ project, it can be referenced here.
 
 * Tasks
 These are general life tasks that I need to do, which don't depend on a specific time or date.
+** TODO [#B] Monorepo
+- add an RSS feed of my blogs to my website.
+- finish up my SCSS abstractions and learning how to write in it (also finish touching up my CSS).
+- finish my automated testing matrix.
+- write more content to my website.
+- write a shell script to get passwords from my run path.
+- touch up emacs.
+- write tests for installer script.
+- write documentation
 ** TODO [#B] Nullring
 Update the nullring to be in org mode, and also include a couple more sites.
 ** TODO [#B] Umami

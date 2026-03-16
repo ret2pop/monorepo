@@ -2,7 +2,6 @@
 #+STARTUP: showeverything
 #+DESCRIPTION: My daily journal entry
 #+AUTHOR: Preston Pan
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css" />
 * Sunday, 11 June 2023
 ** 09:05
 Today, I am going to work more on the website. First of all,

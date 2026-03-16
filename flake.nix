@@ -29,7 +29,7 @@
       pkgs = import nixpkgs { inherit system; };
 
       emacsPackages = import  "${nixmacs}/modules/home/emacs-packages.nix";
-      ci-emacs = pkgs.emacs-nox.pkgs.withPackages emacsPackages;
+      ci-emacs = pkgs.emacs-gtk.pkgs.withPackages emacsPackages;
       specialArgs = { monorepoSelf = self; };
 
       installer = nixmacs.nixosConfigurations.installer.extendModules {
@@ -60,7 +60,7 @@
 
       topology = nixmacs.topology.x86_64-linux.config.output;
 
-      mkNotification = msg: ''curl -H "Priority: max" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "${msg}" ${ntfyHost}/ci-build'';
+      mkNotification = msg: ''curl -H "Priority: 4" -u "${internetName}:$(grep ADMIN_PASSWORD "${secretsPath}/${ntfyFile}" | cut -d "\"" -f 2)" -d "${msg}" ${ntfyHost}/ci-build'';
 
       pre-commit-check = git-hooks.lib.${system}.run {
         src = ./.;
@@ -131,10 +131,10 @@ if [ $BUILD_STATUS -eq 0 ] && [ -d "$RESULT_PATH" ]; then
       exit 1
     fi
 
-    INJECT_HASH="$(python3 tests/test-csp-hash.py "$RESULT_PATH/index.html")"
-    CSS_HASH="$(openssl dgst -sha256 -binary "$RESULT_PATH/combined.css" | openssl base64)"
+    INJECT_HASH="$(python3 tests/test-csp-hash.py "$RESULT_PATH/blog/index.html")"
+    HEADER_HASH="$(cat "$RESULT_PATH/csp_header.conf" | grep -oP "sha256-\K[^']+")"
 
-    if [ "$INJECT_HASH" != "$CSS_HASH" ]; then
+    if [ "$INJECT_HASH" != "$HEADER_HASH" ]; then
       echo "Security headers test failed!"
       ${mkNotification "CI checks failed: CSP hash mismatch!"}
       exit 1
@@ -217,6 +217,8 @@ fi
           pkgs.minify
           pkgs.woff2
           pkgs.openssl
+          pkgs.xvfb-run
+          pkgs.python3
 
           (pkgs.texlive.combine {
             inherit (pkgs.texlive)
@@ -242,15 +244,6 @@ cd $HOME/monorepo
 mkdir -p mindmap/img
 
 rsass style.scss | minify --type=css > style.css
-minify --type=css -o syntax.css syntax.css
-
-# I want to do this so I can generate the CSP policy carefully
-cat style.css syntax.css > combined.css
-
-CSS_HASH=$(openssl dgst -sha256 -binary combined.css | openssl base64)
-cat <<EOF > csp_header.conf
-add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'sha256-$CSS_HASH'; font-src 'self';";
-EOF
 
 cat <<EOF > $TMPDIR/policy.xml
 <policymap>
@@ -261,50 +254,21 @@ export MAGICK_CONFIGURE_PATH=$TMPDIR
 export FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf
 export FONTCONFIG_PATH=${pkgs.fontconfig.out}/etc/fonts/
 export XDG_CACHE_HOME=$TMPDIR/.cache
+printf "hello?\n"
 
-emacs -q --batch \
-  --eval '(setq noninteractive t)' \
-  --eval '(setq system-email "lol@troll.com")' \
-  --eval '(setq system-username "ci-runner")' \
-  --eval '(setq system-fullname "Preston Pan")' \
-  --eval '(setq system-gpgkey "00000000")' \
-  --eval '(defun package-vc-install (&rest args) (message "blocked package-vc-install for %s" args))' \
-  --eval '(defun package-vc--unpack (&rest args) nil)' \
-  --eval '(setq package-archives nil)' \
-  --eval '(setq use-package-always-ensure nil)' \
-  --eval '(setq package-vc-selected-packages nil)' \
-  --eval '(defalias (quote scroll-bar-mode) (quote ignore))' \
-  --eval '(defalias (quote tool-bar-mode) (quote ignore))' \
-  --eval '(defalias (quote menu-bar-mode) (quote ignore))' \
-  --eval '(provide (quote lean4-mode))' \
-  --eval '(provide (quote irony-mode))' \
-  --eval '(provide (quote irony))' \
-  --eval '(defalias (quote irony-cdb-autosetup-compile-options) (quote ignore))' \
-  --eval "(setq org-latex-pdf-process (quote (\"xelatex -shell-escape -interaction nonstopmode %f\")))" \
-  --eval '(setq org-startup-with-latex-preview nil)' \
-  --eval '(setq org-startup-indented nil)' \
-  --eval '(setq org-export-with-latex t)' \
-  --eval '(setq org-confirm-babel-evaluate nil)' \
-  --eval '(setq load-prefer-newer t)' \
-  --eval '(setq gc-cons-threshold 100000000)' \
-  --eval '(setq vc-handled-backends nil)' \
-  --eval '(setq make-backup-files nil auto-save-default nil create-lockfiles nil)' \
-  -l ${nixmacs}/init.el \
-  --eval '(setq custom-safe-themes t)' \
-  --eval '(setq org-roam-directory (expand-file-name "mindmap" (expand-file-name "~/monorepo")))' \
-  --eval '(setq org-id-track-globally t)' \
-  --eval '(org-roam-db-sync)' \
-  --eval '(setq term-file-prefix nil)' \
-  --eval '(force-mode-line-update)' \
-  --eval '(setq org-html-link-use-abs-url nil)' \
-  --eval '(setq default-directory (expand-file-name "~/monorepo"))' \
-  --eval '(setq org-html-link-use-abs-url nil)' \
-  --eval '(setq org-html-link-org-files-as-html t)' \
-  --eval '(require (quote htmlize))' \
-  --eval '(require (quote nix-mode))' \
-  --eval '(setq org-html-htmlize-output-type (quote css))' \
-  --eval '(org-publish-all t)' \
-  --eval '(org-publish-all nil)' || (echo "FAIL:" && cat /build/*.log && exit 1)
+export NIXMACS_DIR="${nixmacs}"
+
+xvfb-run -a emacs -q -l ${self}/tests/ci-runner.el || {
+  echo "FAIL: Emacs build crashed."
+  cat /build/*.log
+  exit 1
+}
+
+printf "after emacs\n"
+CSS_HASH="$(python3 $HOME/monorepo/tests/test-csp-hash.py $HOME/website_html/index.html)"
+cat <<EOF > $HOME/website_html/csp_header.conf
+add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'sha256-$CSS_HASH'; font-src 'self';";
+EOF
 
 echo "Setting up Graph View..."
 ${publish-org-roam-ui.packages.${system}.default}/bin/build-org-roam-graph \
@@ -382,6 +346,7 @@ spontaneity.succeed('printf "smoke again"')
         };
 
         packages."${system}" = {
+          default = website;
           website = website;
           installer = installer-iso;
           spontaneity = self.nixosConfigurations.spontaneity.config.system.build.toplevel;

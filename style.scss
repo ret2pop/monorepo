@@ -197,6 +197,57 @@ a, .org-link {
     }
 }
 
+dl {
+    margin: 1.5rem 0 2rem 0;
+}
+
+dt {
+    margin-top: 1rem;
+    font-family: var(--font-mono), monospace;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--text-main) 80%, transparent);
+}
+
+dd {
+    margin: 0.3rem 0 0 1.5rem;
+    color: var(--text-main);
+}
+
+table {
+    display: block;
+    table-layout: fixed;
+    width: 100%;
+
+    margin: 2rem 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    background: color-mix(in srgb, var(--accent) 4%, var(--bg-main));
+    @include horizontal-scroll;
+    @include hide-scrollbar;
+}
+
+th, td {
+    padding: 0.75rem 0.9rem;
+    text-align: left;
+    vertical-align: top;
+}
+
+thead th {
+    font-family: var(--font-mono), monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: color-mix(in srgb, var(--accent) 10%, var(--bg-main));
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+tbody tr + tr td {
+    border-top: 1px solid color-mix(in srgb, var(--text-main) 8%, transparent);
+}
+
 figure {
     margin: 2rem auto;
     text-align: center;
@@ -291,6 +342,30 @@ h1.title {
     margin-top: 0.5rem;
 }
 
+.underline {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+}
+
+.footdef .footpara, .footdef p {
+  display: inline;
+  margin: 0;
+}
+
+.footdef {
+    display: block;
+    sup {
+        display: inline;
+        vertical-align: super;
+        margin-right: 0.25em;
+    }
+}
+
+.footnotes-label-hidden {
+  display: none;
+}
+
 .title {
     font-size: 2.6rem;
     margin-bottom: 0.5rem;
@@ -332,7 +407,7 @@ h1.title {
     &:not(:last-child)::after { content: ", "; font-style: normal; }
 }
 
-.todo, .done, .tag {
+.todo, .done, .tag, .timestamp-wrapper {
     font-family: var(--font-mono), monospace;
     font-size: 0.75em;
     font-weight: bold;
@@ -355,12 +430,34 @@ h1.title {
     border: 1px solid #8f9e76; 
 }
 
+.timestamp-wrapper {
+    margin-left: 8px;
+    font-weight: normal;
+    color: #5e4a57;
+    background-color: #efe6eb;
+    border: 1px solid #c8b2bc;
+
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 32ch;
+    vertical-align: middle
+}
+
 .tag {
     margin-left: 8px;
     font-weight: normal;
     color: color-mix(in srgb, var(--text-main) 80%, transparent);
     background-color: color-mix(in srgb, var(--accent) 15%, transparent);
     border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 16ch;
+    vertical-align: middle
 }
 
 .theorem, .proof {
@@ -388,6 +485,18 @@ h1.title {
 
 .org-svg { width: 100%; max-width: none; }
 
+.verse {
+    width: fit-content;
+    max-width: min(100%, 38rem);
+    margin: 2rem auto;
+    padding: 1.25rem 1.5rem;
+    white-space: pre-wrap;
+    line-height: 1.9;
+    font-style: italic;
+    color: color-mix(in srgb, var(--text-main) 92%, transparent);
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
 .src, .example {
     @include hide-scrollbar;
     @include horizontal-scroll;
@@ -414,23 +523,52 @@ h1.title {
     }
 }
 
-.org-src-container {
-    position: relative;
-    margin: 1.2em 0;
-    
-    pre.src {
-        overflow: visible; 
-        margin: 0;
-        border: none;
-
-        & > code {
-            padding: 1.5rem 1rem 1rem 1rem;
-            white-space: pre;
-            @include hide-scrollbar;
-            @include horizontal-scroll;
-        }
-    }
+.org-center {
+    text-align: center;
 }
+
+// .org-src-container {
+//     position: relative;
+//     margin: 1.2em 0;
+//     color: var(--code-text);
+//     background: var(--code-bg);
+//     padding: 1.5rem 1rem 1rem 1rem;
+//     @include horizontal-scroll;
+//     @include hide-scrollbar;
+
+//     pre.src {
+//         overflow: visible;
+//         margin: 0;
+//         border: none;
+//         padding-inline-end: 1rem;
+//         box-sizing: border-box;
+//         & > code {
+//             white-space: pre;
+//         }
+//     }
+// }
+// .org-src-container {
+//     position: relative;
+//     margin: 1.2em 0;
+//     color: var(--code-text);
+//     background: var(--code-bg);
+//     padding: 1.5rem 1rem 1rem 1rem;
+//     overflow-x: auto;
+
+//     pre.src {
+//         margin: 0;
+//         border: none;
+//         overflow: visible;
+//     }
+
+//     pre.src > code {
+//         display: inline-block;
+//         min-width: 100%;
+//         white-space: pre;
+//         padding-inline-end: 1rem;
+//         box-sizing: border-box;
+//     }
+// }
 
 .equation-container {
     display: grid;
@@ -457,6 +595,28 @@ h1.title {
     .equation-label {
         grid-column: 3;
         justify-self: end;
+    }
+}
+
+.org-src-container {
+    position: relative;
+    margin: 1.2em 0;
+    color: var(--code-text);
+    background: var(--code-bg);
+    padding: 1.5rem 1rem 1rem 1rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    @include hide-scrollbar;
+
+    pre.src {
+        margin: 0;
+        border: none;
+        overflow: visible;
+        display: inline-block;
+        min-width: 100%;
+        width: max-content;
+        padding-right: 1rem;
+        box-sizing: border-box;
     }
 }
 
@@ -597,3 +757,17 @@ h1.title {
 #postamble { text-align: center; }
 
 #content { padding-top: 0; }
+
+#footnotes {
+  padding-top: 1rem;
+}
+
+#footnotes hr {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+#footnotes hr {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}

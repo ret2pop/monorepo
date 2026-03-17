@@ -12,12 +12,12 @@ project, it can be referenced here.
 * Tasks
 These are general life tasks that I need to do, which don't depend on a specific time or date.
 ** TODO [#B] Monorepo
-- [ ] add an RSS feed of my blogs to my website.
+- [X] add an RSS feed of my blogs to my website.
 - [X] finish up my SCSS abstractions and learning how to write in it (also finish touching up my CSS).
+- [X] touch up emacs.
 - [ ] finish my automated testing matrix.
 - [ ] write more content to my website.
 - [ ] write a shell script to get passwords from my run path.
-- [X] touch up emacs.
 - [ ] write tests for installer script.
 - [ ] write documentation
 ** TODO [#B] Nullring

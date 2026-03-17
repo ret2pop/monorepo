@@ -358,7 +358,7 @@ ${pre-commit-check.shellHook}
 git config branch.main.mergeoptions "--no-ff"
 alias gprune='git branch --merged | grep -v -E "^\*|main|master|dev" | xargs -r git branch -d'
 alias serve='cd result; python3 -m http.server 10005'
-alias build='nix build .#website && ${mkNotification "CI build done!"} '
+alias build='nix build .#website -L && ${mkNotification "CI build done!"} '
 alias check='nix flake check; ${mkNotification "flake checks done!"} '
 '';
           buildInputs = [

@@ -16,15 +16,17 @@ These are general life tasks that I need to do, which don't depend on a specific
 - [X] finish up my SCSS abstractions and learning how to write in it (also finish touching up my CSS).
 - [X] touch up emacs.
 - [ ] finish my automated testing matrix.
-- [ ] write more content to my website.
 - [ ] write a shell script to get passwords from my run path.
 - [ ] write tests for installer script.
 - [ ] write documentation
+- [ ] add Raspberry Pi cross compiled system to ~nixmacs~.
+  - [ ] Should have integration tests.
+  - [ ] Should have a basic git server with git LFS.
+  - [ ] Should have an SSH server.
+  - [ ] Should have simple cronjobs.
+- [ ] 
 ** TODO [#B] Nullring
 Update the nullring to be in org mode, and also include a couple more sites.
-** TODO [#B] Umami
-My client server protocol needs to continue to be written. I also need to make a git repository
-for it.
 ** TODO RTOS
 Write an RTOS for ARM and an emulator maybe?
 ** TODO Advanced Amateur Radio License
@@ -47,8 +49,8 @@ I want to make an analogue computer.
 ** TODO QFT
 ** TODO GM
 ** TODO Complex Analysis
-** TODO Topology
-** TODO Measure Theory
+** DONE Topology
+** DONE Measure Theory
 ** TODO Category Theory
 ** TODO ZK Proof Deep Dive
 * Scheduled tasks
@@ -59,6 +61,13 @@ These are tasks related to my appointments which have to be at a specific time.
 ** Friends
 These are tasks related to seeing my friends. There will be tasks listed here when I schedule
 something.
+** Chores
+*** TODO Buy Fish Oil
+DEADLINE: <2026-03-18 Wed>
+*** TODO Take Out Trash
+DEADLINE: <2026-03-18 Wed>
+*** TODO Do Dishes
+DEADLINE: <2026-03-18 Wed>
 * Habits
 These are some habits I want to track. They are repeated according to a calendar schedule in
 general.
@@ -160,11 +169,12 @@ Stretches:
 - Seal
 - Cat
 ** TODO Journal
-SCHEDULED: <2025-09-29 Mon .+1d>
+SCHEDULED: <2026-03-18 Wed .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-09-28 Sun 20:52]
+:LAST_REPEAT: [2026-03-17 Tue 02:05]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2026-03-17 Tue 02:05]
 - State "DONE"       from "TODO"       [2025-09-28 Sun 20:52]
 - State "DONE"       from "TODO"       [2025-09-24 Wed 07:08]
 - State "DONE"       from "TODO"       [2025-09-17 Wed 03:40]

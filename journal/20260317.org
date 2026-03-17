@@ -1,0 +1,10 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Tuesday, 17 March 2026
+** 02:01 
+Well, I think I'm done a lot of the monorepo related stuff except for tests related to RSS/sitemap generation.
+Honestly, It's been pretty fun to work so intensely on something again.

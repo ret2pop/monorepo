@@ -73,10 +73,11 @@ DEADLINE: <2026-03-18 Wed>
 These are some habits I want to track. They are repeated according to a calendar schedule in
 general.
 ** TODO Skincare
-SCHEDULED: <2025-10-17 Fri .+1d>
+SCHEDULED: <2026-03-20 Fri .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-10-16 Thu 18:06]
+:LAST_REPEAT: [2026-03-19 Thu 03:36]
 :END:
+- State "DONE"       from "TODO"       [2026-03-19 Thu 03:36]
 - State "DONE"       from "TODO"       [2025-10-16 Thu 18:06]
 Current stack:
 - Retinol (2x/day)
@@ -147,11 +148,12 @@ SCHEDULED: <2025-09-29 Mon .+1d>
 - State "DONE"       from "TODO"       [2025-06-26 Thu 23:22]
 I want to be able to run or bike every day so that I get my exercise in.
 ** TODO Stretch
-SCHEDULED: <2025-09-25 Thu .+1d>
+SCHEDULED: <2026-03-20 Fri .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-09-24 Wed 07:08]
+:LAST_REPEAT: [2026-03-19 Thu 03:36]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2026-03-19 Thu 03:36]
 - State "DONE"       from "TODO"       [2025-09-24 Wed 07:08]
 - State "DONE"       from "TODO"       [2025-09-21 Sun 06:57]
 - State "DONE"       from "TODO"       [2025-09-17 Wed 03:40]
@@ -203,11 +205,12 @@ SCHEDULED: <2026-03-19 Thu .+1d>
 I want to journal every day, at least a little bit, about my life and track it with a git repo.
 ** TODO Update Agenda
 :PROPERTIES:
-:LAST_REPEAT: [2026-03-18 Wed 22:51]
+:LAST_REPEAT: [2026-03-19 Thu 03:36]
 :END:
+- State "DONE"       from "TODO"       [2026-03-19 Thu 03:36]
 - State "DONE"       from "TODO"       [2026-03-18 Wed 22:51]
 If I didn't update the agenda today, take my agenda with a grain of salt.
-SCHEDULED: <2026-03-19 Thu .+1d>
+SCHEDULED: <2026-03-20 Fri .+1d>
 ** TODO Start Vacuum Robot
 Start the vacuum robot so that it can clean the floor, every day.
 SCHEDULED: <2025-10-16 Thu .+1d>

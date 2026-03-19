@@ -7,139 +7,136 @@
 * Feed :elfeed:
 This is the feed I use for Elfeed, and the elfeed-org package allows me to publish
 them here in an automated fashion. This is why Emacs is so great!
-* News :news:
+** News                                                                  :news:
 These are the news articles that I subscribe to. Some of these are politics related
 but I mostly just want to inform myself about technology subjects.
-** [[https://news.ycombinator.com/rss][Hacker News]]
+*** [[https://news.ycombinator.com/rss][Hacker News]]
 Hacker News!
-** [[https://www.propublica.org/feeds/propublica/main][Propublica]]
+*** [[https://www.propublica.org/feeds/propublica/main][Propublica]]
 Free news! 
-** [[https://api.quantamagazine.org/feed/][Quanta Magazine]]
+*** [[https://api.quantamagazine.org/feed/][Quanta Magazine]]
 Credibility: misreported on ER EPR correspondence
-** [[https://rss.acm.org/technews/technews.rss][ACM TechNews]] :technology:computer-science:
+*** [[https://rss.acm.org/technews/technews.rss][ACM TechNews]] :technology:computer-science:
 Curated technology and computing news summaries for professionals.
-* Podcasts :podcast:
-** [[https://notrelated.xyz/rss][Not Related]] :lukesmith:
+** Podcasts                                                           :podcast:
+*** [[https://notrelated.xyz/rss][Not Related]]                                                      :lukesmith:
 This is a podcast by Luke Smith that talks about anything that he wants to.
-* Forums :forum:
-** [[http://lesserwrong.com/feed.xml][LessWrong]]
+** Forums                                                               :forum:
+*** [[http://lesserwrong.com/feed.xml][LessWrong]]
 The birthplace of bay area rationalism.
-** [[https://list.nullring.xyz/discussion/new.atom][Nullring Discussion]]
+*** [[https://list.nullring.xyz/discussion/new.atom][Nullring Discussion]]
 My own mailing list feed.
-* Science Journals :journal:
+** Science Journals                                                   :journal:
 I like to get new information about recent studies related to technology.
-** [[http://www.nature.com/nmat/current_issue/rss/][Nature]]
+*** [[http://www.nature.com/nmat/current_issue/rss/][Nature]]
 Nature is a prestigious journal with a good bit of good content.
-** NASA :nasa:
+*** NASA                                                                  :nasa:
 This is a list of NASA feeds:
-*** [[https://www.nasa.gov/technology/feed/][NASA Tech]]
-*** [[https://www.nasa.gov/aeronautics/feed/][NASA Aeronautics]]
-*** [[https://www.nasa.gov/missions/station/feed/][NASA Station]]
-*** [[https://www.nasa.gov/missions/artemis/feed/][NASA Artemis]]
-* YouTube :youtube:
+**** [[https://www.nasa.gov/technology/feed/][NASA Tech]]
+**** [[https://www.nasa.gov/aeronautics/feed/][NASA Aeronautics]]
+**** [[https://www.nasa.gov/missions/station/feed/][NASA Station]]
+**** [[https://www.nasa.gov/missions/artemis/feed/][NASA Artemis]]
+** YouTube                                                            :youtube:
 These are YouTube channels that I find interesting enough to keep up with. Note that I keep
 up with a variety of thinkers that I may or may not disagree with, but they are nonetheless
 the most intellectual version of what their general cohort say:
-** [[https://youtube.com/feeds/videos.xml?channel_id=UCTsiZiMomJo6FOyiBaFeaIw][IAI]]
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UCTsiZiMomJo6FOyiBaFeaIw][IAI]]
 Videos that include many public intellectuals. Some of them are dumb I guess however it's interesting enough to put on this feed.
-** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCoxcjq-8xIDTYp3uz647V5A][Numberphile]] :math:
+*** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCoxcjq-8xIDTYp3uz647V5A][Numberphile]]                                                           :math:
 Math-heavy popularization that is usually worth keeping around.
-** [[https://youtube.com/feeds/videos.xml?channel_id=UCFQMnBA3CS502aghlcr0_aw][CoffeeZilla]]
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UCFQMnBA3CS502aghlcr0_aw][CoffeeZilla]]
 Exposes scams.
-** [[https://youtube.com/feeds/videos.xml?channel_id=UC28n0tlcNSa1iPe5mettocg][VoidZilla]]
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UC28n0tlcNSa1iPe5mettocg][VoidZilla]]
 Extras from coffezilla channel.
-** [[https://youtube.com/feeds/videos.xml?channel_id=UC1qIX2Ya5ErOrU9tv0GVUAw][CyberYamu]]
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UC1qIX2Ya5ErOrU9tv0GVUAw][CyberYamu]]
 A channel about the daily experience of a schizotypal girl.
-** [[https://youtube.com/feeds/videos.xml?channel_id=UCwVevVbti5Uuxj6Mkl5NHRA][Lemonade Stand]]
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UCwVevVbti5Uuxj6Mkl5NHRA][Lemonade Stand]]
 Podcast channel that talks about modern day economics.
-** [[https://youtube.com/feeds/videos.xml?channel_id=UCSHZKyawb77ixDdsGog4iWA][Lex Fridman]]
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UCSHZKyawb77ixDdsGog4iWA][Lex Fridman]]
 He has some good guests on sometimes.
-** [[https://youtube.com/feeds/videos.xml?channel_id=UCXl4i9dYBrFOabk0xGmbkRA][Dwarkesh Patel]]
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UCXl4i9dYBrFOabk0xGmbkRA][Dwarkesh Patel]]
 Makes podcasts whose guests are usually AI researchers of some kind.
-** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC1yNl2E66ZzKApQdRuTQ4tw][Sabine Hossenfelder]]
+*** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC1yNl2E66ZzKApQdRuTQ4tw][Sabine Hossenfelder]]
 Youtube channel about mostly physics related content (I do not endorse her views on string theory).
-** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC7_gcs09iThXybpVgjHZ_7g][PBS Space Time]]
+*** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC7_gcs09iThXybpVgjHZ_7g][PBS Space Time]]
 PBS space time is a channel that discusses various (sometimes cutting edge) topics in Physics in an expert manner.
 I find that they are highly accurate, and the host is highly educated in Physics.
-** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCWvq4kcdNI1r1jZKFw9TiUA][ScienceClic]]
+*** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCWvq4kcdNI1r1jZKFw9TiUA][ScienceClic]]
 ScienceClic is another YouTube channel that does an especially good job at covering cutting edge ideas in physics.
-** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCMxiv15iK_MFayY_3fU9loQ][UnHerd]] :podcast:
+*** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCMxiv15iK_MFayY_3fU9loQ][UnHerd]]                                                             :podcast:
 UnHerd is one of the best, most interesting political podcasts, period, in my opinion. Though, do note that learning
 about politics is kind of pointless.
-** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC8oZG4c6FzOX4pbdpZBeCPw][Huey Li]]
+*** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC8oZG4c6FzOX4pbdpZBeCPw][Huey Li]]
 He's a comedian and kind of a China hater.
-** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC554eY5jNUfDq3yDOJYirOQ][Destiny]]
+*** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC554eY5jNUfDq3yDOJYirOQ][Destiny]]
 He debates people on various issues.
-** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCYO_jab_esuFRV4b17AJtAw][3blue1brown]]
+*** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCYO_jab_esuFRV4b17AJtAw][3blue1brown]]
 Makes really good educational videos. I hope to make videos like this one day.
-** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC2eYFnH61tmytImy1mTYvhA][Luke Smith]]
+*** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC2eYFnH61tmytImy1mTYvhA][Luke Smith]]
 Makes good videos about Linux and life stuff.
-** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCSNBahoyPlMUz-3U2e_Czcw][Bridges]] :podcast:
+*** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCSNBahoyPlMUz-3U2e_Czcw][Bridges]]                                                            :podcast:
 This podcast is run by Destiny, and it features good guests.
-** [[https://youtube.com/feeds/videos.xml?channel_id=UCgv4dPk_qZNAbUW9WkuLPSA][Atrioc]]
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UCgv4dPk_qZNAbUW9WkuLPSA][Atrioc]]
 Features some good marketing and economics content. Big A is his secondary channel.
-** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCdBXOyqr8cDshsp7kcKDAkg][Big A]]
+*** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCdBXOyqr8cDshsp7kcKDAkg][Big A]]
 Marketing Monday features good economics content.
-** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCTpmmkp1E4nmZqWPS-dl5bg][Quanta Magazine]]
+*** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCTpmmkp1E4nmZqWPS-dl5bg][Quanta Magazine]]
 See above.
-** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC5PPbhNfajmhPq7RvkMgVmw][Ceadda of Mercia]]
+*** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC5PPbhNfajmhPq7RvkMgVmw][Ceadda of Mercia]]
 Videos about NRx.
-** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC7YOGHUfC1Tb6E4pudI9STA][Mental Outlaw]]
+*** [[https://www.youtube.com/feeds/videos.xml?channel_id=UC7YOGHUfC1Tb6E4pudI9STA][Mental Outlaw]]
 Linux videos.
-** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCU1oodg2ptN51N5rwevwnng][Unlearning Economics]]
+*** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCU1oodg2ptN51N5rwevwnng][Unlearning Economics]]
 Videos about economics from a Marxist perspective.
-** [[https://youtube.com/feeds/videos.xml?channel_id=UCHnyfMqiRRG1u-2MsSQLbXA][Veritasium]]
+*** [[https://youtube.com/feeds/videos.xml?channel_id=UCHnyfMqiRRG1u-2MsSQLbXA][Veritasium]]
 Makes good educational videos.
-* ActivityPub :activitypub:
-** Mastodon :mastodon:
-*** [[https://mathstodon.xyz/@tao.rss][Terence Tao (Mastodon)]] :tao:math:mastodon:
+** ActivityPub                                                    :activitypub:
+*** Mastodon                                                          :mastodon:
+**** [[https://mathstodon.xyz/@tao.rss][Terence Tao (Mastodon)]]                                   :tao:math:mastodon:
 His Mastodon features really great public outreach content.
-*** [[https://mathstodon.xyz/@peterwoit.rss][Peter Woit]] :math:mastodon:
+**** [[https://mathstodon.xyz/@peterwoit.rss][Peter Woit]]    :math:mastodon:
 Mathematician and physicist.
-** Blogs :blog:
+*** Blogs                                                              :blog:
 Here are some interesting blogs, many of which are from substack.
-*** [[https://www.interfluidity.com/feed][Interfluidity]]
+**** [[https://www.interfluidity.com/feed][Interfluidity]]
 A blog focused on economics but from an informed point of view.
-*** [[https://ollama.com/blog/rss.xml][Ollama]]
+**** [[https://ollama.com/blog/rss.xml][Ollama]]
 For new updates to new LLM models that I can pull with ollama.
-*** [[https://terrytao.wordpress.com/feed/][Terence Tao]] :tao:math:
+**** [[https://terrytao.wordpress.com/feed/][Terence Tao]]         :tao:math:
 I like math.
-*** [[https://lukesmith.xyz/index.xml][Luke Smith]] :lukesmith:
+**** [[https://lukesmith.xyz/index.xml][Luke Smith]]              :lukesmith:
 Luke Smith is quite the interesting person.
-*** [[https://www.worksinprogress.news/feed][Works in Progress Newsletter]] :progress:technology:economics:
+**** [[https://www.worksinprogress.news/feed][Works in Progress Newsletter]] :progress:technology:economics:
 Long-form writing on progress, technology, industrial policy, and history.
-*** [[https://www.slowboring.com/feed][Slow Boring]] :policy:politics:economics:urbanism:
+**** [[https://www.slowboring.com/feed][Slow Boring]] :policy:politics:economics:urbanism:
 Pragmatic policy writing with a decent amount of housing, institutions, and state capacity.
-*** [[https://www.astralcodexten.com/feed][Astral Codex Ten]] :rationalism:essay:science:
+**** [[https://www.astralcodexten.com/feed][Astral Codex Ten]] :rationalism:essay:science:
 Long-form essays on science, philosophy, psychiatry, culture, and rationalist topics.
-*** [[https://asteriskmag.com/feed][Asterisk Magazine]] :science:technology:economics:magazine:
+**** [[https://asteriskmag.com/feed][Asterisk Magazine]] :science:technology:economics:magazine:
 Progress-oriented magazine covering science, technology, economics, and culture.
-*** [[https://blog.rootsofprogress.org/feed.xml][The Roots of Progress]] :progress:history:technology:
+**** [[https://blog.rootsofprogress.org/feed.xml][The Roots of Progress]] :progress:history:technology:
 Jason Crawford on the history of technology and the philosophy of progress.
-*** [[https://www.grumpy-economist.com/feed][The Grumpy Economist]] :economics:markets:
+**** [[https://www.grumpy-economist.com/feed][The Grumpy Economist]] :economics:markets:
 John Cochrane on macroeconomics, markets, policy, and economic theory.
-*** [[https://feeds.feedburner.com/marginalrevolution][Marginal Revolution]] :economics:policy:links:
+**** [[https://feeds.feedburner.com/marginalrevolution][Marginal Revolution]] :economics:policy:links:
 Tyler Cowen and Alex Tabarrok on economics, policy, books, and assorted links.
-*** [[https://scholars-stage.org/feed/][The Scholar's Stage]] :history:geopolitics:strategy:
+**** [[https://scholars-stage.org/feed/][The Scholar's Stage]] :history:geopolitics:strategy:
 Tanner Greer on history, geopolitics, statecraft, and civilizational analysis.
-*** [[https://scottaaronson.blog/?feed=rss2][Shtetl-Optimized]] :math:physics:quantum:compsci:
+**** [[https://scottaaronson.blog/?feed=rss2][Shtetl-Optimized]]                              :math:physics:quantum:compsci:
 Scott Aaronson on quantum computing, theoretical CS, mathematics, and science.
-*** Substack :substack:
+**** Substack                                                          :substack:
 These are a list of all the substack blogs that exist.
-**** [[https://highcapacity.org/feed][High Capacity]]
+***** [[https://highcapacity.org/feed][High Capacity]]
 Writing about China's economics.
-**** [[https://www.construction-physics.com/feed][Construction Physics]]
+***** [[https://www.construction-physics.com/feed][Construction Physics]]
 More writings about economics.
-**** [[https://graymirror.substack.com/feed][Gray Mirror]]
+***** [[https://graymirror.substack.com/feed][Gray Mirror]]
 Curtis Yarvin is quite the interesting person.
-**** [[https://www.richardhanania.com/feed][Richard Hanania]]
+***** [[https://www.richardhanania.com/feed][Richard Hanania]]
 Richard is a political commentator.
-**** [[https://paulkrugman.substack.com/feed][Paul Krugman]]
+***** [[https://paulkrugman.substack.com/feed][Paul Krugman]]
 He makes good economics blogs as he used to be a professional economist.
-**** [[https://www.overcomingbias.com/feed][Overcoming Bias]]
+***** [[https://www.overcomingbias.com/feed][Overcoming Bias]]
 Makes the case for the glorious reign of Futarchy!! (Not what you think it is).
-**** [[https://betonit.ai/feed][Bryan Caplan]]
+***** [[https://betonit.ai/feed][Bryan Caplan]]
 Anarcho Capitalist person.
-
-
-

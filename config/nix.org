@@ -3273,6 +3273,7 @@ in
       lang-haskell.enable = lib.mkDefault config.monorepo.profiles.enable;
       lang-idris.enable = lib.mkDefault config.monorepo.profiles.enable;
       lang-agda.enable = lib.mkDefault config.monorepo.profiles.enable;
+      lang-scheme.enable = lib.mkDefault config.monorepo.profiles.enable;
 
       crypto.enable = lib.mkDefault config.monorepo.profiles.enable;
       art.enable = lib.mkDefault config.monorepo.profiles.enable;
@@ -3502,7 +3503,6 @@ epkgs: [
   epkgs.projectile
   epkgs.rustic
   epkgs.s
-  epkgs.scheme-mode
   epkgs.solaire-mode
   epkgs.scad-mode
   epkgs.simple-httpd
@@ -3560,7 +3560,7 @@ the timezone.
 My iamb profile. Note that iamb does not support calling (obviously, as it is a terminal app), but the nice thing about it is that I can set it up
 declaratively, so in case element-desktop stops working because of lack of declarative setup, I can still use this.
 #+begin_src nix :tangle ../nix/modules/home/iamb.nix
-{ super, config, ... }:
+{ super, lib, config, ... }:
 {
   programs.iamb = {
     enable = lib.mkDefault config.monorepo.profiles.graphics.enable;

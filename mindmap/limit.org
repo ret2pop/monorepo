@@ -90,7 +90,6 @@ In fact, this is sort of analogous to currying in the theory of computer science
 How do we know the space is compact? We know that $Y$ is compact because $[0, 1]$ is compact, and we apply Tychonoff's theorem. How do we know that
 $\overline{\phi(X)}$ is compact? It is closed and a subset of a compact set. However, what we have /not/ shown thus far is that $\phi(X)$ is truly an embedding. To see
 this, the completely regular property of $X$ saves the day; if we /didn't/ have this property, then it would be possible for some two points to /never/ be
-separated by any function, and then you'd lose the one-to-one property of $\phi$.
-\begin{align}
-\lim x_{\alpha}
-\end{align}
+separated by any function, and then you'd lose the one-to-one property of $\phi$. Also, $\phi$ is clearly always continuous; we use the property that
+$\pi_{\alpha}\circ \phi(x) = f_{\alpha}(x)$, and $\phi$ is continuous iff its projections $f_{\alpha}$ are continuous. Now all we need to show is that $\phi^{-1}$ is continuous, which we can
+also do with the completely regular property.

@@ -24,7 +24,8 @@ These are general life tasks that I need to do, which don't depend on a specific
   - [ ] Should have a basic git server with git LFS.
   - [ ] Should have an SSH server.
   - [ ] Should have simple cronjobs.
-- [ ] 
+- [ ] Gitolite
+- [ ] AI Agent integration
 ** TODO [#B] Nullring
 Update the nullring to be in org mode, and also include a couple more sites.
 ** TODO RTOS
@@ -62,9 +63,9 @@ These are tasks related to my appointments which have to be at a specific time.
 These are tasks related to seeing my friends. There will be tasks listed here when I schedule
 something.
 ** Chores
-*** TODO Buy Fish Oil
+*** DONE Buy Fish Oil
 DEADLINE: <2026-03-18 Wed>
-*** TODO Take Out Trash
+*** DONE Take Out Trash
 DEADLINE: <2026-03-18 Wed>
 *** TODO Do Dishes
 DEADLINE: <2026-03-18 Wed>
@@ -83,11 +84,12 @@ Current stack:
 - Hyaluronic acid (2x/day)
 - Glycerin for hands
 ** TODO Supplements
-SCHEDULED: <2025-10-01 Wed .+1d>
+SCHEDULED: <2026-03-19 Thu .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-09-30 Tue 13:20]
+:LAST_REPEAT: [2026-03-18 Wed 22:51]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2026-03-18 Wed 22:51]
 - State "DONE"       from "TODO"       [2025-09-30 Tue 13:20]
 - State "DONE"       from "TODO"       [2025-09-28 Sun 20:52]
 - State "DONE"       from "TODO"       [2025-09-24 Wed 07:07]
@@ -169,11 +171,12 @@ Stretches:
 - Seal
 - Cat
 ** TODO Journal
-SCHEDULED: <2026-03-18 Wed .+1d>
+SCHEDULED: <2026-03-19 Thu .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-03-17 Tue 02:05]
+:LAST_REPEAT: [2026-03-18 Wed 23:16]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2026-03-18 Wed 23:16]
 - State "DONE"       from "TODO"       [2026-03-17 Tue 02:05]
 - State "DONE"       from "TODO"       [2025-09-28 Sun 20:52]
 - State "DONE"       from "TODO"       [2025-09-24 Wed 07:08]
@@ -199,8 +202,12 @@ SCHEDULED: <2026-03-18 Wed .+1d>
 - State "DONE"       from "TODO"       [2025-01-11 Sat 02:25]
 I want to journal every day, at least a little bit, about my life and track it with a git repo.
 ** TODO Update Agenda
+:PROPERTIES:
+:LAST_REPEAT: [2026-03-18 Wed 22:51]
+:END:
+- State "DONE"       from "TODO"       [2026-03-18 Wed 22:51]
 If I didn't update the agenda today, take my agenda with a grain of salt.
-SCHEDULED: <2025-10-16 Thu .+1d>
+SCHEDULED: <2026-03-19 Thu .+1d>
 ** TODO Start Vacuum Robot
 Start the vacuum robot so that it can clean the floor, every day.
 SCHEDULED: <2025-10-16 Thu .+1d>

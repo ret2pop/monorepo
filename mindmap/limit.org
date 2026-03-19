@@ -67,3 +67,30 @@ s_{0} \le ... \le s_{n} \le s_{n + 1} \le s_{n + 2} \le ... \le M
 \end{align}
 
 #+end_proof
+** Limits as Objects
+Limits can also be objects. This is most aptly demonstrated in more abstract fields of mathematics such as algebraic topology,
+where the central "object of importance" (a common theme in math is one where you have an object of importance) is the net.
+Specifically, the limits of universal nets have a deep relation to compactness, but here we will explore the most informative and essential
+form of this idea and its algebraic properties. We will quickly go over the one-point compactification, and then introduce the stone-cech
+compactification after.
+*** One Point Compactification
+:PROPERTIES:
+:ID:       339b32e7-ad89-40d7-8b11-5b293bd1056f
+:END:
+*** Stone Cech Compcatification
+:PROPERTIES:
+:ID:       14bebb09-2e38-4b55-adc0-97ba571331af
+:END:
+We can construct the Stone Cech Compcatification on a completely regular topological space $X$, which will require a specific construction
+but will at least give us the Hausdorff property in the compactified space. To start, let $A$ be the set of all $f_{\alpha}: X \rightarrow [0, 1]_{\alpha}$  such that $f$ is
+continuous (with $\alpha$ being an arbitrary but consistent index), and let us define a Tychonoff space $Y = \prod_{\alpha \in A}[0, 1]_{\alpha}$  and an embedding $\phi: X \rightarrow Y$
+where the embedding $\phi$ is defined as $(\phi(x))_{\alpha }= f_{\alpha}(x)$. Then the idea is that the /closure/ of $\phi(X)$ in $Y$ is a compactification of $X$.
+In fact, this is sort of analogous to currying in the theory of computer science.
+
+How do we know the space is compact? We know that $Y$ is compact because $[0, 1]$ is compact, and we apply Tychonoff's theorem. How do we know that
+$\overline{\phi(X)}$ is compact? It is closed and a subset of a compact set. However, what we have /not/ shown thus far is that $\phi(X)$ is truly an embedding. To see
+this, the completely regular property of $X$ saves the day; if we /didn't/ have this property, then it would be possible for some two points to /never/ be
+separated by any function, and then you'd lose the one-to-one property of $\phi$.
+\begin{align}
+\lim x_{\alpha}
+\end{align}

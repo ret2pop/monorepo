@@ -7,7 +7,7 @@
 * Configuration
 ** Imports
 We start with imports:
-#+begin_src python :tangle config.py
+#+begin_src python :tangle ../nix/qutebrowser.py
 from pathlib import Path
 from urllib.parse import urlparse
 # import catppuccin

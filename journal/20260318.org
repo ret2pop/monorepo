@@ -1,0 +1,11 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Wednesday, 18 March 2026
+** 22:52 
+I figured out how to reduce ragebait online by filtering my RSS feed much more aggressively
+with LLM-generated regexes. It's really great because it means my feed stays extremely high quality,
+because I filter out the worst content of each feed and keep the best.

@@ -1,0 +1,14 @@
+#+title: Book Reviews
+#+author: Preston Pan
+#+description: A review of many books that I've read over the years
+#+date: [2026-03-18 Wed]
+
+#+language: en
+#+OPTIONS: broken-links:t
+* Introduction
+I've read many non-fiction and mathematics related books over the years, and I'm trying to do some reviews of all
+of them for other people to perhaps reference.
+* Mathematics
+| Title  | Subtopic                                 | Description                                                                                                      | Review | /10 |
+| Bredon | Algebraic Topology/Differential Geometry | A book that really contains everything that you might want to know about algebraic topology from start to finish |        |     |
+|        |                                          |                                                                                                                  |        |     |

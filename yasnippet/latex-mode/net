@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: net
+# key: net
+# --
+$\lbrace $0_{\alpha} \rbrace$

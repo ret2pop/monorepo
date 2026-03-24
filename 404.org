@@ -85,6 +85,16 @@ You know what, I could have lorum ipsum'd all of this, but instead I have writte
 #+begin_example
 lol, you really think this example means anything? Well, luckily for you, it does not.
 #+end_example
+I can also write some nice theorems and proofs:
+#+begin_theorem
+If $X$ is a locally compact Hausdorff space and I am your dad, then $Y$ is your grandmother.
+#+end_theorem
+
+#+begin_proof
+We will use proof by contradiction. Suppose $Y$ was not your grandmother, then for all $x \in X$ there exists an open neighborhood $U$ such that $\overline{U}$ is compact,
+yet because I am your dad, I must live in every compact neighborhood that you live in, so really if you think of me as a net I am everywhere all at
+once. So the only way I could not do that is if your grandmother was my mom and I had to take care of her in her old age. Contradiction!
+#+end_proof
 These are really all important specialised visual elements that I use in order to style my website. Though there are also some other notable org-mode
 related ones:
 * TODO Wow, Look
@@ -131,7 +141,6 @@ These are all great albums. See? If you've discovered something here, you haven'
 - [X] Check number three
 * Links and Inline Markup
 Here is an [[https://ret2pop.net][external link]], a [[./index.html][relative link]], *bold*, /italic/, _underline_, +strike+, =verbatim=, and ~code~.
-
 * Description List
 - Org :: Powerful plaintext editing
 - CSS :: The worst possible system anyone could have designed

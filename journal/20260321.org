@@ -1,0 +1,9 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Saturday, 21 March 2026
+** 10:26 
+I'm in Victoria and I'm finished review on Stone-Cech compactification.

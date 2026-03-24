@@ -1564,25 +1564,19 @@ does not support conduit at the moment. Note that this is not fully declarative 
 ** Ollama
 Use ollama for serving large language models to my other computers.
 #+begin_src nix :tangle ../nix/modules/ollama.nix
-{ config, lib, pkgs, ... }:
-{
-  # services.open-webui.enable = lib.mkDefault (!config.monorepo.profiles.server.enable);
-  services.ollama = {
-    enable = lib.mkDefault config.monorepo.profiles.desktop.enable;
-    package = if (config.monorepo.profiles.cuda.enable) then pkgs.ollama-cuda else pkgs.ollama-vulkan;
-    loadModels = if (config.monorepo.profiles.cuda.enable) then [
-      "qwen3:30b"
-      "qwen3-coder:latest"
-      "qwen2.5-coder:latest"
-      "gemma3:12b-it-qat"
-    ] else [
-      "qwen3:0.6b"
-      "qwen2.5-coder:0.5b"
-    ];
-    host = "0.0.0.0";
-    openFirewall = true;
-  };
-}
+  { config, lib, pkgs, ... }:
+  {
+    # services.open-webui.enable = lib.mkDefault (!config.monorepo.profiles.server.enable);
+    services.ollama = {
+      enable = lib.mkDefault config.monorepo.profiles.desktop.enable;
+      package = if (config.monorepo.profiles.cuda.enable) then pkgs.ollama-cuda else pkgs.ollama-vulkan;
+      loadModels = if (config.monorepo.profiles.cuda.enable) then [
+      ] else [
+      ];
+      host = "0.0.0.0";
+      openFirewall = true;
+    };
+  }
 #+end_src
 ** Bitcoind
 #+begin_src nix :tangle ../nix/modules/bitcoin.nix
@@ -4629,6 +4623,7 @@ standard.
     };
 
     shellAliases = {
+      ret2pop-serve = "devd -ol ~/website_html/";
       clone-secrets = "git clone ssh://\"$1\"/home/preston/secrets \"$HOME/secrets\"";
       get-channel-id = "yt-dlp --print \"%(channel_id)s\" --playlist-end 1 \"$1\"";
       se = "sops edit";
@@ -4648,7 +4643,7 @@ standard.
     };
     loginExtra = ''
         if [[ "$(tty)" = "/dev/tty1" ]]; then
-            exec Hyprland
+            exec start-hyprland
         fi
       '';
   };
@@ -4714,7 +4709,7 @@ for these configurations.
       pavucontrol alsa-utils imagemagick ffmpeg helvum
 
       # Net
-      curl rsync gitFull ungoogled-chromium
+      curl rsync gitFull ungoogled-chromium devd
 
       # Tor
       torsocks tor-browser

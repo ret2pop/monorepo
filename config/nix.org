@@ -92,6 +92,10 @@ and now for the main flake:
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    catppuccin-qutebrowser = {
+      url = "github:catppuccin/qutebrowser";
+      flake = false;
+    };
   };
 
   outputs = {
@@ -2356,6 +2360,33 @@ We must put Nixpkgs in another configuration because we don't want to include it
   };
 }
 #+end_src
+** QTile
+#+begin_src nix :tangle ../nix/modules/qtile.nix
+{ lib, config, ... }:
+{
+    services.xserver.windowManager.qtile = {
+    enable = lib.mkDefault config.monorepo.profiles.desktop.enable;
+
+    extraPackages = python3Packages: with python3Packages; [
+      qtile-extras
+    ];
+  };
+}
+#+end_src
+** Libinput
+#+begin_src nix :tangle ../nix/modules/libinput.nix
+{ lib, config, ... }:
+{
+  services.libinput = {
+    enable = lib.mkDefault config.monorepo.profiles.desktop.enable;
+    mouse = {
+      dev = "/dev/input/by-id/usb-047d_80fd-event-mouse";
+      scrollMethod = "button";
+      scrollButton = 276;
+    };
+  };
+}
+#+end_src
 ** Main Configuration
 This is the backbone of the all the NixOS configurations, with all these options being shared
 because they enhance security.
@@ -3352,7 +3383,7 @@ be straightforward.
 #+end_src
 *** QuteBrowser
 #+begin_src nix :tangle ../nix/modules/home/qutebrowser.nix
-{ lib, config, ... }:
+{ lib, config, catppuccin-qutebrowser, ... }:
 {
   programs.qutebrowser = {
     enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
@@ -3365,7 +3396,27 @@ be straightforward.
     };
     settings = {
       content.blocking.method = "both";
+      fonts.default_family = "Lora";
+      fonts.default_size = "12pt";
+
+      # Command/completion UI
+      fonts.statusbar = "12pt Lora";
+      fonts.completion.entry = "12pt Lora";
+      fonts.completion.category = "bold 12pt Lora";
+      fonts.prompts = "12pt Lora";
+
+      # Tabs
+      fonts.tabs.selected = "12pt Lora";
+      fonts.tabs.unselected = "12pt Lora";
+
+      # Hints
+      fonts.hints = "bold 12pt Lora";
     };
+    extraConfig = (builtins.readFile "${catppuccin-qutebrowser}/setup.py") +
+''
+config.load_autoconfig()
+setup(c, "mocha", True)
+'';
   };
 }
 #+end_src
@@ -3423,105 +3474,107 @@ as an org file which gets automatically tangled to an emacs-lisp file.
 **** Emacs Packages
 I want to separate out these packages so that my parent flake which builds my website has a list of my packages.
 #+begin_src nix :tangle ../nix/modules/home/emacs-packages.nix
-epkgs: [
-  epkgs.all-the-icons
-  epkgs.agda2-mode
-  epkgs.auctex
-  epkgs.catppuccin-theme
-  epkgs.company
-  epkgs.company-box
-  epkgs.company-solidity
-  epkgs.counsel
-  epkgs.centaur-tabs
-  epkgs.dash
-  epkgs.dashboard
-  epkgs.doom-themes
-  epkgs.doom-modeline
-  epkgs.indent-bars
-  epkgs.irony
-  epkgs.elfeed
-  epkgs.elfeed-org
-  epkgs.elfeed-tube
-  epkgs.elfeed-tube-mpv
-  epkgs.elpher
-  epkgs.ement
-  epkgs.emmet-mode
-  epkgs.emms
-  epkgs.engrave-faces
-  epkgs.enwc
-  epkgs.evil
-  epkgs.evil-collection
-  epkgs.evil-commentary
-  epkgs.evil-org
-  epkgs.f
-  epkgs.flycheck
-  epkgs.geiser
-  epkgs.geiser-chez
-  epkgs.general
-  epkgs.git-gutter
-  epkgs.gptel
-  epkgs.gruvbox-theme
-  epkgs.haskell-mode
-  epkgs.htmlize
-  epkgs.idris-mode
-  epkgs.irony-eldoc
-  epkgs.ivy
-  epkgs.ivy-posframe
-  epkgs.latex-preview-pane
-  epkgs.lsp-ivy
-  epkgs.lsp-mode
-  epkgs.lsp-haskell
-  epkgs.lyrics-fetcher
-  epkgs.mastodon
-  epkgs.magit
-  epkgs.magit-delta
-  epkgs.mu4e
-  epkgs.mixed-pitch
-  epkgs.minuet
-  epkgs.nix-mode
-  epkgs.ox-rss
-  epkgs.ob-nix
-  epkgs.org-contrib
-  epkgs.org-ql
-  epkgs.org-super-agenda
-  epkgs.org-fragtog
-  epkgs.org-journal
-  epkgs.org-modern
-  epkgs.org-roam
-  epkgs.org-roam-ui
-  epkgs.page-break-lines
-  epkgs.password-store
-  epkgs.pdf-tools
-  epkgs.pinentry
-  epkgs.platformio-mode
-  epkgs.projectile
-  epkgs.rustic
-  epkgs.s
-  epkgs.solaire-mode
-  epkgs.scad-mode
-  epkgs.simple-httpd
-  epkgs.solidity-flycheck
-  epkgs.solidity-mode
-  epkgs.sudo-edit
-  epkgs.treemacs
-  epkgs.treemacs-evil
-  epkgs.treemacs-magit
-  epkgs.treemacs-projectile
-  epkgs.treemacs-all-the-icons
-  epkgs.all-the-icons-ivy-rich
-  epkgs.treesit-auto
-  epkgs.typescript-mode
-  epkgs.use-package
-  epkgs.vterm
-  epkgs.wgrep
-  epkgs.web-mode
-  epkgs.websocket
-  epkgs.which-key
-  epkgs.writegood-mode
-  epkgs.writeroom-mode
-  epkgs.yaml-mode
-  epkgs.yasnippet
-  epkgs.yasnippet-snippets
+epkgs: with epkgs; [
+  all-the-icons
+  agda2-mode
+  auctex
+  catppuccin-theme
+  company
+  company-box
+  company-solidity
+  counsel
+  centaur-tabs
+  dash
+  dashboard
+  doom-themes
+  doom-modeline
+  indent-bars
+  irony
+  elfeed
+  elfeed-org
+  elfeed-tube
+  elfeed-tube-mpv
+  elpher
+  ement
+  emmet-mode
+  emms
+  engrave-faces
+  enwc
+  evil
+  evil-collection
+  evil-commentary
+  evil-org
+  f
+  flycheck
+  geiser
+  geiser-chez
+  general
+  git-gutter
+  gptel
+  gruvbox-theme
+  haskell-mode
+  htmlize
+  idris-mode
+  irony-eldoc
+  ivy
+  ivy-posframe
+  latex-preview-pane
+  lsp-ivy
+  lsp-mode
+  lsp-haskell
+  lyrics-fetcher
+  mastodon
+  magit
+  magit-delta
+  mu4e
+  mixed-pitch
+  minuet
+  nix-mode
+  ox-rss
+  ob-nix
+  org-alert
+  org-contrib
+  org-ql
+  org-super-agenda
+  org-fragtog
+  org-journal
+  org-modern
+  org-roam
+  org-roam-ui
+  page-break-lines
+  password-store
+  pdf-tools
+  pinentry
+  platformio-mode
+  projectile
+  polymode
+  rustic
+  s
+  solaire-mode
+  scad-mode
+  simple-httpd
+  solidity-flycheck
+  solidity-mode
+  sudo-edit
+  treemacs
+  treemacs-evil
+  treemacs-magit
+  treemacs-projectile
+  treemacs-all-the-icons
+  all-the-icons-ivy-rich
+  treesit-auto
+  typescript-mode
+  use-package
+  vterm
+  wgrep
+  web-mode
+  websocket
+  which-key
+  writegood-mode
+  writeroom-mode
+  yaml-mode
+  yasnippet
+  yasnippet-snippets
 ]
 #+end_src
 *** Gammastep
@@ -3561,7 +3614,7 @@ declaratively, so in case element-desktop stops working because of lack of decla
     settings = {
       default_profile = "personal";
       profiles.personal = {
-        user_id = "${super.monorepo.vars.internetName}@matrix.${super.monorepo.vars.orgHost}";
+        user_id = "@${super.monorepo.vars.internetName}:matrix.${super.monorepo.vars.orgHost}";
       };
       image_preview.protocol = {
         type = "kitty";
@@ -3641,208 +3694,6 @@ Make sure those are set correctly. I've set it to sign by default.
   };
 }
 #+end_src
-*** Hyprland
-My compositor/window manager. This automatically starts on startup. Instructions on how
-to use this component will come soon.
-#+begin_src nix :tangle ../nix/modules/home/hyprland.nix
-{ lib, config, wallpapers, pkgs, scripts, ... }:
-{
-  wayland.windowManager.hyprland = {
-    enable = lib.mkDefault config.monorepo.profiles.hyprland.enable;
-    package = pkgs.hyprland;
-    xwayland.enable = true;
-    systemd.enable = true;
-    settings = {
-      "$mod" = "SUPER";
-      bezier = [
-        "overshot, 0.05, 0.9, 0.1, 1.05"
-      ];
-      animation = [
-        # "workspaces, 1, 10, overshot"
-        "windows, 1, 2, default"
-        "workspaces, 1, 2, default, slidefade 20%"
-      ];
-      exec-once = [
-        "waybar"
-        "swww-daemon --format xrgb"
-        "sh -c 'swww img \"$(find ${wallpapers} -type f \\( -iname \"*.jpg\" -o -iname \"*.png\" \\) | shuf -n1)\"'"
-        "fcitx5-remote -r"
-        "fcitx5 -d --replace"
-        "fcitx5-remote -r"
-        "emacs"
-        "qutebrowser"
-      ];
-      env = [
-        "LIBVA_DRIVER_NAME,nvidia"
-        "XDG_SESSION_TYPE,wayland"
-        "GBM_BACKEND,nvidia-drm"
-        "__GLX_VENDOR_LIBRARY_NAME,nvidia"
-        "ELECTRON_OZONE_PLATFORM_HINT,auto"
-      ];
-
-      monitor = [
-        "DP-4,2560x1440@165.000000,0x0,1"
-        "Unknown-1,disable"
-      ];
-
-      layerrule = [
-        {
-          name = "waybar blur";
-          "match:namespace" = "waybar";
-          blur = "on";
-        }
-      ];
-
-      windowrule = [ 
-        {
-          name = "emacs";
-          "match:class" = "emacs";
-          workspace = 1;
-        }
-        {
-          name = "librewolf";
-          "match:class" = "librewolf";
-          workspace = 2;
-        }
-        {
-          name = "qutebrowser";
-          "match:class" = "qutebrowser";
-          workspace = 2;
-        }
-        {
-          name = "chromium-browser";
-          "match:class" = "chromium-browser";
-          workspace = 2;
-        }
-        {
-          name = "signal";
-          "match:class" = "signal";
-          workspace = 3;
-        }
-        {
-          name = "Element";
-          "match:class" = "Element";
-          workspace = 3;
-        }
-        {
-          name = "pavucontrol";
-          "match:class" = "pavucontrol";
-          workspace = 4;
-        }
-        {
-          name = "qpwgraph";
-          "match:class" = "qpwgraph";
-          workspace = 4;
-        }
-        {
-          name = "mpv";
-          "match:class" = "mpv";
-          workspace = 4;
-        }
-      ];
-
-      bind = [
-        "$mod, F, exec, qutebrowser"
-        "$mod, Return, exec, kitty"
-        "$mod, E, exec, emacs"
-        "$mod, B, exec, bitcoin-qt"
-        "$mod, S, exec, pavucontrol"
-        "$mod, M, exec, monero-wallet-gui"
-        "$mod, V, exec, element-desktop"
-        "$mod, C, exec, signal-desktop"
-        "$mod, D, exec, wofi --show run"
-        "$mod, P, exec, bash ${scripts}/powermenu.sh"
-        "$mod, Q, killactive"
-        "$mod SHIFT, H, movewindow, l"
-        "$mod SHIFT, L, movewindow, r"
-        "$mod SHIFT, K, movewindow, u"
-        "$mod SHIFT, J, movewindow, d"
-
-        "$mod SHIFT, T, togglefloating"
-        "$mod SHIFT, F, fullscreen"
-
-        "$mod, H, movefocus, l"
-        "$mod, L, movefocus, r"
-        "$mod, K, movefocus, u"
-        "$mod, J, movefocus, d"
-        ", XF86AudioPlay, exec, mpc toggle"
-        ", Print, exec, grim"
-
-        "$mod, right, resizeactive, 30 0"
-        "$mod, left, resizeactive, -30 0"
-        "$mod, up, resizeactive, 0 -30"
-        "$mod, down, resizeactive, 0 30"
-      ]
-      ++ (
-        builtins.concatLists (builtins.genList
-          (
-            x:
-            let
-              ws =
-                let
-                  c = (x + 1) / 10;
-                in
-                  builtins.toString (x + 1 - (c * 10));
-            in
-              [
-                "$mod, ${ws}, workspace, ${toString (x + 1)}"
-                "$mod SHIFT, ${ws}, movetoworkspace, ${toString (x + 1)}"
-              ]
-          )
-          10)
-      );
-      bindm = [
-        "$mod, mouse:272, movewindow"
-        "$mod, mouse:273, resizewindow"
-        "$mod ALT, mouse:272, resizewindow"
-      ];
-      binde = [
-        ", XF86AudioRaiseVolume, exec, wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+"
-        ", XF86AudioLowerVolume, exec, wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%-"
-        ", XF86AudioNext, exec, mpc next"
-        ", XF86AudioPrev, exec, mpc prev"
-        ", XF86MonBrightnessUp , exec, xbacklight -inc 10"
-        ", XF86MonBrightnessDown, exec, xbacklight -dec 10"
-      ];
-      decoration = {
-        blur = {
-          enabled = true;
-          size = 9;
-          passes = 4;
-          contrast = 0.8;
-          brightness = 1.1;
-          noise = 0.02;
-          new_optimizations = true;
-          ignore_opacity = true;
-          xray = false;
-        };
-        rounding = 5;
-      };
-      input = {
-        scroll_method = "on_button_down";
-        scroll_button = 276;
-        sensitivity = -0.5;
-        kb_options = "caps:swapescape";
-        repeat_delay = 300;
-        repeat_rate = 50;
-        natural_scroll = false;
-        touchpad = {
-          natural_scroll = true;
-          disable_while_typing = true;
-          tap-to-click = true;
-        };
-      };
-      cursor = {
-        no_hardware_cursors = true;
-      };
-      misc = {
-        force_default_wallpaper = 0;
-        disable_hyprland_logo = true;
-      };
-    };
-  };
-}
-#+end_src
 *** Kitty
 I've set my terminal, kitty, to use catppuccin colors.
 #+begin_src nix :tangle ../nix/modules/home/kitty.nix
@@ -3855,7 +3706,7 @@ I've set my terminal, kitty, to use catppuccin colors.
       font_family = "Iosevka Nerd Font";
       font_size = 14;
       confirm_os_window_close = 0;
-      background_opacity = "0.7";
+      background_opacity = "1";
       # Catppuccin theme
       foreground = "#cdd6f4";
       background = "#1e1e2e";
@@ -3896,26 +3747,6 @@ I've set my terminal, kitty, to use catppuccin colors.
       color14 = "#94E2D5";
       color7 = "#BAC2DE";
       color15 = "#A6ADC8";
-    };
-  };
-}
-#+end_src
-*** Mako
-This is my notification system. My flake automatically fetches the notification sound, so you
-are all set from the get-go!
-#+begin_src nix :tangle ../nix/modules/home/mako.nix
-{ lib, config, sounds, ... }:
-{
-  services.mako = {
-    enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
-    settings = {
-      on-notify = "exec mpv ${sounds}/polite.ogg --no-config --no-video";
-      background-color = "#11111bf8";
-      text-color = "#cdd6f4";
-      border-color = "#89b4faff";
-      border-radius = 1;
-      font = "Fira Code 10";
-      default-timeout = 3000;
     };
   };
 }
@@ -4051,7 +3882,6 @@ here:
       profile = "gpu-hq";
       force-window = true;
       ytdl-format = "bestvideo+bestaudio";
-      cache-default = 4000000;
     };
   };
 }
@@ -4086,475 +3916,18 @@ here:
   };
 }
 #+end_src
-*** Waybar
-This is the bar I use for my hyprland configuration. You will need to adjust the monitors field
-in the ~default.nix~ for it to really appear.
-#+begin_src nix :tangle ../nix/modules/home/waybar.nix
-{ lib, config, super, ... }:
+*** QTile
+#+begin_src nix :tangle ../nix/modules/home/qtile.nix
+{ sounds, wallpapers, pkgs, ... }:
+let
+  qtilePaths = pkgs.writeText "qtile-paths.py" ''
+WALLPAPER = "${wallpapers}/pastel-city.png"
+SOUND = "${sounds}/nice.wav"
+  '';
+in
 {
-  programs.waybar = {
-    enable = lib.mkDefault config.monorepo.profiles.hyprland.enable;
-    style = ''
-        ,* {
-            border: none;
-            border-radius: 0px;
-            font-family: Iosevka Nerd Font, FontAwesome, Noto Sans CJK;
-            font-size: 14px;
-            font-style: normal;
-            min-height: 0;
-        }
-
-        window#waybar {
-            background: rgba(30, 30, 46, 0.5);
-            border-bottom: 1px solid #45475a;
-            color: #cdd6f4;
-        }
-
-        #workspaces {
-          background: #45475a;
-          margin: 5px 5px 5px 5px;
-          padding: 0px 5px 0px 5px;
-          border-radius: 16px;
-          border: solid 0px #f4d9e1;
-          font-weight: normal;
-          font-style: normal;
-        }
-        #workspaces button {
-            padding: 0px 5px;
-            border-radius: 16px;
-            color: #a6adc8;
-        }
-
-        #workspaces button.active {
-            color: #f4d9e1;
-            background-color: transparent;
-            border-radius: 16px;
-        }
-
-        #workspaces button:hover {
-                background-color: #cdd6f4;
-                color: black;
-                border-radius: 16px;
-        }
-
-        #custom-date, #clock, #battery, #pulseaudio, #network, #custom-randwall, #custom-launcher {
-                background: transparent;
-                padding: 5px 5px 5px 5px;
-                margin: 5px 5px 5px 5px;
-          border-radius: 8px;
-          border: solid 0px #f4d9e1;
-        }
-
-        #custom-date {
-                color: #D3869B;
-        }
-
-        #custom-power {
-                color: #24283b;
-                background-color: #db4b4b;
-                border-radius: 5px;
-                margin-right: 10px;
-                margin-top: 5px;
-                margin-bottom: 5px;
-                margin-left: 0px;
-                padding: 5px 10px;
-        }
-
-        #tray {
-            background: #45475a;
-            margin: 5px 5px 5px 5px;
-            border-radius: 16px;
-            padding: 0px 5px;
-            /*border-right: solid 1px #282738;*/
-        }
-
-        #clock {
-            color: #cdd6f4;
-            background-color: #45475a;
-            border-radius: 0px 0px 0px 24px;
-            padding-left: 13px;
-            padding-right: 15px;
-            margin-right: 0px;
-            margin-left: 10px;
-            margin-top: 0px;
-            margin-bottom: 0px;
-            font-weight: bold;
-            /*border-left: solid 1px #282738;*/
-        }
-
-        #battery {
-            color: #89b4fa;
-        }
-
-        #battery.charging {
-            color: #a6e3a1;
-        }
-
-        #battery.warning:not(.charging) {
-            background-color: #f7768e;
-            color: #f38ba8;
-            border-radius: 5px 5px 5px 5px;
-        }
-
-        #backlight {
-            background-color: #24283b;
-            color: #db4b4b;
-            border-radius: 0px 0px 0px 0px;
-            margin: 5px;
-            margin-left: 0px;
-            margin-right: 0px;
-            padding: 0px 0px;
-        }
-
-        #network {
-            color: #f4d9e1;
-            border-radius: 8px;
-            margin-right: 5px;
-        }
-
-        #pulseaudio {
-            color: #f4d9e1;
-            border-radius: 8px;
-            margin-left: 0px;
-        }
-
-        #pulseaudio.muted {
-            background: transparent;
-            color: #928374;
-            border-radius: 8px;
-            margin-left: 0px;
-        }
-
-        #custom-randwall {
-            color: #f4d9e1;
-            border-radius: 8px;
-            margin-right: 0px;
-        }
-
-        #custom-launcher {
-            color: #e5809e;
-            background-color: #45475a;
-            border-radius: 0px 24px 0px 0px;
-            margin: 0px 0px 0px 0px;
-            padding: 0 20px 0 13px;
-            /*border-right: solid 1px #282738;*/
-            font-size: 20px;
-        }
-
-        #custom-launcher button:hover {
-            background-color: #FB4934;
-            color: transparent;
-            border-radius: 8px;
-            margin-right: -5px;
-            margin-left: 10px;
-        }
-
-        #custom-playerctl {
-                background: #45475a;
-                padding-left: 15px;
-          padding-right: 14px;
-                border-radius: 16px;
-          /*border-left: solid 1px #282738;*/
-          /*border-right: solid 1px #282738;*/
-          margin-top: 5px;
-          margin-bottom: 5px;
-          margin-left: 0px;
-          font-weight: normal;
-          font-style: normal;
-          font-size: 16px;
-        }
-
-        #custom-playerlabel {
-            background: transparent;
-            padding-left: 10px;
-            padding-right: 15px;
-            border-radius: 16px;
-            /*border-left: solid 1px #282738;*/
-            /*border-right: solid 1px #282738;*/
-            margin-top: 5px;
-            margin-bottom: 5px;
-            font-weight: normal;
-            font-style: normal;
-        }
-
-        #window {
-            background: #45475a;
-            padding-left: 15px;
-            padding-right: 15px;
-            border-radius: 16px;
-            /*border-left: solid 1px #282738;*/
-            /*border-right: solid 1px #282738;*/
-            margin-top: 5px;
-            margin-bottom: 5px;
-            font-weight: normal;
-            font-style: normal;
-        }
-
-        #custom-wf-recorder {
-            padding: 0 20px;
-            color: #e5809e;
-            background-color: #1E1E2E;
-        }
-
-        #cpu {
-            background-color: #45475a;
-            /*color: #FABD2D;*/
-            border-radius: 16px;
-            margin: 5px;
-            margin-left: 5px;
-            margin-right: 5px;
-            padding: 0px 10px 0px 10px;
-            font-weight: bold;
-        }
-
-        #memory {
-            background-color: #45475a;
-            /*color: #83A598;*/
-            border-radius: 16px;
-            margin: 5px;
-            margin-left: 5px;
-            margin-right: 5px;
-            padding: 0px 10px 0px 10px;
-            font-weight: bold;
-        }
-
-        #disk {
-            background-color: #45475a;
-            /*color: #8EC07C;*/
-            border-radius: 16px;
-            margin: 5px;
-            margin-left: 5px;
-            margin-right: 5px;
-            padding: 0px 10px 0px 10px;
-            font-weight: bold;
-        }
-
-        #custom-hyprpicker {
-            background-color: #45475a;
-            /*color: #8EC07C;*/
-            border-radius: 16px;
-            margin: 5px;
-            margin-left: 5px;
-            margin-right: 5px;
-            padding: 0px 11px 0px 9px;
-            font-weight: bold;
-        }
-      '';
-    settings = {
-      mainBar = {
-        layer = "top";
-        position = "top";
-        height = 50;
-
-        output = super.monorepo.vars.monitors;
-
-        modules-left = [ "hyprland/workspaces" ];
-        modules-center = [ "hyprland/window" ];
-        modules-right = [ "battery" "clock" ];
-
-        battery = {
-          format = "{icon}  {capacity}%";
-          format-icons = ["" "" "" "" "" ];
-        };
-
-        clock = {
-          format = "⏰ {:%a %d, %b %H:%M}";
-        };
-      };
-    };
-  };
-}
-#+end_src
-*** Wofi
-This is a run launcher for wayland. I also use it for my powermenu.
-#+begin_src nix :tangle ../nix/modules/home/wofi.nix
-{ lib, config, ... }:
-{
-  programs.wofi = {
-    enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
-    settings = {
-      location = "bottom-right";
-      allow_markup = true;
-      show = "drun";
-      width = 750;
-      height = 400;
-      always_parse_args = true;
-      show_all = false;
-      term = "kitty";
-      hide_scroll = true;
-      print_command = true;
-      insensitive = true;
-      prompt = "Run what, Commander?";
-      columns = 2;
-    };
-
-    style = ''
-      @define-color     rosewater  #f5e0dc;
-      @define-color     rosewater-rgb  rgb(245, 224, 220);
-      @define-color     flamingo  #f2cdcd;
-      @define-color     flamingo-rgb  rgb(242, 205, 205);
-      @define-color     pink  #f5c2e7;
-      @define-color     pink-rgb  rgb(245, 194, 231);
-      @define-color     mauve  #cba6f7;
-      @define-color     mauve-rgb  rgb(203, 166, 247);
-      @define-color     red  #f38ba8;
-      @define-color     red-rgb  rgb(243, 139, 168);
-      @define-color     maroon  #eba0ac;
-      @define-color     maroon-rgb  rgb(235, 160, 172);
-      @define-color     peach  #fab387;
-      @define-color     peach-rgb  rgb(250, 179, 135);
-      @define-color     yellow  #f9e2af;
-      @define-color     yellow-rgb  rgb(249, 226, 175);
-      @define-color     green  #a6e3a1;
-      @define-color     green-rgb  rgb(166, 227, 161);
-      @define-color     teal  #94e2d5;
-      @define-color     teal-rgb  rgb(148, 226, 213);
-      @define-color     sky  #89dceb;
-      @define-color     sky-rgb  rgb(137, 220, 235);
-      @define-color     sapphire  #74c7ec;
-      @define-color     sapphire-rgb  rgb(116, 199, 236);
-      @define-color     blue  #89b4fa;
-      @define-color     blue-rgb  rgb(137, 180, 250);
-      @define-color     lavender  #b4befe;
-      @define-color     lavender-rgb  rgb(180, 190, 254);
-      @define-color     text  #cdd6f4;
-      @define-color     text-rgb  rgb(205, 214, 244);
-      @define-color     subtext1  #bac2de;
-      @define-color     subtext1-rgb  rgb(186, 194, 222);
-      @define-color     subtext0  #a6adc8;
-      @define-color     subtext0-rgb  rgb(166, 173, 200);
-      @define-color     overlay2  #9399b2;
-      @define-color     overlay2-rgb  rgb(147, 153, 178);
-      @define-color     overlay1  #7f849c;
-      @define-color     overlay1-rgb  rgb(127, 132, 156);
-      @define-color     overlay0  #6c7086;
-      @define-color     overlay0-rgb  rgb(108, 112, 134);
-      @define-color     surface2  #585b70;
-      @define-color     surface2-rgb  rgb(88, 91, 112);
-      @define-color     surface1  #45475a;
-      @define-color     surface1-rgb  rgb(69, 71, 90);
-      @define-color     surface0  #313244;
-      @define-color     surface0-rgb  rgb(49, 50, 68);
-      @define-color     base  #1e1e2e;
-      @define-color     base-rgb  rgb(30, 30, 46);
-      @define-color     mantle  #181825;
-      @define-color     mantle-rgb  rgb(24, 24, 37);
-      @define-color     crust  #11111b;
-      @define-color     crust-rgb  rgb(17, 17, 27);
-
-      ,* {
-        font-family: 'Iosevka Nerd Font', monospace;
-        font-size: 14px;
-      }
-
-      /* Window */
-      window {
-        margin: 0px;
-        padding: 10px;
-        border: 0.16em solid @lavender;
-        border-radius: 0.1em;
-        background-color: @base;
-        animation: slideIn 0.5s ease-in-out both;
-      }
-
-      /* Slide In */
-      @keyframes slideIn {
-        0% {
-           opacity: 0;
-        }
-
-        100% {
-           opacity: 1;
-        }
-      }
-
-      /* Inner Box */
-      #inner-box {
-        margin: 5px;
-        padding: 10px;
-        border: none;
-        background-color: @base;
-        animation: fadeIn 0.5s ease-in-out both;
-      }
-
-      /* Fade In */
-      @keyframes fadeIn {
-        0% {
-           opacity: 0;
-        }
-
-        100% {
-           opacity: 1;
-        }
-      }
-
-      /* Outer Box */
-      #outer-box {
-        margin: 5px;
-        padding: 10px;
-        border: none;
-        background-color: @base;
-      }
-
-      /* Scroll */
-      #scroll {
-        margin: 0px;
-        padding: 10px;
-        border: none;
-        background-color: @base;
-      }
-
-      /* Input */
-      #input {
-        margin: 5px 20px;
-        padding: 10px;
-        border: none;
-        border-radius: 0.1em;
-        color: @text;
-        background-color: @base;
-        animation: fadeIn 0.5s ease-in-out both;
-      }
-
-      #input image {
-          border: none;
-          color: @red;
-      }
-
-      #input * {
-        outline: 4px solid @red!important;
-      }
-
-      /* Text */
-      #text {
-        margin: 5px;
-        border: none;
-        color: @text;
-        animation: fadeIn 0.5s ease-in-out both;
-      }
-
-      #entry {
-        background-color: @base;
-      }
-
-      #entry arrow {
-        border: none;
-        color: @lavender;
-      }
-
-      /* Selected Entry */
-      #entry:selected {
-        border: 0.11em solid @lavender;
-      }
-
-      #entry:selected #text {
-        color: @mauve;
-      }
-
-      #entry:drop(active) {
-        background-color: @lavender!important;
-      }
-    '';
-  };
+  xdg.configFile."qtile/config.py".source = ../../qtile/config.py;
+  xdg.configFile."qtile/paths.py".source = qtilePaths;
 }
 #+end_src
 *** yt-dlp
@@ -4643,7 +4016,7 @@ standard.
     };
     loginExtra = ''
         if [[ "$(tty)" = "/dev/tty1" ]]; then
-            exec start-hyprland
+            exec qtile start -b wayland
         fi
       '';
   };
@@ -4816,17 +4189,17 @@ for these configurations.
       '';
     };
   };
-  xdg.mimeApps = {
+xdg.mimeApps = {
     enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
     defaultApplications = {
       "x-scheme-handler/mailto" = "emacsclient-mail.desktop";
-      "text/html" = "qutebrowser.desktop";
-      "text/xml" = "qutebrowser.desktop";
-      "application/xhtml+xml" = "qutebrowser.desktop";
-      "x-scheme-handler/http" = "qutebrowser.desktop";
-      "x-scheme-handler/https" = "qutebrowser.desktop";
-      "x-scheme-handler/about" = "qutebrowser.desktop";
-      "x-scheme-handler/unknown" = "qutebrowser.desktop";
+      "text/html" = "org.qutebrowser.qutebrowser.desktop";
+      "text/xml" = "org.qutebrowser.qutebrowser.desktop";
+      "application/xhtml+xml" = "org.qutebrowser.qutebrowser.desktop";
+      "x-scheme-handler/http" = "org.qutebrowser.qutebrowser.desktop";
+      "x-scheme-handler/https" = "org.qutebrowser.qutebrowser.desktop";
+      "x-scheme-handler/about" = "org.qutebrowser.qutebrowser.desktop";
+      "x-scheme-handler/unknown" = "org.qutebrowser.qutebrowser.desktop";
     };
   };
 

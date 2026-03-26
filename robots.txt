@@ -1,2 +1,4 @@
 User-agent: *
 Disallow:
+
+Sitemap: https://ret2pop.net/sitemap.xml

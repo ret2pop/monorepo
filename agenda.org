@@ -19,10 +19,10 @@ These are general life tasks that I need to do, which don't depend on a specific
 - [ ] write a shell script to get passwords from my run path.
 - [ ] write tests for installer script.
 - [ ] write documentation
-- [ ] add Raspberry Pi cross compiled system to ~nixmacs~.
+- [-] add Raspberry Pi cross compiled system to ~nixmacs~.
   - [ ] Should have integration tests.
-  - [ ] Should have a basic git server with git LFS.
-  - [ ] Should have an SSH server.
+  - [X] Should have a basic git server with git LFS.
+  - [X] Should have an SSH server.
   - [ ] Should have simple cronjobs.
 - [ ] Gitolite
 - [ ] AI Agent integration
@@ -85,11 +85,13 @@ Current stack:
 - Hyaluronic acid (2x/day)
 - Glycerin for hands
 ** TODO Supplements
-SCHEDULED: <2026-03-22 Sun .+1d>
+SCHEDULED: <2026-03-26 Thu 12:00 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-03-21 Sat 10:26]
+:LAST_REPEAT: [2026-03-25 Wed 11:52]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2026-03-25 Wed 11:52]
+- State "DONE"       from "TODO"       [2026-03-24 Tue 16:24]
 - State "DONE"       from "TODO"       [2026-03-21 Sat 10:26]
 - State "DONE"       from "TODO"       [2026-03-18 Wed 22:51]
 - State "DONE"       from "TODO"       [2025-09-30 Tue 13:20]
@@ -149,7 +151,7 @@ SCHEDULED: <2025-09-29 Mon .+1d>
 - State "DONE"       from "TODO"       [2025-06-26 Thu 23:22]
 I want to be able to run or bike every day so that I get my exercise in.
 ** TODO Stretch
-SCHEDULED: <2026-03-20 Fri .+1d>
+SCHEDULED: <2026-03-20 Fri 00:00 .+1d>
 :PROPERTIES:
 :LAST_REPEAT: [2026-03-19 Thu 03:36]
 :STYLE: habit
@@ -174,11 +176,12 @@ Stretches:
 - Seal
 - Cat
 ** TODO Journal
-SCHEDULED: <2026-03-22 Sun .+1d>
+SCHEDULED: <2026-03-25 Wed 22:00 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-03-21 Sat 10:33]
+:LAST_REPEAT: [2026-03-24 Tue 22:48]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2026-03-24 Tue 22:48]
 - State "DONE"       from "TODO"       [2026-03-21 Sat 10:33]
 - State "DONE"       from "TODO"       [2026-03-18 Wed 23:16]
 - State "DONE"       from "TODO"       [2026-03-17 Tue 02:05]
@@ -206,14 +209,16 @@ SCHEDULED: <2026-03-22 Sun .+1d>
 - State "DONE"       from "TODO"       [2025-01-11 Sat 02:25]
 I want to journal every day, at least a little bit, about my life and track it with a git repo.
 ** TODO Update Agenda
+SCHEDULED: <2026-03-26 Thu 11:00 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-03-21 Sat 10:26]
+:LAST_REPEAT: [2026-03-25 Wed 10:11]
 :END:
+- State "DONE"       from "TODO"       [2026-03-25 Wed 10:11]
+- State "DONE"       from "TODO"       [2026-03-24 Tue 16:24]
 - State "DONE"       from "TODO"       [2026-03-21 Sat 10:26]
 - State "DONE"       from "TODO"       [2026-03-19 Thu 03:36]
 - State "DONE"       from "TODO"       [2026-03-18 Wed 22:51]
 If I didn't update the agenda today, take my agenda with a grain of salt.
-SCHEDULED: <2026-03-22 Sun .+1d>
 ** TODO Start Vacuum Robot
 Start the vacuum robot so that it can clean the floor, every day.
 SCHEDULED: <2025-10-16 Thu .+1d>

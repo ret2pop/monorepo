@@ -1,0 +1,9 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Wednesday, 25 March 2026
+** 21:58 
+I now have notifications for some of my org-habits so I get notified. I switched to qtile today.

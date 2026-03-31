@@ -1,0 +1,10 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Monday, 30 March 2026
+** 03:59 
+I did some more complex analysis and I'm making progress on the problems. I like how clean and elegant of a field of study it is, though in some ways
+it isn't as pure as subjects like topology.

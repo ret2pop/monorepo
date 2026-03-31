@@ -1099,6 +1099,34 @@ I use magit in order to do all my git management in emacs.
 (use-package git-gutter
   :config
   (global-git-gutter-mode +1))
+
+(defun ret2pop/enable-smerge-maybe ()
+  (save-excursion
+    (goto-char (point-min))
+    (when (re-search-forward "^<<<<<<< " nil t)
+      (smerge-mode 1))))
+
+(use-package smerge-mode
+  :hook ((find-file . ret2pop/enable-smerge-maybe))
+  :general
+  (:states '(normal motion)
+   :keymaps 'smerge-mode-map
+   "]c" #'smerge-next
+   "[c" #'smerge-prev)
+  (:states '(normal visual)
+   :keymaps 'smerge-mode-map
+   :prefix ","
+   "n" #'smerge-next
+   "p" #'smerge-prev
+   "u" #'smerge-keep-upper
+   "l" #'smerge-keep-lower
+   "m" #'smerge-keep-current
+   "o" #'smerge-keep-other
+   "a" #'smerge-keep-all
+   "b" #'smerge-keep-base
+   "r" #'smerge-resolve
+   "R" #'smerge-refine
+   "e" #'smerge-ediff))
 #+end_src
 ** IRC
 Configure IRC to use my username.

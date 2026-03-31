@@ -28,6 +28,7 @@ Here is a list of my configurations for various programs:
 - [[file:elfeed.org][Interesting RSS Feeds]]
 - [[file:emacs.org][Emacs Configuration]]
 - [[file:nix.org][NixOS Configuration]]
+- [[file:qtile.org][QTile Configuration]]
 - [[file:qutebrowser.org][Qutebrowser Configuration]]
 
 @@html: </div>@@

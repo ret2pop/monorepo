@@ -1,9 +1,17 @@
+(setq debug-on-error t)
 (setq inhibit-startup-screen t)
 (setq inhibit-startup-message t)
 (setq enable-local-variables :all)
 
-(defalias (quote yes-or-no-p) (lambda (&rest args) t))
-(defalias (quote y-or-n-p) (lambda (&rest args) t))
+(defalias 'yes-or-no-p
+  (lambda (prompt &rest args)
+    (princ (format "!!! EMACS PROMPTED YES/NO: %s\n" prompt) 'external-debugging-output)
+    t))
+
+(defalias 'y-or-n-p
+  (lambda (prompt &rest args)
+    (princ (format "!!! EMACS PROMPTED Y/N: %s\n" prompt) 'external-debugging-output)
+    t))
 
 (setq message-log-max t)
 (setq standard-output (quote external-debugging-output))
@@ -15,6 +23,7 @@
 (setq system-username "ci-runner")
 (setq system-fullname "Preston Pan") ;; needed for postamble
 (setq system-gpgkey "00000000")
+(setq logo-file "~/monorepo/img/logo.webp")
 (defun package-vc-install (&rest args) (message "blocked package-vc-install for %s" args))
 (defun package-vc--unpack (&rest args) nil)
 (setq package-archives nil)
@@ -41,6 +50,9 @@
 (setq make-backup-files nil auto-save-default nil create-lockfiles nil)
 
 (require 'catppuccin-theme)
+(add-to-list 'custom-theme-load-path 
+             (file-name-directory (locate-library "catppuccin-theme")))
+
 (setq catppuccin-flavor 'mocha)
 (load-theme 'catppuccin t)
 

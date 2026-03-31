@@ -1,6 +1,8 @@
+
 blog/rss.org
 sitemap.org
 sitemap.xml
 style.css
 result
+.env
 .pre-commit-config.yaml

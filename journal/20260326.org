@@ -1,0 +1,10 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Thursday, 26 March 2026
+** 23:59 
+I'm journaling more consistently now, and also today I set up a python agent that utilises my monorepo for RAG and does web search, along with
+inserting stuff into my agenda and having long term memory.

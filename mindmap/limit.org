@@ -4,6 +4,7 @@
 #+title: limit
 #+author: Preston Pan
 #+description: Pushing math to its limit
+#+LATEX_HEADER: \usepackage{tikz-cd}
 
 #+options: broken-links:t
 
@@ -151,5 +152,8 @@ different /kinds/ of limits enables oneself to draw on connections between limit
 set is exactly the same set with all its limit points included, and both closures, and as we will see, limits, are /idempotent/, which is to say,
 applying them once is the same thing as applying them twice. Note that if $f: X \rightarrow Y$ where $Y$ is any topological space and $f$ is any continuous
 function, then $\beta f(X) = f(\beta X)$, which one can represent with a commutative diagram, where $\beta f$ is the /unique extension/ of the mapping $f$. Actually, in a moment
-we will see that the funcor commuting is equivalent to the /limit/ commuting.
+we will see that the functor commuting is equivalent to the /limit/ commuting on nets.
+
+*** The Universal Property
+We say the following diagram commutes:
 

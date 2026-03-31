@@ -20,7 +20,7 @@ Blog Articles:
 #+begin_src shell :results output raw :exports both
   for f in *;
   do
-      if [[ "$f" == "index.org" || "$f" == "README.org" || "$f" == "emacs.el" ]]; then
+      if [[ "$f" == "index.org" || "$f" == "README.org" || "$f" == "emacs.el" || "$f" == "rss.org" ]]; then
           continue
       fi
 
@@ -39,7 +39,6 @@ Blog Articles:
 - [[file:cognition.org][Cognition]]
 - [[file:crypto.org][A Review of Cryptocurrency]]
 - [[file:horses.org][Stop Asking for Better Horses]]
-- [[file:machine_learning.org][Machine Learning is Here]]
 - [[file:manifesto-1.org][The End of Equality and The Technocratic Imperative]]
 - [[file:monorepo.org][My Monorepo]]
 - [[file:nixos.org][You should use NixOS]]

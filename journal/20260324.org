@@ -1,0 +1,10 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date: 2026-03-24
+#+options: broken-links:t
+* Tuesday, 24 March 2026
+** 22:46 
+I made my Org mode workflow a lot better today, which is really great. I'm going to work on more mathematics, and perhaps rice my setup more as i
+think it would be worthwhile.

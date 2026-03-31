@@ -87,16 +87,15 @@ syntax elsewhere. Generally, however, these are all unordered and not dependent 
   (global-auto-revert-mode 1)
 
   ;; load theme, fonts, and transparency. Prettify symbols.
-  (set-face-attribute 'default nil :font "Iosevka Nerd Font" :height 130)
-  (set-face-attribute 'variable-pitch nil :font "Lora" :height 1.1)
-  (set-face-attribute 'alert-urgent-face nil :inherit nil)
-  (when (display-graphic-p)
+  (unless noninteractive (when (display-graphic-p)
+    (set-face-attribute 'default nil :font "Iosevka Nerd Font" :height 130)
+    (set-face-attribute 'variable-pitch nil :font "Lora" :height 1.1)
     (set-fontset-font t 'han   (font-spec :family "Noto Sans CJK SC"))
     (set-fontset-font t 'kana  (font-spec :family "Noto Sans CJK JP"))
     (set-fontset-font t 'emoji (font-spec :family "Noto Color Emoji") nil 'prepend)
     (set-fontset-font t 'symbol (font-spec :family "Noto Color Emoji") nil 'append)
     (set-fontset-font t '(#x1f300 . #x1f5ff) (font-spec :family "Noto Color Emoji") nil 'prepend)
-    (set-fontset-font t '(#xe000 . #xf8ff) (font-spec :family "Symbols Nerd Font Mono") nil 'append)))
+    (set-fontset-font t '(#xe000 . #xf8ff) (font-spec :family "Symbols Nerd Font Mono") nil 'append))))
 
 ;; imperative
 (defun evil-config ()
@@ -128,16 +127,59 @@ syntax elsewhere. Generally, however, these are all unordered and not dependent 
 (defun remove-annoying-pairing () (remove-hook 'post-self-insert-hook #'yaml-electric-bar-and-angle t))
 
 ;; taken from blog https://writepermission.com/org-blogging-rss-feed.html
+;; (defun rp/org-rss-publish-to-rss (plist filename pub-dir)
+;;   "Publish RSS with PLIST, only when FILENAME is 'rss.org'.
+;;   PUB-DIR is when the output will be placed."
+;;   (if (equal "rss.org" (file-name-nondirectory filename))
+;;       (org-rss-publish-to-rss plist filename pub-dir)))
+
+;; (defun rp/org-rss-publish-to-rss (plist filename pub-dir)
+;;   "Publish an Org file to RSS without creating Org IDs."
+;;   (let* ((ext (concat "." (or (plist-get plist :rss-extension)
+;;                               org-rss-extension
+;;                               "xml")))
+;;          (visiting (find-buffer-visiting filename))
+;;          (buf (or visiting
+;;                   (let ((org-inhibit-startup t))
+;;                     (find-file-noselect filename)))))
+;;     (unwind-protect
+;;         (with-current-buffer buf
+;;           (let ((org-inhibit-startup t))
+;;             ;; Keep PUBDATE generation.
+;;             (org-rss-add-pubdate-property)
+;;             (save-buffer))
+;;           (org-publish-org-to 'rss filename ext plist pub-dir))
+;;       (unless visiting
+;;         (kill-buffer buf)))))
+
 (defun rp/org-rss-publish-to-rss (plist filename pub-dir)
-  "Publish RSS with PLIST, only when FILENAME is 'rss.org'.
-  PUB-DIR is when the output will be placed."
-  (if (equal "rss.org" (file-name-nondirectory filename))
-      (org-rss-publish-to-rss plist filename pub-dir)))
+  (org-publish-org-to
+   'rss
+   filename
+   (concat "." (or (plist-get plist :rss-extension)
+                   org-rss-extension
+                   "xml"))
+   plist
+   pub-dir))
+
+;; (defun rp/org-rss-publish-to-rss (plist filename pub-dir)
+;;   "Use stock RSS publishing for normal posts, but bypass UID/PUBDATE
+;; mutation for the generated rss.org sitemap."
+;;   (if (string-equal (file-name-nondirectory filename) "rss.org")
+;;       (org-publish-org-to
+;;        'rss
+;;        filename
+;;        (concat "." (or (plist-get plist :rss-extension)
+;;                        org-rss-extension
+;;                        "xml"))
+;;        plist
+;;        pub-dir)
+;;     (org-rss-publish-to-rss plist filename pub-dir)))
 
 (defun format-rss-feed-entry (entry style project)
   "Format ENTRY for the RSS feed.
-  ENTRY is a file name.  STYLE is either 'list' or 'tree'.
-  PROJECT is the current project."
+ENTRY is a file name.  STYLE is either 'list' or 'tree'.
+PROJECT is the current project."
   (cond ((not (directory-name-p entry))
          (let* ((file (org-publish--expand-file-name entry project))
                 (title (org-publish-find-title entry project))
@@ -155,6 +197,7 @@ syntax elsewhere. Generally, however, these are all unordered and not dependent 
          ;; Return only last subdir.
          (file-name-nondirectory (directory-file-name entry)))
         (t entry)))
+
 
 (defun format-rss-feed (title list)
   "Generate the rss.org file from the formatted list."
@@ -281,9 +324,9 @@ then append the typed input to the mu4e database query."
   (setq my-dashboard-refresh-timer (run-with-timer 60 60 #'my-refresh-dashboard-if-visible)))
 
 (defun my-fix-htmlize-invalid-face-bug (orig-fn face attribute &optional frame inherit)
-  (if (eq face t)
-      'unspecified
-    (funcall orig-fn face attribute frame inherit)))
+  (if (facep face)
+      (funcall orig-fn face attribute frame inherit)
+      'unspecified))
 #+end_src
 ** Random Packages
 These are packages that I require in order to write some scripts in emacs-lisp.
@@ -491,7 +534,7 @@ This is my org mode configuration, which also configures latex.
 
 (use-package htmlize
   :demand t
-  :after (catppuccin-theme doom-themes yaml-mode)
+  :after (doom-themes yaml-mode)
   :config (advice-add 'face-attribute :around #'my-fix-htmlize-invalid-face-bug))
 
 (use-package ox-latex
@@ -544,15 +587,13 @@ This is my org mode configuration, which also configures latex.
       :html-footnotes-section "<div id=\"footnotes\"><hr><div id=\"text-footnotes\"><span class=\"footnotes-label-hidden\">%s</span>%s</div></div>"
       :html-head ,(concat "<link rel=\"alternate\" type=\"application/rss+xml\" title=\"RSS Feed\" href=\"/blog/rss.xml\"><meta name=\"theme-color\" content=\"#ffffff\">\n<link rel=\"preload\" href=\"/fonts/Inconsolata-Medium.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n<meta name=\"theme-color\" content=\"#ffffff\">\n<link rel=\"preload\" href=\"/fonts/Lora-Medium.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n<link rel=\"preload\" href=\"/fonts/CormorantGaramond-Bold.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n<link rel=\"preload\" href=\"/fonts/CormorantGaramond-Medium.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n<link rel=\"manifest\" href=\"/site.webmanifest\">\n<link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"/favicon-16x16.png\">\n<link rel=\"mask-icon\" href=\"/safari-pinned-tab.svg\" color=\"#5bbad5\">\n<link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"/favicon-32x32.png\">\n<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/apple-touch-icon.png\"><meta name=\"msapplication-TileColor\" content=\"#da532c\">\n"
                           "<style>"
-                          (or (ignore-errors
-                                (->> (create-htmlize-css)
-                                     (s-replace-regexp "<style[^>]*>" "")
-                                     (s-replace "</style>" "")
-                                     (s-replace "<![CDATA[/*><![CDATA[/*>\n" "")
-                                     (s-replace "/*]]>*/-->" "")
-                                     (s-trim)
-                                     (minify-css)))
-                              "/* HTMLIZE FAILED TO LOAD - CHECK EMACS INIT ERRORS */")
+                          (->> (create-htmlize-css)
+                               (s-replace-regexp "<style[^>]*>" "")
+                               (s-replace "</style>" "")
+                               (s-replace "<![CDATA[/*><![CDATA[/*>\n" "")
+                               (s-replace "/*]]>*/-->" "")
+                               (s-trim)
+                               (minify-css))
                           (f-read-text "~/monorepo/style.css" 'utf-8)
                           "</style>")
       :html-preamble t
@@ -565,19 +606,43 @@ This is my org mode configuration, which also configures latex.
       :sitemap-style list
       :sitemap-sort-files anti-chronologically)
 
+     ;; ("website-blog-rss"
+     ;;  :base-directory "~/monorepo/blog"
+     ;;  :base-extension "org"
+     ;;  :recursive nil
+     ;;  :exclude "rss\\.org\\|index\\.org\\|404\\.org"
+     ;;  :rss-extension "xml"
+
+     ;;  :publishing-directory "~/website_html/blog"
+     ;;  :publishing-function rp/org-rss-publish-to-rss
+     ;;  :html-link-home "https://ret2pop.net/blog/"
+     ;;  :html-link-use-abs-url t
+
+     ;;  ;; use custom sitemap functionality to publish rss feed
+     ;;  :auto-sitemap t
+     ;;  :sitemap-filename "rss.org"
+     ;;  :sitemap-title "Blog Feed"
+     ;;  :sitemap-style list
+     ;;  :sitemap-sort-folders ignore
+     ;;  :sitemap-sort-files anti-chronologically
+     ;;  :sitemap-format-entry format-rss-feed-entry
+     ;;  :sitemap-function format-rss-feed)
+
      ("website-blog-rss"
       :base-directory "~/monorepo/blog"
       :base-extension "org"
       :recursive nil
-      :exclude "rss\\.org\\|index\\.org\\|404\\.org"
-      :rss-extension "xml"
 
+      ;; Only publish the generated feed source.
+      :exclude ".*"
+      :include ("rss.org")
+
+      :rss-extension "xml"
       :publishing-directory "~/website_html/blog"
       :publishing-function rp/org-rss-publish-to-rss
       :html-link-home "https://ret2pop.net/blog/"
       :html-link-use-abs-url t
 
-      ;; use custom sitemap functionality to publish rss feed
       :auto-sitemap t
       :sitemap-filename "rss.org"
       :sitemap-title "Blog Feed"
@@ -624,8 +689,7 @@ I already pull in all-the-icons, but we need the emacs package to load it correc
 I use this in org-mode so that I can read/write with variable pitched font. Feels like I'm reading a blog article or something.
 #+begin_src emacs-lisp :tangle ../nix/init.el
 (use-package mixed-pitch
-  :hook ((text-mode . mixed-pitch-mode)
-         (org-mode . mixed-pitch-mode))
+  :hook ((org-mode . mixed-pitch-mode))
   :custom (mixed-pitch-set-height t)
   :config
   (dolist (face '(org-latex-and-related
@@ -645,7 +709,19 @@ I want to show indent lines in emacs so that I can line things up.
 #+begin_src emacs-lisp :tangle ../nix/init.el
 (use-package indent-bars
   :after (nix-mode)
-  :hook ((python-mode yaml-mode nix-mode) . indent-bars-mode))
+  :hook (
+         (python-ts-mode . indent-bars-mode)
+         (css-ts-mode . indent-bars-mode)
+         (haskell-mode . indent-bars-mode)
+         (js-ts-mode . indent-bars-mode)
+         (c-ts-mode . indent-bars-mode)
+         (c++-ts-mode . indent-bars-mode)
+         (rust-ts-mode . indent-bars-mode)
+         (go-ts-mode . indent-bars-mode)
+         (python-mode . indent-bars-mode)
+         (yaml-ts-mode . indent-bars-mode)
+         (nix-mode . indent-bars-mode)
+         (emacs-lisp-mode . indent-bars-mode)))
 #+end_src
 * Autopair
 Use electric-pair to automatically complete pairs of things. We need to change
@@ -683,15 +759,29 @@ Yasnippets are useful for macros that automatically complete to an arbitrary for
 Company-mode! We need this to do autocomplete stuff.
 #+begin_src emacs-lisp :tangle ../nix/init.el
 (use-package company
-  :custom (company-backends '(company-ispell company-capf company-yasnippet company-files) "Set company backends")
+  :custom
+  (company-backends '(company-capf company-files company-yasnippet company-ispell))
+  
+  (company-idle-delay 0.1)
+  (company-minimum-prefix-length 1)
+  (company-require-match nil)
+  (company-selection-wrap-around t)
+  (company-tooltip-align-annotations t)
+
   :bind (:map company-active-map
               ("RET" . nil)
               ("<return>" . nil)
-              ("tab" . company-complete-selection)
-              ("<tab>" . company-complete-selection))
+              ("TAB" . company-complete-selection)
+              ("<tab>" . company-complete-selection)
+              ("C-j" . company-select-next)
+              ("C-k" . company-select-previous))
+  
   :hook ((after-init . global-company-mode)))
+
 (use-package company-box
-  :hook (company-mode . company-box-mode))
+  :hook (company-mode . company-box-mode)
+  :custom
+  (company-box-scrollbar nil))
 #+end_src
 * Spelling
 This loads a dictionary so that I can save certain words to be not misspelled and also have
@@ -713,112 +803,200 @@ this spellcheck during org mode.
 * Packages
 First, some small configurations and some evil-mode initilaization because I like vim keybindings:
 #+begin_src emacs-lisp :tangle ../nix/init.el
-(use-package evil
-  :demand t
-  :custom (evil-want-keybinding nil "Don't load a whole bunch of default keybindings")
-  :bind
-  (:map evil-normal-state-map
-        ("/" . swiper)
-        ("?" . (lambda () (interactive) (swiper "--reverse"))))
-  :config (evil-config))
+  (use-package evil
+    :demand t
+    :custom (evil-want-keybinding nil "Don't load a whole bunch of default keybindings")
+    :bind
+    (:map evil-normal-state-map
+          ("/" . swiper)
+          ("?" . (lambda () (interactive) (swiper "--reverse"))))
+    :config (evil-config))
 
-(use-package evil-collection
-  :demand t
-  :after (evil)
-  :bind (:map evil-motion-state-map
-              ("SPC" . nil)
-              ("RET" . nil)
-              ("TAB" . nil))
-  :config (evil-collection-init))
+  (use-package evil-collection
+    :demand t
+    :after (evil)
+    :bind (:map evil-motion-state-map
+                ("SPC" . nil)
+                ("RET" . nil)
+                ("TAB" . nil))
+    :config (evil-collection-init))
 
-(use-package evil-commentary
-  :after (evil)
-  :config (evil-commentary-mode))
+  (use-package evil-commentary
+    :after (evil)
+    :config (evil-commentary-mode))
 
-(use-package evil-org
-  :after (evil org)
-  :hook (org-mode . evil-org-mode))
+  (use-package evil-org
+    :after (evil org)
+    :hook (org-mode . evil-org-mode))
 
-(use-package evil-org-agenda
-  :after (evil-org)
-  :config (evil-org-agenda-set-keys))
+  (use-package evil-org-agenda
+    :after (evil-org)
+    :config (evil-org-agenda-set-keys))
 
-(use-package which-key
-  :config (which-key-mode))
+  (use-package which-key
+    :config (which-key-mode))
 
-(use-package page-break-lines
-  :config (page-break-lines-mode))
+  (use-package page-break-lines
+    :config (page-break-lines-mode))
 
-(use-package evil-mc
-  :after evil
-  :config (global-evil-mc-mode 1))
+  (use-package evil-mc
+    :after evil
+    :config (global-evil-mc-mode 1))
 
-(use-package evil-surround
-  :after evil
-  :config
-  (global-evil-surround-mode 1))
+  (use-package evil-surround
+    :after evil
+    :config
+    (global-evil-surround-mode 1))
 
-(use-package evil-lion
-  :config
-  (evil-lion-mode))
+  (use-package evil-lion
+    :config
+    (evil-lion-mode))
 
-(use-package evil-multiedit
-  :after evil
-  :config
-  (evil-multiedit-default-keybinds))
+  (use-package evil-multiedit
+    :after evil
+    :config
+    (evil-multiedit-default-keybinds))
 
-(use-package evil-textobj-tree-sitter
-  :ensure t
-  ;; Ensure Evil is loaded first so the text-object maps exist
-  :after evil
-  
-  ;; 1. The Keybindings
-  :bind ((:map evil-outer-text-objects-map
-               ("f" . my-treesit-outer-function)
-               ("c" . my-treesit-outer-class)
-               ("a" . my-treesit-outer-arg))
-         
-         (:map evil-inner-text-objects-map
-               ("f" . my-treesit-inner-function)
-               ("c" . my-treesit-inner-class)
-               ("a" . my-treesit-inner-arg))
-               
-         (:map evil-normal-state-map
-               ("] f" . my-treesit-goto-next-function)
-               ("[ f" . my-treesit-goto-prev-function)
-               ("] c" . my-treesit-goto-next-class)
-               ("[ c" . my-treesit-goto-prev-class)))
-
-  ;; 2. The Command Definitions
-  :config
-  ;; Link the custom names we bound above to the actual Tree-sitter closures
-  (defalias 'my-treesit-outer-function (evil-textobj-tree-sitter-get-textobj "function.outer"))
-  (defalias 'my-treesit-inner-function (evil-textobj-tree-sitter-get-textobj "function.inner"))
-  
-  (defalias 'my-treesit-outer-class    (evil-textobj-tree-sitter-get-textobj "class.outer"))
-  (defalias 'my-treesit-inner-class    (evil-textobj-tree-sitter-get-textobj "class.inner"))
-  
-  ;; "a" is standard Vim terminology for "argument" (parameter)
-  (defalias 'my-treesit-outer-arg      (evil-textobj-tree-sitter-get-textobj "parameter.outer"))
-  (defalias 'my-treesit-inner-arg      (evil-textobj-tree-sitter-get-textobj "parameter.inner"))
-
-  ;; Navigation commands are standard interactive functions, so we wrap them cleanly
-  (defun my-treesit-goto-next-function ()
-    (interactive)
-    (evil-textobj-tree-sitter-goto-textobj "function.outer"))
+  (use-package evil-textobj-tree-sitter
+    :ensure t
+    ;; Ensure Evil is loaded first so the text-object maps exist
+    :after evil
     
-  (defun my-treesit-goto-prev-function ()
-    (interactive)
-    (evil-textobj-tree-sitter-goto-textobj "function.outer" t))
+    ;; 1. The Keybindings
+    :bind ((:map evil-outer-text-objects-map
+                 ("f" . my-treesit-outer-function)
+                 ("c" . my-treesit-outer-class)
+                 ("a" . my-treesit-outer-arg))
+           
+           (:map evil-inner-text-objects-map
+                 ("f" . my-treesit-inner-function)
+                 ("c" . my-treesit-inner-class)
+                 ("a" . my-treesit-inner-arg))
+                 
+           (:map evil-normal-state-map
+                 ("] f" . my-treesit-goto-next-function)
+                 ("[ f" . my-treesit-goto-prev-function)
+                 ("] c" . my-treesit-goto-next-class)
+                 ("[ c" . my-treesit-goto-prev-class)))
 
-  (defun my-treesit-goto-next-class ()
-    (interactive)
-    (evil-textobj-tree-sitter-goto-textobj "class.outer"))
+    ;; 2. The Command Definitions
+    :config
+    ;; Link the custom names we bound above to the actual Tree-sitter closures
+    (defalias 'my-treesit-outer-function (evil-textobj-tree-sitter-get-textobj "function.outer"))
+    (defalias 'my-treesit-inner-function (evil-textobj-tree-sitter-get-textobj "function.inner"))
     
-  (defun my-treesit-goto-prev-class ()
-    (interactive)
-    (evil-textobj-tree-sitter-goto-textobj "class.outer" t)))
+    (defalias 'my-treesit-outer-class    (evil-textobj-tree-sitter-get-textobj "class.outer"))
+    (defalias 'my-treesit-inner-class    (evil-textobj-tree-sitter-get-textobj "class.inner"))
+    
+    ;; "a" is standard Vim terminology for "argument" (parameter)
+    (defalias 'my-treesit-outer-arg      (evil-textobj-tree-sitter-get-textobj "parameter.outer"))
+    (defalias 'my-treesit-inner-arg      (evil-textobj-tree-sitter-get-textobj "parameter.inner"))
 
+    ;; Navigation commands are standard interactive functions, so we wrap them cleanly
+    (defun my-treesit-goto-next-function ()
+      (interactive)
+      (evil-textobj-tree-sitter-goto-textobj "function.outer"))
+      
+    (defun my-treesit-goto-prev-function ()
+      (interactive)
+      (evil-textobj-tree-sitter-goto-textobj "function.outer" t))
+
+    (defun my-treesit-goto-next-class ()
+      (interactive)
+      (evil-textobj-tree-sitter-goto-textobj "class.outer"))
+      
+    (defun my-treesit-goto-prev-class ()
+      (interactive)
+      (evil-textobj-tree-sitter-goto-textobj "class.outer" t)))
+
+
+  (use-package general
+    :after (evil evil-collection)
+    :config
+    (general-create-definer leader-key :prefix "SPC")
+    ;; these are just bindings but the symbols are all lazily handled by general
+    (create-irc-servers
+     (znc "ret2pop.net" "5000")
+     (prestonpan "nullring.xyz" "6697")
+     (libera-chat "irc.libera.chat" "6697")
+     (efnet "irc.prison.net" "6697")
+     (matrix-org "matrix.org" "8448")
+     (gimp-org "irc.gimp.org" "6697"))
+
+    (leader-key 'normal
+      "o c" '(org-capture :wk "Capture")
+      ;; Org Mode
+      "n" '(:ignore t :wk "Org mode plugins")
+      "n j j" '(org-journal-new-entry :wk "Make new journal entry")
+      "n r f" '(org-roam-node-find :wk "Find roam node")
+      "n r i" '(org-roam-node-insert :wk "Insert roam node")
+      "n r a" '(org-roam-alias-add :wk "Add alias to org roam node")
+      "n r g" '(org-roam-graph :wk "Graph roam database")
+      "m I" '(org-id-get-create :wk "Make org id")
+
+      ;; Programming Projects
+      "." '(counsel-find-file :wk "find file")
+      "p a" '(projectile-add-known-project :wk "Add to project list")
+      
+      "N f" '(nix-flake :wk "nix flake menu")
+      "f" '(:ignore t :wk "file operations")
+      "f p" '(projectile-switch-project :wk "find project to switch to")
+      "f f" '(counsel-fzf :wk "find file in project")
+      "f s" '(counsel-rg :wk "find string in project")
+
+      "y n s" '(yas-new-snippet :wk "Create new snippet")
+
+      "g" '(:ignore t :wk "Magit")
+      "g /" '(magit-dispatch :wk "git commands")
+      "g P" '(magit-push :wk "git push")
+      "g c" '(magit-commit :wk "git commit")
+      "g p" '(magit-pull :wk "Pull from git")
+      "g s" '(magit-status :wk "Change status of files")
+      "g i" '(magit-init :wk "init new git project")
+      "g r" '(magit-rebase :wk "Rebase branch")
+      "g m" '(magit-merge :wk "Merge branches")
+      "g b" '(magit-branch :wk "Git branch")
+
+      "o p" '(treemacs :wk "Project Drawer")
+      "o P" '(treemacs-projectile :wk "Import Projectile project to treemacs")
+
+      "w r" '(writeroom-mode :wk "focus mode for writing")
+
+      ;; Applications
+      "o" '(:ignore t :wk "Open application")
+      "o t" '(projectile-run-vterm-other-window :wk "Terminal")
+      "o e" '(projectile-run-eshell :wk "Elisp Interpreter")
+      "o m" '(mu4e :wk "Email")
+      "o M" '(matrix-org :wk "Connect to matrix")
+      "o r s" '(elfeed :wk "rss feed")
+      "o a" '(org-agenda :wk "Open agenda")
+      "o w" '(eww :wk "web browser")
+      "o n" '(enwc :wk "NetworkManager Interface")
+      "m m" '(emms :wk "Music player")
+      "s m" '(proced :wk "System Manager")
+      "l p" '(list-processes :wk "List Emacs Processes")
+
+      "m P p" '(org-publish :wk "Publish website components")
+      "s e" '(sudo-edit :wk "Edit file with sudo")
+
+      ;; "f f" '(eglot-format :wk "Format code buffer")
+      "i p c" '(prestonpan :wk "Connect to my IRC server")
+      "i l c" '(liberachat :wk "Connect to libera chat server")
+      "i e c" '(efnet :wk "Connect to efnet chat server")
+      "i g c" '(gimp-org :wk "Connect to gimp chat server")
+      "i z c" '(znc :wk "Connect to my ZNC instance")
+
+      ;; Documentation
+      "h" '(:ignore t :wk "Documentation")
+      "h v" '(counsel-describe-variable :wk "Describe variable")
+      "h f" '(counsel-describe-function :wk "Describe function")
+      "h h" '(help :wk "Help")
+      "h m" '(woman :wk "Manual")
+      "h i" '(info :wk "Info")
+
+      "s i p" '(insert-urandom-password :wk "insert random password to buffer (for sops)")
+
+      "h r r" '(lambda () (interactive) (load-file (expand-file-name "~/monorepo/nix/init.el")))))
 #+end_src
 ** Journal
 I use org-journal to journal about my life, and it's a part of my website:
@@ -875,15 +1053,13 @@ I used to use catppuccin, but the doom themes are so good that I am willing to b
 to use doom themes. I mean it looks better anyways if emacs is a distinct theme.
 #+begin_src emacs-lisp :tangle ../nix/init.el
 (use-package doom-themes
+  :demand t
   :custom
   (doom-themes-enable-bold t "use bold letters")
   (doom-themes-enable-italic t "use italic letters")
   (doom-themes-treemacs-theme "doom-colors" "set theme to something like catppuccin but doom")
   :config
   (unless noninteractive (doom-themes-config)))
-
-(use-package catppuccin-theme
-  :config (when noninteractive (try (load-theme 'catppuccin-theme t))))
 
 (use-package solaire-mode
   :after doom-themes
@@ -925,7 +1101,71 @@ We use org-alert in order to give us notifications based on our org-agenda.
 ** LSP
 We set up eglot, the LSP manager for emacs, now built in:
 #+begin_src emacs-lisp :tangle ../nix/init.el
+(use-package python
+  :after lsp-mode
+  :hook (python-ts-mode . lsp-deferred))
+
+(use-package yaml-mode
+  :after lsp-mode
+  :hook (yaml-ts-mode . lsp-deferred))
+
+(use-package go-ts-mode
+  :after lsp-mode
+  :hook (go-ts-mode . lsp-deferred))
+
+(use-package haskell-mode
+  :after lsp-mode
+  :hook (haskell-mode . lsp-deferred))
+
+(use-package scheme-mode
+  :hook (scheme-mode . lsp-deferred)
+  :after lsp-mode
+  :mode ("\\.sls\\'" "\\.scm\\'"))
+
+(use-package elisp-mode
+  :after lsp-mode
+  :hook (emacs-lisp-mode . lsp-deferred))
+
+(use-package cc-mode
+  :after lsp-mode
+  :hook ((c-mode . lsp-deferred)
+         (c-ts-mode . lsp-deferred)))
+
+(use-package css-mode
+  :after lsp-mode
+  :hook ((css-mode . lsp-deferred)
+         (css-ts-mode . lsp-deferred)))
+
+(use-package js
+  :after lsp-mode
+  :hook ((js-mode . lsp-deferred)
+         (js-ts-mode . lsp-deferred)
+         (tsx-ts-mode . lsp-deferred)))
+
+(use-package json-mode
+  :after lsp-mode
+  :hook ((json-mode . lsp-deferred)
+         (json-ts-mode . lsp-deferred)))
+
+(use-package toml-mode
+  :after lsp-mode
+  :hook ((toml-ts-mode . lsp-deferred)))
+
+(use-package nix-mode
+  :demand t
+  :after lsp-mode
+  :hook (nix-mode . lsp-deferred)
+  :mode "\\.nix\\'")
+
+(use-package sh-script
+  :after lsp-mode
+  :hook (sh-mode . lsp-deferred))
+
+(use-package poetry
+  :config (poetry-tracking-mode 1))
+
 (use-package lsp-mode
+  :demand t
   :custom
   (lsp-use-plists t)
   (lsp-typescript-format-enable t)
@@ -937,18 +1177,6 @@ We set up eglot, the LSP manager for emacs, now built in:
   (lsp-restart 'auto-restart)
   (lsp-keep-workspace-alive t)
 
-  :hook ((python-mode    . lsp-deferred)
-         (python-ts-mode . lsp-deferred)
-         (emacs-lisp-mode . lsp-deferred)
-         (yaml-mode      . lsp-deferred)
-         (yaml-ts-mode   . lsp-deferred)
-         (json-mode      . lsp-deferred)
-         (json-ts-mode   . lsp-deferred)
-         (toml-mode      . lsp-deferred)
-         (toml-ts-mode   . lsp-deferred)
-         (sh-mode        . lsp-deferred)
-         (nix-mode       . lsp-deferred))
-  :commands (lsp lsp-deferred)
   :general
   (:states 'normal :keymaps 'lsp-mode-map
            "gI" #'lsp-find-implementation
@@ -993,8 +1221,6 @@ Specific configuration for C (I also use the clangd lsp):
 For writing solidity:
 #+begin_src emacs-lisp :tangle ../nix/init.el
 (use-package solidity-mode)
-(use-package company-solidity
-  :after company)
 (use-package solidity-flycheck
   :after flycheck
   :custom (solidity-flycheck-solc-checker-active t))
@@ -1059,8 +1285,12 @@ Ivy is a pretty cool general program for displaying stuff:
   :bind
   ("C-j" . ivy-immediate-done)
   ("C-c C-r" . ivy-resume)
-  :init (ivy-mode)
-  :config (ivy-rich-mode))
+  :config
+  (ivy-mode))
+
+(use-package ivy-rich
+  :config
+  (ivy-rich-mode))
 
 (use-package counsel
   :after ivy
@@ -1137,99 +1367,6 @@ Configure IRC to use my username.
   (erc-nick system-username "sets erc username to the one set in nix config")
   (erc-user-full-name system-fullname "sets erc fullname to the one set in nix config"))
 #+end_src
-** Keybindings
-Global keybindings for everything that I care about globally. It's all here! I use general
-to manage my global keybindings in a declarative way. These are in part inspired by the doom
-emacs keybindings.
-#+begin_src emacs-lisp :tangle ../nix/init.el
-(use-package general
-  :after (evil evil-collection)
-  :init (general-create-definer leader-key :prefix "SPC")
-  :config
-  ;; these are just bindings but the symbols are all lazily handled by general
-  (create-irc-servers
-   (znc "ret2pop.net" "5000")
-   (prestonpan "nullring.xyz" "6697")
-   (libera-chat "irc.libera.chat" "6697")
-   (efnet "irc.prison.net" "6697")
-   (matrix-org "matrix.org" "8448")
-   (gimp-org "irc.gimp.org" "6697"))
-
-  (leader-key 'normal
-    "o c" '(org-capture :wk "Capture")
-    ;; Org Mode
-    "n" '(:ignore t :wk "Org mode plugins")
-    "n j j" '(org-journal-new-entry :wk "Make new journal entry")
-    "n r f" '(org-roam-node-find :wk "Find roam node")
-    "n r i" '(org-roam-node-insert :wk "Insert roam node")
-    "n r a" '(org-roam-alias-add :wk "Add alias to org roam node")
-    "n r g" '(org-roam-graph :wk "Graph roam database")
-    "m I" '(org-id-get-create :wk "Make org id")
-
-    ;; Programming Projects
-    "." '(counsel-find-file :wk "find file")
-    "p a" '(projectile-add-known-project :wk "Add to project list")
-    
-    "N f" '(nix-flake :wk "nix flake menu")
-    "f" '(:ignore t :wk "file operations")
-    "f p" '(projectile-switch-project :wk "find project to switch to")
-    "f f" '(counsel-fzf :wk "find file in project")
-    "f s" '(counsel-rg :wk "find string in project")
-
-    "y n s" '(yas-new-snippet :wk "Create new snippet")
-
-    "g" '(:ignore t :wk "Magit")
-    "g /" '(magit-dispatch :wk "git commands")
-    "g P" '(magit-push :wk "git push")
-    "g c" '(magit-commit :wk "git commit")
-    "g p" '(magit-pull :wk "Pull from git")
-    "g s" '(magit-status :wk "Change status of files")
-    "g i" '(magit-init :wk "init new git project")
-    "g r" '(magit-rebase :wk "Rebase branch")
-    "g m" '(magit-merge :wk "Merge branches")
-    "g b" '(magit-branch :wk "Git branch")
-
-    "o p" '(treemacs :wk "Project Drawer")
-    "o P" '(treemacs-projectile :wk "Import Projectile project to treemacs")
-
-    "w r" '(writeroom-mode :wk "focus mode for writing")
-
-    ;; Applications
-    "o" '(:ignore t :wk "Open application")
-    "o t" '(vterm :wk "Terminal")
-    "o e" '(eshell :wk "Elisp Interpreter")
-    "o m" '(mu4e :wk "Email")
-    "o M" '(matrix-org :wk "Connect to matrix")
-    "o r s" '(elfeed :wk "rss feed")
-    "o a" '(org-agenda :wk "Open agenda")
-    "o w" '(eww :wk "web browser")
-    "o n" '(enwc :wk "NetworkManager Interface")
-    "m m" '(emms :wk "Music player")
-    "s m" '(proced :wk "System Manager")
-    "l p" '(list-processes :wk "List Emacs Processes")
-
-    "m P p" '(org-publish :wk "Publish website components")
-    "s e" '(sudo-edit :wk "Edit file with sudo")
-
-    ;; "f f" '(eglot-format :wk "Format code buffer")
-    "i p c" '(prestonpan :wk "Connect to my IRC server")
-    "i l c" '(liberachat :wk "Connect to libera chat server")
-    "i e c" '(efnet :wk "Connect to efnet chat server")
-    "i g c" '(gimp-org :wk "Connect to gimp chat server")
-    "i z c" '(znc :wk "Connect to my ZNC instance")
-
-    ;; Documentation
-    "h" '(:ignore t :wk "Documentation")
-    "h v" '(counsel-describe-variable :wk "Describe variable")
-    "h f" '(counsel-describe-function :wk "Describe function")
-    "h h" '(help :wk "Help")
-    "h m" '(woman :wk "Manual")
-    "h i" '(info :wk "Info")
-
-    "s i p" '(insert-urandom-password :wk "insert random password to buffer (for sops)")
-
-    "h r r" '(lambda () (interactive) (load-file (expand-file-name "~/monorepo/nix/init.el")))))
-#+end_src
 ** LLM
 I use LLMs in order to help me come up with ideas. I use a local LLM so that I can have a
 competitive LLM that doesn't cost money.
@@ -1238,30 +1375,20 @@ Minuet does my code completion, showing the potential code completion as a ghost
 still. It is kind of like copilot but it works with local LLMs, which is better. Though, it's obviously not always the most accurate.
 #+begin_src emacs-lisp :tangle ../nix/init.el
 (use-package minuet
-  :bind
-  (("M-y" . #'minuet-complete-with-minibuffer)
-   ("C-c m" . #'minuet-show-suggestion)
-   :map minuet-active-mode-map
-   ("C-c r" . #'minuet-dismiss-suggestion)
-   ("TAB" . #'minuet-accept-suggestion))
-  :hook ((prog-mode-hook . minuet-auto-suggestion-mode))
-  :custom
-  (minuet-request-timeout 40 "Max timeout in seconds")
-  (minuet-provider 'openai-fim-compatible "FIM compatible OpenAI-like API (Ollama)")
-  (minuet-n-completions 1 "I am using ghost text so I only need one possible completion")
-  (minuet-context-window 1024 "how much context do I want?")
-  (minuet-openai-fim-compatible-options
-   '(
-     :end-point "http://localhost:11434/v1/completions"
-     :name "Ollama"
-     :api-key "TERM"
-     :template (
-                :prompt minuet--default-fim-prompt-function
-                :suffix minuet--default-fim-suffix-function)
-     :transform ()
-     :get-text-fn minuet--openai-fim-get-text-fn
-     :optional (:max-tokens 50)
-     :model "qwen2.5-coder:14b")))
+    :config
+    (setq minuet-provider 'openai-fim-compatible)
+    (setq minuet-n-completions 1)
+    (setq minuet-context-window 4096)
+    (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:11434/v1/completions")
+    ;; an arbitrary non-null environment variable as placeholder.
+    ;; For Windows users, TERM may not be present in environment variables.
+    ;; Consider using APPDATA instead.
+    (plist-put minuet-openai-fim-compatible-options :name "Ollama")
+    (plist-put minuet-openai-fim-compatible-options :api-key "nothing")
+    (plist-put minuet-openai-fim-compatible-options :model "rnj-1:latest")
+
+    (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 100)
+    :hook (prog-mode-hook . minuet-auto-suggestion-mode))
 #+end_src
 ** RSS Feed
 I use really simple syndication (RSS) in order to read news. As a result, I use
@@ -1514,15 +1641,9 @@ to Chromium if I have to:
 ** Nix Mode
 Load Nix mode so our exported website has syntax highlighting for Nix blocks.
 #+begin_src emacs-lisp :tangle ../nix/init.el
-  (use-package nix-mode
-    :demand t
-    :mode "\\.nix\\'")
 #+end_src
 ** Scheme
 #+begin_src emacs-lisp :tangle ../nix/init.el
-(use-package scheme-mode
-  :mode ("\\.sls\\'" "\\.scm\\'"))
-
 (use-package geiser
   :after scheme)
 
@@ -1696,7 +1817,7 @@ I use tabs because sometimes I like using the mouse (it's actually more efficien
   (:map global-map
     ("C-x l" . pulsar-pulse-line)
     ("C-x L" . pulsar-highlight-permanently-dwim))
-  :init
+  :config
   (pulsar-global-mode 1))
 #+end_src
 * Unpinned

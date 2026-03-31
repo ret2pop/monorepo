@@ -233,7 +233,7 @@ fi
 
         buildPhase = ''
 export HOME=$TMPDIR/fake-home
-mkdir -p $HOME/.emacs.d
+mkdir -p $HOME/.emacs.d/snippets
 mkdir -p public
 mkdir -p .cache/texmf
 

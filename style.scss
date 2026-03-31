@@ -472,10 +472,24 @@ h1.title {
 }
 
 .theorem { margin-bottom: 20px; &::before { content: "Theorem.\00a0\00a0"; } }
+
 .proof {
+    position: relative;
     margin-bottom: 30px;
-    &::after { content: "\25FC"; float: right; }
-    &::before { content: 'Proof.\00a0\00a0'; }
+    padding-right: 1.2em;
+    &::before {
+        content: "Proof.\00a0\00a0";
+    }
+    &::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: 0.2em;
+        width: 0.65em;
+        height: 0.65em;
+        border: 0.08em solid currentColor;
+        box-sizing: border-box;
+    }
 }
 
 .links-page > ul {

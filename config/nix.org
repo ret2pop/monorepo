@@ -134,21 +134,21 @@ and now for the main flake:
         };
 
         commonModules = hostname: [
-            impermanence.nixosModules.impermanence
-            nix-topology.nixosModules.default
-            lanzaboote.nixosModules.lanzaboote
-            disko.nixosModules.disko
-            home-manager.nixosModules.home-manager
-            sops-nix.nixosModules.sops
-            nixos-dns.nixosModules.dns
-            {
-              nixpkgs.overlays = [ nur.overlays.default ];
-              home-manager.extraSpecialArgs = attrs // {
-                systemHostName = "${hostname}";
-              };
-              networking.hostName = "${hostname}";
-            }
-            (./. + "/systems/${hostname}/default.nix")
+          impermanence.nixosModules.impermanence
+          nix-topology.nixosModules.default
+          lanzaboote.nixosModules.lanzaboote
+          disko.nixosModules.disko
+          home-manager.nixosModules.home-manager
+          sops-nix.nixosModules.sops
+          nixos-dns.nixosModules.dns
+          {
+            nixpkgs.overlays = [ nur.overlays.default ];
+            home-manager.extraSpecialArgs = attrs // {
+              systemHostName = "${hostname}";
+            };
+            networking.hostName = "${hostname}";
+          }
+          (./. + "/systems/${hostname}/default.nix")
         ];
 
         mkHostModules = hostname:
@@ -1569,19 +1569,29 @@ does not support conduit at the moment. Note that this is not fully declarative 
 ** Ollama
 Use ollama for serving large language models to my other computers.
 #+begin_src nix :tangle ../nix/modules/ollama.nix
-  { config, lib, pkgs, ... }:
-  {
-    # services.open-webui.enable = lib.mkDefault (!config.monorepo.profiles.server.enable);
-    services.ollama = {
-      enable = lib.mkDefault config.monorepo.profiles.desktop.enable;
-      package = if (config.monorepo.profiles.cuda.enable) then pkgs.ollama-cuda else pkgs.ollama-vulkan;
-      loadModels = if (config.monorepo.profiles.cuda.enable) then [
-      ] else [
-      ];
-      host = "0.0.0.0";
-      openFirewall = true;
+{ config, lib, pkgs, ... }:
+{
+  services.open-webui = {
+    enable = lib.mkDefault config.services.ollama.enable;
+    port = 11111;
+    host = "127.0.0.1";
+    environment = {
+      OLLAMA_API_BASE_URL = "http://127.0.0.1:11434";
+      # Disable authentication
+      WEBUI_AUTH = "False";
     };
-  }
+  };
+
+  services.ollama = {
+    enable = lib.mkDefault config.monorepo.profiles.desktop.enable;
+    package = if (config.monorepo.profiles.cuda.enable) then pkgs.ollama-cuda else pkgs.ollama-vulkan;
+    loadModels = if (config.monorepo.profiles.cuda.enable) then [
+    ] else [
+    ];
+    host = "0.0.0.0";
+    openFirewall = true;
+  };
+}
 #+end_src
 ** Bitcoind
 #+begin_src nix :tangle ../nix/modules/bitcoin.nix
@@ -3570,6 +3580,7 @@ epkgs: with epkgs; [
   platformio-mode
   projectile
   polymode
+  poetry
   rustic
   s
   sops

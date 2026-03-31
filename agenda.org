@@ -72,11 +72,16 @@ DEADLINE: <2026-03-18 Wed>
 * Habits
 These are some habits I want to track. They are repeated according to a calendar schedule in
 general.
+** TODO Merge Feature Branches to Monorepo Main
+SCHEDULED: <2026-03-29 Sun 10:00 .+1w>
+I need to have a schedule for cleaning my git tree.
 ** TODO Skincare
-SCHEDULED: <2026-03-20 Fri .+1d>
+SCHEDULED: <2026-03-30 Mon 12:30 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-03-19 Thu 03:36]
+:LAST_REPEAT: [2026-03-29 Sun 14:01]
 :END:
+- State "DONE"       from "TODO"       [2026-03-29 Sun 14:01]
+- State "DONE"       from "TODO"       [2026-03-27 Fri 11:29]
 - State "DONE"       from "TODO"       [2026-03-19 Thu 03:36]
 - State "DONE"       from "TODO"       [2025-10-16 Thu 18:06]
 Current stack:
@@ -85,11 +90,15 @@ Current stack:
 - Hyaluronic acid (2x/day)
 - Glycerin for hands
 ** TODO Supplements
-SCHEDULED: <2026-03-26 Thu 12:00 .+1d>
+SCHEDULED: <2026-03-30 Mon 12:00 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-03-25 Wed 11:52]
+:LAST_REPEAT: [2026-03-29 Sun 14:01]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2026-03-29 Sun 14:01]
+- State "DONE"       from "TODO"       [2026-03-28 Sat 17:44]
+- State "DONE"       from "TODO"       [2026-03-27 Fri 11:29]
+- State "DONE"       from "TODO"       [2026-03-26 Thu 12:20]
 - State "DONE"       from "TODO"       [2026-03-25 Wed 11:52]
 - State "DONE"       from "TODO"       [2026-03-24 Tue 16:24]
 - State "DONE"       from "TODO"       [2026-03-21 Sat 10:26]
@@ -122,7 +131,7 @@ Current stack:
 - Creatine Monohydrate
 - Coffee
 ** TODO Strength Training
-SCHEDULED: <2025-10-17 Fri .+2d>
+SCHEDULED: <2025-10-17 Fri 14:00 .+2d>
 :PROPERTIES:
 :LAST_REPEAT: [2025-10-16 Thu 18:08]
 :STYLE: habit
@@ -142,7 +151,7 @@ SCHEDULED: <2025-10-17 Fri .+2d>
 - State "DONE"       from "TODO"       [2025-03-11 Tue 00:16]
 I want to be healthy.
 ** TODO Run
-SCHEDULED: <2025-09-29 Mon .+1d>
+SCHEDULED: <2025-09-29 Mon 16:00 .+1d>
 :PROPERTIES:
 :LAST_REPEAT: [2025-09-28 Sun 20:52]
 :END:
@@ -176,11 +185,15 @@ Stretches:
 - Seal
 - Cat
 ** TODO Journal
-SCHEDULED: <2026-03-25 Wed 22:00 .+1d>
+SCHEDULED: <2026-03-31 Tue 22:00 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-03-24 Tue 22:48]
+:LAST_REPEAT: [2026-03-30 Mon 04:00]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2026-03-30 Mon 04:00]
+- State "DONE"       from "TODO"       [2026-03-28 Sat 22:21]
+- State "DONE"       from "TODO"       [2026-03-27 Fri 00:00]
+- State "DONE"       from "TODO"       [2026-03-25 Wed 21:59]
 - State "DONE"       from "TODO"       [2026-03-24 Tue 22:48]
 - State "DONE"       from "TODO"       [2026-03-21 Sat 10:33]
 - State "DONE"       from "TODO"       [2026-03-18 Wed 23:16]
@@ -209,10 +222,15 @@ SCHEDULED: <2026-03-25 Wed 22:00 .+1d>
 - State "DONE"       from "TODO"       [2025-01-11 Sat 02:25]
 I want to journal every day, at least a little bit, about my life and track it with a git repo.
 ** TODO Update Agenda
-SCHEDULED: <2026-03-26 Thu 11:00 .+1d>
+SCHEDULED: <2026-03-31 Tue 11:00 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-03-25 Wed 10:11]
+:LAST_REPEAT: [2026-03-30 Mon 17:08]
 :END:
+- State "DONE"       from "TODO"       [2026-03-30 Mon 17:08]
+- State "DONE"       from "TODO"       [2026-03-29 Sun 14:01]
+- State "DONE"       from "TODO"       [2026-03-28 Sat 17:44]
+- State "DONE"       from "TODO"       [2026-03-27 Fri 11:29]
+- State "DONE"       from "TODO"       [2026-03-26 Thu 12:20]
 - State "DONE"       from "TODO"       [2026-03-25 Wed 10:11]
 - State "DONE"       from "TODO"       [2026-03-24 Tue 16:24]
 - State "DONE"       from "TODO"       [2026-03-21 Sat 10:26]

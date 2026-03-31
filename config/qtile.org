@@ -26,9 +26,8 @@ from qtile_extras.layout.decorations import RoundedCorners
 import re
 #+end_src
 We're using wayland because it's better.
-* Config
+* Data
 #+begin_src python :tangle ../nix/qtile/config.py
-
 mod = "mod4"
 terminal = "kitty"
 wallpaper = WALLPAPER
@@ -73,7 +72,9 @@ workspace_keys = {
     "8": "8",
     "9": "9",
 }
-
+#+end_src
+* Config
+#+begin_src python :tangle ../nix/qtile/config.py
 groups = [
     Group("1", matches=[Match(wm_class=re.compile(r"^emacs$", re.IGNORECASE))]),
     Group("2", matches=[Match(wm_class=re.compile(r"(qutebrowser|org\.qutebrowser\.qutebrowser)", re.IGNORECASE))]),

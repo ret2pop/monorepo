@@ -395,26 +395,27 @@ with mkDiskoFiles.
 * Sops Configuration
 In order to use the sops configuration, you must change the age public key to the one that
 you own:
-#+begin_src yaml :tangle ../nix/.sops.yaml
-    keys:
-      - &primary age165ul43e8rc0qwzz2f2q9cw02psm2mkudsrwavq2e0pxs280p64yqy2z0dr
-      - &vps age1acpuyy2qnduyxzwvusd8urr6a78e3f37ylhvh2pngyqytf5r8ans5vkest
-      creation_rules:
-        - path_regex: secrets/secrets.yaml$
-          key_groups:
-            - age:
-                - *primary
+#+begin_src yaml :tangle ../nix/.sops.yaml :comments no
+keys:
+  - &primary age165ul43e8rc0qwzz2f2q9cw02psm2mkudsrwavq2e0pxs280p64yqy2z0dr
+  - &vps age1acpuyy2qnduyxzwvusd8urr6a78e3f37ylhvh2pngyqytf5r8ans5vkest
 
-                - path_regex: secrets/vps_secrets.yaml$
-                  key_groups:
-                    - age:
-                        - *vps
+creation_rules:
+  - path_regex: secrets/secrets.yaml$
+    key_groups:
+      - age:
+          - *primary
 
-                        - path_regex: secrets/common_secrets.yaml$
-                          key_groups:
-                            - age:
-                                - *primary
-                                - *vps
+  - path_regex: secrets/vps_secrets.yaml$
+    key_groups:
+      - age:
+          - *vps
+
+  - path_regex: secrets/common_secrets.yaml$
+    key_groups:
+      - age:
+          - *primary
+          - *vps
 #+end_src
 also note that you will have to write your own secrets.yaml file, with an entry called ~mail~,
 which is used for the imaps and smtps password.
@@ -3147,6 +3148,7 @@ in
       lang-lean.enable = lib.mkEnableOption "Enables lean language support";
       lang-haskell.enable = lib.mkEnableOption "Enables haskell language support";
       lang-scheme.enable = lib.mkEnableOption "Enables scheme language support";
+      lang-data.enable = lib.mkEnableOption "Enables markup languages support";
       crypto.enable = lib.mkEnableOption "Enables various cryptocurrency wallets";
       art.enable = lib.mkEnableOption "Enables various art programs";
       music.enable = lib.mkEnableOption "Enables mpd";
@@ -3196,11 +3198,18 @@ in
                     (if config.monorepo.profiles.lang-python.enable then (with pkgs; [
                       poetry
                       python3
-                      python314Packages.python-lsp-server
+                      semgrep
+                      ty
+                      ruff
+                      python314Packages.debugpy
                     ]) else [])
                     ++
                     (if config.monorepo.profiles.lang-sol.enable then (with pkgs; [
                       solc
+                    ]) else [])
+                    ++
+                    (if config.monorepo.profiles.lang-data.enable then (with pkgs; [
+                      yaml-language-server
                     ]) else [])
                     ++
                     (if config.monorepo.profiles.lang-openscad.enable then (with pkgs; [
@@ -3299,6 +3308,7 @@ in
       lang-idris.enable = lib.mkDefault config.monorepo.profiles.enable;
       lang-agda.enable = lib.mkDefault config.monorepo.profiles.enable;
       lang-scheme.enable = lib.mkDefault config.monorepo.profiles.enable;
+      lang-data.enable = lib.mkDefault config.monorepo.profiles.enable;
 
       crypto.enable = lib.mkDefault config.monorepo.profiles.enable;
       art.enable = lib.mkDefault config.monorepo.profiles.enable;
@@ -3393,6 +3403,7 @@ be straightforward.
       w = "https://en.wikipedia.org/wiki/Special:Search?search={}&amp;go=Go&amp;ns0=1";
       aw = "https://wiki.archlinux.org/?search={}";
       nw = "https://wiki.nixos.org/index.php?search={}";
+      npk = "https://search.nixos.org/packages?channel=unstable&query={}";
     };
     settings = {
       content.blocking.method = "both";
@@ -3445,7 +3456,7 @@ compilation, and because I can fetch their exact versions. Note that I have a st
 configuration here that tells emacs to load my real configuration at ~~/monorepo/config/emacs.org~
 as an org file which gets automatically tangled to an emacs-lisp file.
 #+begin_src nix :tangle ../nix/modules/home/emacs.nix
-{ lib, config, pkgs, super, ... }:
+{ lib, config, pkgs, super, self, ... }:
 {
   programs.emacs = 
     {
@@ -3453,6 +3464,7 @@ as an org file which gets automatically tangled to an emacs-lisp file.
       package = pkgs.emacs-pgtk;
       extraConfig = ''
   (setq debug-on-error t)
+  (setq logo-file "${self}/data/logo.png")
   (setq system-email "${super.monorepo.vars.email}")
   (setq system-username "${super.monorepo.vars.internetName}")
   (setq system-fullname "${super.monorepo.vars.fullName}")
@@ -3475,6 +3487,7 @@ as an org file which gets automatically tangled to an emacs-lisp file.
 I want to separate out these packages so that my parent flake which builds my website has a list of my packages.
 #+begin_src nix :tangle ../nix/modules/home/emacs-packages.nix
 epkgs: with epkgs; [
+  aggressive-indent
   all-the-icons
   agda2-mode
   auctex
@@ -3484,6 +3497,7 @@ epkgs: with epkgs; [
   company-solidity
   counsel
   centaur-tabs
+  dap-mode
   dash
   dashboard
   doom-themes
@@ -3503,7 +3517,12 @@ epkgs: with epkgs; [
   evil
   evil-collection
   evil-commentary
+  evil-multiedit
+  evil-mc
+  evil-surround
   evil-org
+  evil-lion
+  evil-textobj-tree-sitter
   f
   flycheck
   geiser
@@ -3521,6 +3540,7 @@ epkgs: with epkgs; [
   latex-preview-pane
   lsp-ivy
   lsp-mode
+  lsp-ui
   lsp-haskell
   lyrics-fetcher
   mastodon
@@ -3541,6 +3561,8 @@ epkgs: with epkgs; [
   org-modern
   org-roam
   org-roam-ui
+  pulseaudio-control
+  pulsar
   page-break-lines
   password-store
   pdf-tools
@@ -3550,6 +3572,7 @@ epkgs: with epkgs; [
   polymode
   rustic
   s
+  sops
   solaire-mode
   scad-mode
   simple-httpd
@@ -4076,10 +4099,10 @@ for these configurations.
 
       # Apps
       octaveFull
-      grim swww vim kotatogram-desktop tg qwen-code element-desktop signal-desktop signal-cli thunderbird jami
+      grim swww vim element-desktop signal-desktop signal-cli thunderbird jami imv slurp
 
       # Sound/media
-      pavucontrol alsa-utils imagemagick ffmpeg helvum
+      pavucontrol alsa-utils imagemagick ffmpeg helvum pulseaudio
 
       # Net
       curl rsync gitFull ungoogled-chromium devd

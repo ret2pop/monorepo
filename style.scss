@@ -463,7 +463,8 @@ h1.title {
 .theorem,
 .lemma,
 .corollary,
-.definition {
+.definition,
+.proof {
     display: block;
     font-style: normal;
     background: color-mix(in srgb, var(--accent) 8%, transparent);

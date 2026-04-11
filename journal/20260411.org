@@ -1,0 +1,9 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Saturday, 11 April 2026
+** 13:21 
+I'm currently updating my monorepo again, and I'm doing more complex analysis. I think I get what tricks are important in it now.

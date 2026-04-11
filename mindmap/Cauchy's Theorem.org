@@ -19,9 +19,7 @@ functions. For example:
 and many more, are statements about the same set of objects, posed in different ways.
 * Theorem
 #+begin_theorem
-\begin{align}
-\oint_{D}f(z)dz = 0
-\end{align}
+If $D$ is a bounded domain with piecewise smooth boundary and $f$ is an analytic function which extends smoothly to $D \cup \partial D$, then $\oint_{D}f(z)dz = 0$.
 #+end_theorem
 
 #+begin_proof

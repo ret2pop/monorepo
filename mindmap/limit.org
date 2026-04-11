@@ -95,7 +95,7 @@ in every neighbourhood of some $x \in X$, and thus converges.
 #+end_proof
 and finally we get the Bolzano-Weierstrass theorem for $\mathbb{R}^{n}$ for free, as $\mathbb{R}^{n} \cup \lbrace \infty\rbrace$ is a compact metric space:
 #+begin_corollary
-Every sequence in $R^{n}$ either has a convergent subsequence, or has a subsequence that escapes to $\infty$.
+Every sequence in $\mathbb{R}^{n}$ either has a convergent subsequence, or has a subsequence that escapes to $\infty$.
 #+end_corollary
 Also, for the two-point compactification, it yields this result as well if you're working in that space:
 #+begin_corollary

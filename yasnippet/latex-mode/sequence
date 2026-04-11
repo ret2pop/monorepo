@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: sequence
+# key: sequence
+# --
+\lbrace $0_{n} \rbrace

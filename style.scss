@@ -460,26 +460,33 @@ h1.title {
     vertical-align: middle
 }
 
-.theorem, .proof {
+.theorem,
+.lemma,
+.corollary,
+.definition,
+.proof {
     display: block;
     font-style: normal;
     background: color-mix(in srgb, var(--accent) 8%, transparent);
     border-left: 3px solid var(--accent);
     padding: 1rem 1.3rem;
-    margin-top: 2rem;
-    margin-left: 10px;
-    &::before { float: left; font-weight: bold; }
+    margin: 2rem 0 20px 10px;
+    &::before {
+        font-weight: bold;
+        margin-right: 0.4em;
+    }
 }
 
-.theorem { margin-bottom: 20px; &::before { content: "Theorem.\00a0\00a0"; } }
+.theorem::before { content: "Theorem."; }
+.lemma::before { content: "Lemma."; }
+.corollary::before { content: "Corollary."; }
+.definition::before { content: "Definition."; }
 
 .proof {
     position: relative;
     margin-bottom: 30px;
     padding-right: 1.2em;
-    &::before {
-        content: "Proof.\00a0\00a0";
-    }
+    &::before { content: "Proof.\00a0\00a0"; }
     &::after {
         content: "";
         position: absolute;

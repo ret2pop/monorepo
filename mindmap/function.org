@@ -4,7 +4,6 @@
 #+title: function
 #+author: Preston Pan
 #+description: Not the best explanation, but it functions.
-
 #+options: broken-links:t
 
 * Definition
@@ -17,6 +16,18 @@ S = \{(x, y): x^{2} = y, x, y \in \mathbb{R} \}
 \end{align*}
 Which is an example of a parabolic function. \(x\) and \(y\) can both conceptually be any object, but usually they are
 mathematical objects. Some examples of such objects include tensors and scalars.
+** Surjectivity
+:PROPERTIES:
+:ID:       de33062a-35cf-4eae-a6bb-38b76dd4faf3
+:ROAM_ALIASES: onto surjective
+:END:
+A function is /surjective/, or /onto/, if every element in the codomain is mapped onto by an element in the domain.
+** Injectivity
+:PROPERTIES:
+:ID:       c34ad97b-b536-40f2-91d1-cb2ce788628a
+:ROAM_ALIASES: injective
+:END:
+A function is /injective/, or /one-to-one/, if every element in the domain maps to a unique element in the codomain.
 * ordered pair
 :PROPERTIES:
 :ID:       1b1b522e-d4de-4832-9ca4-c6d1cfee27e6
@@ -30,4 +41,4 @@ Where the element that is not explicitly a set gives us the definition of the fi
 * Function Group
 Let \((S, \circ)\) define a [[id:ba7b95b0-0ce6-4b33-9a79-5e5fddaea710][group]] where \(S\) is the set of all functions, and \(\circ\) is the composition
 binary operator. Then \(f(x) = x\) is the identity element, and an inverse of a function is defined
-as \( (f \circ f^{-1})(x) = (f^{-1} \circ f)(x) = x \).
+as \( (f \circ f^{-1})(x) = (f^{-1} \circ f)(x) = x \). This only works if all the functions in your group have inverses, obviously.

@@ -1,0 +1,9 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Saturday, 04 April 2026
+** 23:21 
+I'm almost finished this one complex analysis problem that has stumped me for a bit, which is very good.

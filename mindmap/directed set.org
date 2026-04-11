@@ -1,0 +1,59 @@
+:PROPERTIES:
+:ID:       2517cbfe-bd7b-474f-993d-d4ee3c65a069
+:END:
+#+title: Directed Set
+#+author: Preston Pan
+#+description: Central in order theory.
+#+options: broken-links:t
+
+* Definition
+A directed set $D$ is a set with some preorder defined on it:
+\begin{align}
+  \forall \alpha, \beta \in  D, \exists \gamma,  \alpha \le \gamma, \beta \le \gamma
+\end{align}
+where $\ge$ obeys the usual rules for preorders (by convention, when we say $\alpha \le \gamma$ we are saying $\gamma \ge \alpha$). Though we will just use partial order
+notation because the theory is equivalent if you just factor out by some equivalence relation.
+* Nets
+:PROPERTIES:
+:ID:       d6dd23da-78be-420f-9103-4a81745aa272
+:ROAM_ALIASES: net "universal net"
+:END:
+This notion is central to the study of compactness in the way that [[id:122fd244-ffeb-47d0-89ce-bf9bc6f01b70][sequences]] are. A net is a [[id:b1f9aa55-5f1e-4865-8118-43e5e5dc7752][function]]  $f: D \rightarrow X$ which maps directed set elements into
+members of a [[id:b0784577-9691-4c8e-a8e4-974a7c9c4949][Topological Space]]. There is one main theorem regarding nets that are of central importance, which is that /every net has a universal
+subnet/. This mirrors the [[id:1e484e9f-cfd5-48f7-a920-c242f732b452][Bolzano-Weierstrass Theorem]] in sequences, and has deep implications for [[id:72deb4cd-46f7-4ef2-9c66-6943e47a9e83][compactness]]. We will give an explanation of
+universality as well as some definitions to aide the explanation.
+** Common Definitions
+These are some common definitions for nets which are used in [[id:b0784577-9691-4c8e-a8e4-974a7c9c4949][topology]] to define abstracted notions of convergence and [[id:72deb4cd-46f7-4ef2-9c66-6943e47a9e83][compactness]].
+*** Frequently
+:PROPERTIES:
+:ID:       222f5770-d618-4620-8bc0-5f7c1171f417
+:ROAM_ALIASES: frequently
+:END:
+#+begin_definition
+A net $\lbrace x_{\alpha} \rbrace$ is /frequently/ in some set $A$ if for all $\alpha \in D$, there exists $\beta \in D$ such that $\beta \ge \alpha, x_{\beta} \in A$.
+#+end_definition
+*** Eventually
+:PROPERTIES:
+:ID:       18a8e850-963d-4cfc-810a-6568ec33b6af
+:ROAM_ALIASES: eventually
+:END:
+#+begin_definition
+A net $\lbrace x_{\alpha} \rbrace$ is /eventually/ in some set $A$ if there exists $\alpha \in D$ such that for all $\beta \ge \alpha$, $x_{\beta}\in A$.
+#+end_definition
+Often this definition is used as a shorthand in order to
+** Universal Nets
+Universal nets are defined as nets that are /either/ [[id:18a8e850-963d-4cfc-810a-6568ec33b6af][eventually]]  in $A$ or eventually in $A^{c}$ for all $A$ in a topological space $X$. Clearly, they are
+of great importance to the study of both order theory and [[id:b0784577-9691-4c8e-a8e4-974a7c9c4949][topology]]. The main theorem is this:
+#+begin_theorem
+every net has a universal subnet.
+#+end_theorem
+
+#+begin_proof
+Use Zorn's lemma or the Axiom of choice.
+#+end_proof
+and can be used to prove Tychonoff's theorem, a main result in the study of [[id:72deb4cd-46f7-4ef2-9c66-6943e47a9e83][compact]] [[id:deb370a5-41a3-4ae5-b83f-4ba65ca71e29][Hausdorff Spaces]].
+* Pitfalls
+Note these couple facts:
+- subnets of sequences are not always sequences! Subnets can branch, repeat, and use entirely different directed sets. The only requirement is that
+  subnets preserve order.
+- nets don't converge uniquely in general; only when the space is a [[id:deb370a5-41a3-4ae5-b83f-4ba65ca71e29][Hausdorff Space]] do nets converge uniquely when they /do/ converge.

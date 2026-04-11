@@ -2,14 +2,13 @@
 :ID:       6f24f731-60e5-4904-88d7-c63869505981
 :ROAM_ALIASES: metric
 :END:
-#+title: metric space
+#+title: Metric Space
 #+author: Preston Pan
 #+description: The basis of modern analysis.
-
 #+options: broken-links:t
 
 * Introduction
-A metric space $(G, d)$ is a set with a metric $d(x,y): G \times G \rightarrow \mathbb{R}$ defined on members of the set.
+A metric space $(X, d)$ is a [[id:b0784577-9691-4c8e-a8e4-974a7c9c4949][Topological Space]] with a metric $d(x,y): X \times X \rightarrow \mathbb{R}$ defined on members of the set.
 This metric is a generalization of distance, with the following properties:
 \begin{align}
 \label{}
@@ -18,4 +17,6 @@ x \ne y \implies d(x, y) > 0 \\
 d(x, y) = d(y, x) \\
 d(x, z) \le d(x, y) + d(x, z)
 \end{align}
-where property $(4)$ is the triangle inequality.
+where property $(4)$ is the triangle inequality. Also, the metric generates the [[id:b0784577-9691-4c8e-a8e4-974a7c9c4949][topology]] on the open sets; a basis can be chosen by including every
+open ball, which is defined as $B(x, r) = \lbrace  y: d(x, y) < r\rbrace$. A neighbourhood basis can be chosen by including every open rational ball
+that is a neighbourhood of $x$, and in fact this neighbourhood basis is countable, so metric spaces are first countable.

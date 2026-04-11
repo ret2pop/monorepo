@@ -469,20 +469,17 @@ h1.title {
     background: color-mix(in srgb, var(--accent) 8%, transparent);
     border-left: 3px solid var(--accent);
     padding: 1rem 1.3rem;
-    margin-top: 2rem;
-    margin-bottom: 20px;
-    margin-left: 10px;
-
+    margin: 2rem 0 20px 10px;
     &::before {
-        float: left;
         font-weight: bold;
+        margin-right: 0.4em;
     }
 }
 
-.theorem::before { content: "Theorem.\00a0\00a0"; }
-.lemma::before     { content: "Lemma.\00a0\00a0"; }
-.corollary::before { content: "Corollary.\00a0\00a0"; }
-.corollary::before { content: "Definition.\00a0\00a0"; }
+.theorem::before { content: "Theorem."; }
+.lemma::before { content: "Lemma."; }
+.corollary::before { content: "Corollary."; }
+.definition::before { content: "Definition."; }
 
 .proof {
     position: relative;

@@ -28,7 +28,7 @@ ordering:
 \begin{align*}
 \forall a \in \mathbb{R}, - \infty < a < +\infty
 \end{align*}
-defined. Note that equality can be defined on these symbols but the algebra remains undefined.
+defined. Note that ordering can be defined on these symbols but the algebra remains undefined.
 An equivalent and perhaps more intuitive definition which is equivalent defines a sequence in terms of the [[id:e4ac2e89-1975-40de-9d6a-98281a3ca83e][open neighbourhoods]] of a point. In
 particular, a sequence $\lbrace s_{n} \rbrace$ converges to $s$ if and only if it is eventually in every open neighbourhood of $s$.
 

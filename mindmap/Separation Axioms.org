@@ -1,0 +1,51 @@
+:PROPERTIES:
+:ID:       92d8e7ce-1008-43fb-ba7e-a36698a29fed
+:ROAM_ALIASES: "separation axioms"
+:END:
+#+title: Separation Axioms
+#+author: Preston Pan
+#+description: Top 10 separated spaces you NEED to know!
+#+options: broken-links:t
+
+* Definitions
+The separation axioms of a [[id:b0784577-9691-4c8e-a8e4-974a7c9c4949][topological space]] are definitions that are useful for discussing how different points and sets in a topology are separated
+from each other. In ascending order of strength we list them here.
+** Kolmogorov Space (T0)
+:PROPERTIES:
+:ID:       eab0e9c0-3fae-4870-840b-2a88a2deb215
+:ROAM_ALIASES: "T0 space" "Kolmogorov Space"
+:END:
+A space where for all $x, y \in X$, there exists $U$ such that $x \in U$ yet $y \not \in U$ OR vise versa. Also called /distinguishable/ or T0. You might think
+these are useless, but notably, /any/ topological space can be converted into a T0 space by factoring out indistinguishable points.
+** T1 Space
+:PROPERTIES:
+:ID:       954e6ba0-d655-412e-accd-d78c965b7f97
+:END:
+A space where for all $x, y \in X$ there exists $U, V$ such that $x \in U, y \in V$ yet $x \not \in V$, $y \not \in U$. These spaces are interesting because
+singletons are closed. For example take any singleton $\lbrace x \rbrace$ and consider the open set $\cup_{y \not = x} U_{y}$ where each [[id:e4ac2e89-1975-40de-9d6a-98281a3ca83e][open neighborhood]] of $y$  $U_{y}$ does not contain
+$x$. The complement of this set is closed, and is precisely the singleton.
+** Hausdorff (T2)
+:PROPERTIES:
+:ID:       deb370a5-41a3-4ae5-b83f-4ba65ca71e29
+:ROAM_ALIASES: "Hausdorff Space"
+:END:
+A space where for all $x, y \in X$, there exists $U$, $V$ such that $x \in U$, $y \in V$, yet $U \cap V = \emptyset$. Notably [[id:122fd244-ffeb-47d0-89ce-bf9bc6f01b70][limits]] on [[id:d6dd23da-78be-420f-9103-4a81745aa272][nets]] converge uniquely when
+they converge in these Hausdorff spaces.
+** Regular (T3)
+:PROPERTIES:
+:ID:       01fa23a6-9a0d-4a28-ac82-2bcbb4e26a5c
+:END:
+A space where for all $x \in X$ and closed sets $F \subset X$ such that $x \not \in X$, there are open sets separating $F$ and $x$ in the same sense that they
+separate points in the Hausdorff spaces. Yet, it is possible for regular spaces under this definition to be not strictly stronger than Hausdorff
+spaces. For instance, not all singletons are closed in any topology. Therefore in order to restore the total ordering in terms of separation axiom
+strength, most people also define regular spaces to have to be [[id:deb370a5-41a3-4ae5-b83f-4ba65ca71e29][Hausdorff Spaces]] as well. From here on out we will in general assume that these spaces are Hausdorff.
+** Tychonoff Space (T3.5)
+:PROPERTIES:
+:ID:       0ac540c2-9707-415a-b628-f2f01d73788c
+:ROAM_ALIASES: "completely regular"
+:END:
+A space where for all $x \in X$ and closed sets $F \subset X$ such that $x \not \in X$, there is a [[id:fdcecb13-35e1-439c-ba13-5c63bd7342c3][continuous function]] $f: X \rightarrow [0, 1]$ that separates $x$ and $F$
+such that $f(x) = 0$ and $f(F) \equiv 1$ (every point in $F$ maps to $1$). this property is interesting because of its theoretical importance in the
+[[id:14bebb09-2e38-4b55-adc0-97ba571331af][Stone-Cech Compactification]]. Also called /completely regular./
+** Normal (T4)
+A space where for all closed $F, G \subset X$, there exists open sets $U, V$ separating them. This property is useful for applying Urysohn's Lemma.

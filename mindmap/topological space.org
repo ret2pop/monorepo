@@ -1,0 +1,27 @@
+:PROPERTIES:
+:ID:       b0784577-9691-4c8e-a8e4-974a7c9c4949
+:ROAM_ALIASES: "topological space" "open set" topology
+:END:
+#+title: Topological Space
+#+author: Preston Pan
+#+description: Algebraic? Geometric? Fantastic!
+#+options: broken-links:t
+
+* Definition
+A topological space is a set $X$, equipped with a topology. That is, it is equipped with a collection of subsets that are considered to be the /open
+sets/ of that topology. These open sets must obey several rules:
+1. $\cup_{\alpha \in A}U_{\alpha}$ is open, if all $U_{\alpha}$ are open.
+2. $\cap_{n=0}^{N}U_{n}$ is open, if $N$ is finite and $U_{n}$ are open.
+3. $\emptyset$ is open, and $X$ is open.
+the [[id:1b1a8cff-1d20-4689-8466-ea88411007d7][dual]] concept to open sets are closed sets, which are the complements of open sets. Note that closed sets can also be open sets, and vise versa; a
+simple example is the space itself, in any topology; $X$ is open by definition, yet it is also closed because $\emptyset^{c} = X$. This is not just a trivial
+example; these "clopen" sets are fairly common (this is in fact the terminology people use).
+* More Basic Definitions
+Here we introduce several more basic definitions so that we can talk about them in other articles.
+** Closure
+:PROPERTIES:
+:ID:       1954ee72-ffce-4586-ad8a-a46c39c8f77d
+:ROAM_ALIASES: interior closure
+:END:
+The /closure/ of a set $F$ in a topological space $X$ is denoted $\overline{F}$ and is defined as the smallest closed set which contains every open set
+$U \subset F$. Likewise, the /interior/ of a set is defined as the largest open set which is inside $F$.

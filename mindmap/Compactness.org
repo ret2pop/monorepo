@@ -1,0 +1,14 @@
+:PROPERTIES:
+:ID:       72deb4cd-46f7-4ef2-9c66-6943e47a9e83
+:ROAM_ALIASES: "open cover" compact compactness
+:END:
+#+title: Compactness
+#+author: Preston Pan
+#+description: Basic analysis and topology.
+#+options: broken-links:t
+* Introduction
+A compact [[id:b0784577-9691-4c8e-a8e4-974a7c9c4949][Topological Space]] is a topological space such that every open cover has a finite subcover. That is, if $\mathbb{U}$ is a collection of open
+sets $U$ that cover $X$, then there exists a subset $V$ of $\mathbb{U}$ such that $V$ is finite and covers $X$.
+
+An equivalent definition is that of in terms of [[id:d6dd23da-78be-420f-9103-4a81745aa272][nets]]; a set is compact if and only if all [[id:d6dd23da-78be-420f-9103-4a81745aa272][universal nets]] converge. We will prove this in this article,
+as well as several basic properties and definitions related to compactness.

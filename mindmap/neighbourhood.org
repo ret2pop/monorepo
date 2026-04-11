@@ -1,0 +1,15 @@
+:PROPERTIES:
+:ID:       e4ac2e89-1975-40de-9d6a-98281a3ca83e
+:ROAM_ALIASES: "compact neighbourhood" "closed neighbourhood" "open neighbourhood" "open neighborhood"
+:END:
+#+title: Neighbourhood
+#+author: Preston Pan
+#+description: Locality in topological spaces.
+#+options: broken-links:t
+
+* Introduction
+A /neighbourhood/ $N$ of a point $x$ in a topological space $X$ is defined as a set in a topological space which contains an open set $U$ containing
+the point $x$.
+
+Often times it is useful for defining [[id:122fd244-ffeb-47d0-89ce-bf9bc6f01b70][limit]] behavior on the topology. An /open neighbourhood/ is a neighbourhood which is also an open set, and a
+compact and closed neighbourhood follows those same naming conventions, respectively.

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: new-snippet
+# key: new
+# --
+hello world $0

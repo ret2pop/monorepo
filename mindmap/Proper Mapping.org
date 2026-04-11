@@ -1,0 +1,14 @@
+:PROPERTIES:
+:ID:       86bab66a-6f30-4330-966f-3ac319344602
+:ROAM_ALIASES: "proper map"
+:END:
+#+title: Proper Mapping
+#+author: Preston Pan
+#+description: It's proper and it's a map.
+#+options: broken-links:t
+* Introduction
+Here is the definition:
+#+begin_definition
+If $f$ is a [[id:fdcecb13-35e1-439c-ba13-5c63bd7342c3][mapping]] on a [[id:b0784577-9691-4c8e-a8e4-974a7c9c4949][topological space]] $X$, then $f$ is proper if for all [[id:72deb4cd-46f7-4ef2-9c66-6943e47a9e83][compact]] sets $K \subset X$, $f^{-1}(K)$ is compact.
+#+end_definition
+We care about this definition because for some reason it is useful sometimes.

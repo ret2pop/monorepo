@@ -37,7 +37,7 @@ in
     "continuity"
     "spontaneity"
     "installer"
-    "rpi-zero"
+    # "rpi-zero"
   ];
 }
 #+end_src
@@ -255,7 +255,11 @@ and now for the main flake:
                 name = "services-test-${hostname}";
                 nodes = {
                   "${hostname}" = { ... }: {
-                    _module.args = attrs // { isIntegrationTest = true; };
+                    _module.args = attrs // {
+                      isIntegrationTest = true;
+                      system = getSystem hostname;
+                      monorepoSelf = null;
+                    };
                     imports = mkHostModules hostname ++ [
                       "${nixpkgs}/nixos/modules/misc/nixpkgs/read-only.nix"
                       {
@@ -902,32 +906,35 @@ underlying interface and it breaks significantly less often.
     pulse.enable = lib.mkDefault config.monorepo.profiles.pipewire.enable;
     jack.enable = lib.mkDefault config.monorepo.profiles.pipewire.enable;
     wireplumber.enable = lib.mkDefault config.monorepo.profiles.pipewire.enable;
+
     extraConfig = {
-      pipewire."92-low-latency" = {
+      pipewire."92-clock" = {
         "context.properties" = {
           "default.clock.rate" = 48000;
-          "default.clock.quantum" = 512;
-          "default.clock.min-quantum" = 512;
-          "default.clock.max-quantum" = 1024;
+          "default.clock.allowed-rates" = [ 48000 ];
+
+          "default.clock.quantum" = 2048;
+          "default.clock.min-quantum" = 1024;
+          "default.clock.max-quantum" = 4096;
+
+          "default.clock.quantum-limit" = 8192;
         };
-        pipewire-pulse."92-low-latency" = {
-          "context.properties" = [
-            {
-              name = "libpipewire-module-protocol-pulse";
-              args = { };
-            }
-          ];
-          "pulse.properties" = {
-            "pulse.min.req" = "32/48000";
-            "pulse.default.req" = "32/48000";
-            "pulse.max.req" = "32/48000";
-            "pulse.min.quantum" = "32/48000";
-            "pulse.max.quantum" = "32/48000";
-          };
-          "stream.properties" = {
-            "node.latency" = "32/48000";
-            "resample.quality" = 1;
-          };
+      };
+
+      pipewire-pulse."92-obs-very-stable" = {
+        "pulse.properties" = {
+          "pulse.min.req" = "1024/48000";
+          "pulse.default.req" = "2048/48000";
+          "pulse.max.req" = "4096/48000";
+
+          "pulse.min.quantum" = "512/48000";
+          "pulse.max.quantum" = "4096/48000";
+        };
+
+        "stream.properties" = {
+          "node.latency" = "2048/48000";
+          "node.max-latency" = "4096/48000";
+          "resample.quality" = 10;
         };
       };
     };
@@ -1598,7 +1605,7 @@ Use ollama for serving large language models to my other computers.
 { config, lib, ... }:
 {
   services.bitcoind."${config.monorepo.vars.userName}" = {
-    enable = lib.mkDefault config.monorepo.profiles.workstation.enable;
+    enable = lib.mkDefault false;
     prune = 10000;
   };
 }
@@ -2575,6 +2582,7 @@ in
       "gcm"
       "sha256"
       "sha384"
+      "uvcvideo"
     ];
 
     kernelParams = [
@@ -2820,21 +2828,37 @@ in
       tctiEnvironment.enable = true;
     };
 
-    auditd.enable = true;
-    audit.enable = true;
     chromiumSuidSandbox.enable = (! config.monorepo.profiles.ttyonly.enable);
     sudo.enable = true;
   };
 
   xdg.portal = {
     enable = (! config.monorepo.profiles.ttyonly.enable);
-    wlr.enable = (! config.monorepo.profiles.ttyonly.enable);
+    wlr = {
+      enable = (! config.monorepo.profiles.ttyonly.enable);
+      settings = {
+        screencast = {
+          chooser_type = "none";
+          output_name = "DP-1";
+        };
+      };
+    };
     extraPortals = with pkgs; if (! config.monorepo.profiles.ttyonly.enable) then [
       xdg-desktop-portal-gtk
       xdg-desktop-portal
-      xdg-desktop-portal-hyprland
+      xdg-desktop-portal-wlr
     ] else [];
     config.common.default = "*";
+  };
+
+  systemd.user.services.xdg-desktop-portal-wlr = {
+    serviceConfig = {
+      Restart = lib.mkForce "on-failure";
+    };
+    environment = {
+      XDG_CURRENT_DESKTOP = "qtile";
+      XDG_SESSION_TYPE = "wayland";
+    };
   };
 
   environment.etc."gitconfig".text = ''
@@ -3292,7 +3316,7 @@ in
                       supercollider
                       inkscape
                       kdePackages.kdenlive
-                      kicad
+                      # kicad
                     ]) else []);
 
     monorepo.profiles = {
@@ -3371,6 +3395,19 @@ These are some secrets that I use regularly for my programs in home.
   };
 }
 #+end_src
+*** OBS
+#+begin_src nix :tangle ../nix/modules/home/obs.nix
+{ pkgs, config, ... }:
+{
+  programs.obs-studio = {
+    enable = config.monorepo.profiles.workstation.enable;
+    plugins = with pkgs.obs-studio-plugins; [
+      wlrobs
+    ];
+  };
+}
+#+end_src
+
 *** Firefox
 I conditionally enable metamask based on the cryptocurrency option. Everything else here should
 be straightforward.
@@ -3378,7 +3415,8 @@ be straightforward.
 { lib, config, pkgs, ... }:
 {
   programs.librewolf = {
-    enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
+    # enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
+    enable = false;
     package = pkgs.librewolf;
     profiles = {
       default = {
@@ -3401,6 +3439,10 @@ be straightforward.
   };
 }
 #+end_src
+
+#+RESULTS:
+: <LAMBDA>
+
 *** QuteBrowser
 #+begin_src nix :tangle ../nix/modules/home/qutebrowser.nix
 { lib, config, catppuccin-qutebrowser, ... }:
@@ -3432,9 +3474,12 @@ be straightforward.
 
       # Hints
       fonts.hints = "bold 12pt Lora";
+
+      # Rendering
+      qt.force_software_rendering = "chromium";
     };
     extraConfig = (builtins.readFile "${catppuccin-qutebrowser}/setup.py") +
-''
+                  ''
 config.load_autoconfig()
 setup(c, "mocha", True)
 '';
@@ -3641,10 +3686,11 @@ the timezone.
 My iamb profile. Note that iamb does not support calling (obviously, as it is a terminal app), but the nice thing about it is that I can set it up
 declaratively, so in case element-desktop stops working because of lack of declarative setup, I can still use this.
 #+begin_src nix :tangle ../nix/modules/home/iamb.nix
-{ super, lib, config, ... }:
+{ super, ... }:
 {
   programs.iamb = {
-    enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
+    # enable = lib.mkDefault config.monorepo.profiles.graphics.enable;
+    enable = false;
     settings = {
       default_profile = "personal";
       profiles.personal = {
@@ -4089,6 +4135,12 @@ for these configurations.
     username = super.monorepo.vars.userName;
     homeDirectory = "/home/${super.monorepo.vars.userName}";
     stateVersion = "24.11";
+    sessionVariables = {
+      QTWEBENGINE_FORCE_USE_GBM = 0;
+      NIXOS_OZONE_WL = 1;
+      XDG_SESSION_TYPE = "wayland";
+      XDG_CURRENT_DESKTOP = "qtile";
+    };
 
     packages = with pkgs; (if config.monorepo.profiles.graphics.enable then [
       # wikipedia
@@ -4109,11 +4161,11 @@ for these configurations.
       graphviz jq
 
       # Apps
-      octaveFull
-      grim swww vim element-desktop signal-desktop signal-cli thunderbird jami imv slurp
+      # octaveFull
+      grim swww vim element-desktop signal-desktop signal-cli thunderbird jami imv slurp wl-clipboard
 
       # Sound/media
-      pavucontrol alsa-utils imagemagick ffmpeg helvum pulseaudio
+      pavucontrol alsa-utils imagemagick ffmpeg pulseaudio
 
       # Net
       curl rsync gitFull ungoogled-chromium devd

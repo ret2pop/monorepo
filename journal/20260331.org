@@ -1,0 +1,9 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Tuesday, 31 March 2026
+** 21:56 
+I'm calling my friend, and many people are gathered in my other friend's room.

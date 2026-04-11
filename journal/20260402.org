@@ -1,0 +1,9 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Thursday, 02 April 2026
+** 22:09 
+Went out with a friend today and talked to some people in a listening party (Good Kid).

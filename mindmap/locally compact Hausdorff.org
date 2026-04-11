@@ -1,0 +1,11 @@
+:PROPERTIES:
+:ID:       e0c63828-18a6-48b1-a3ad-3126a9b78102
+:END:
+#+title: Locally Compact Hausdorff
+#+author: Preston Pan
+#+description: the LCH king will rise again
+#+options: broken-links:t
+
+* Introduction
+A locally compact Hausdorff space is a Hausdorff space in which every point has a [[id:e4ac2e89-1975-40de-9d6a-98281a3ca83e][compact neighbourhood]]. In particular, the [[id:339b32e7-ad89-40d7-8b11-5b293bd1056f][One Point Compactification]]
+of a locally compact Hausdorff space is compact Hausdorff, so they are interesting to study for that reason.

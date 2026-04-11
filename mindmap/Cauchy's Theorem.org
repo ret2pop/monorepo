@@ -1,0 +1,29 @@
+:PROPERTIES:
+:ID:       b243a8c0-ca7c-40e6-95b4-0f725a1a361f
+:END:
+#+title: Cauchy's Theorem
+#+author: Preston Pan
+#+description: Spinning around the complex plane.
+#+options: broken-links:t
+
+* Introduction
+Cauchy's theorem is the analogue of  Green's Theorem for complex variables. It is a part of many equivalent statements made about analytic
+functions. For example:
+- exact differentials are closed.
+- The harmonic conjugates of analytic functions satisfy the Cauchy-Riemann equations.
+- Closed differentials describe [[id:6f2aba40-5c9f-406b-a1fa-13018de55648][conservative force]] fields.
+- Harmonic functions satisfy Laplace's Equation.
+- Under contour integration, the closed differentials are exactly those differentials which also satisfy the Cauchy-Riemann equations.
+- A function is analytic iff it satisfies the Cauchy-Riemann equations.
+- Analytic functions are conformal mappings except at their zeros.
+and many more, are statements about the same set of objects, posed in different ways.
+* Theorem
+#+begin_theorem
+\begin{align}
+\oint_{D}f(z)dz = 0
+\end{align}
+#+end_theorem
+
+#+begin_proof
+The closed differentials in the complex plane under contour integration are exactly those which satisfy the Cauchy-Riemann equations.
+#+end_proof

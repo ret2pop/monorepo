@@ -1,18 +1,19 @@
 :PROPERTIES:
 :ID:       122fd244-ffeb-47d0-89ce-bf9bc6f01b70
+:ROAM_ALIASES: Sequence sequence
 :END:
 #+title: limit
+#+date: 2026-04-01
 #+author: Preston Pan
 #+description: Pushing math to its limit
 #+LATEX_HEADER: \usepackage{tikz-cd}
-
 #+options: broken-links:t
-
 * Introduction
 A limit in mathematics is a tool used to describe the intuitive process
 of a value or a set of values tending towards another. First, we will define
-limits as they pertain to sequences, and then we will define them on [[id:b1f9aa55-5f1e-4865-8118-43e5e5dc7752][functions]].
-For a sequence $\{s_{n}\}$:
+limits as they pertain to sequences, and then we will define them on [[id:b1f9aa55-5f1e-4865-8118-43e5e5dc7752][functions]]. A sequence is defined as a function $s: \mathbb{N} \rightarrow X$ where $X$ is
+any set, but here we will be talking about $X$ either as a [[id:6f24f731-60e5-4904-88d7-c63869505981][metric space]] or as $\mathbb{R}^{n}$, generally, based on the context.
+For a sequence $\{s_{n}\}$: 
 
 \begin{align*}
 \lim s_{n} = s \iff \forall \epsilon > 0, \exists N , n > N \implies | s_{n} - s | < \epsilon
@@ -21,72 +22,35 @@ For a sequence $\{s_{n}\}$:
 What this means is that at some point in the sequence, for some choice of epsilon, no matter how small
 it is, there has to be an index where every term after that index is closer to $s$ than epsilon. If
 some single number $s$ and sequence $\{s_{n}\}$ fulfills this criteria, then it is said that the limit
-of the sequence is $s$. Generally speaking, we use the set $\mathbb{R} \cup \{ -\infty, +\infty \}$, where there is a natural
+of the sequence is $s$. Generally speaking, we use the set $\mathbb{R} \cup \{ -\infty, +\infty \}$, where there is an
 ordering:
 
 \begin{align*}
 \forall a \in \mathbb{R}, - \infty < a < +\infty
 \end{align*}
-defined. Note that we can define equivalence relations on these symbols, but algebra reamins undefined.
-** Unbounded Sequences
-Unbounded sequences can still limit to $+\infty$ or $-\infty$, although the limit does not exist
-for many unbounded sequences. If a sequence is one of:
-1. unbounded above
-2. unbounded below
-but not both, it is possible that such sequences limit to $\infty$.
-** Limits on Monotone Sequences
-An increasing sequence is a sequence $\{s_{n}\}$ defined such that:
-\begin{align*}
-\forall n \in \mathbb{N}, \forall m \in \mathbb{N}, n \ge m \implies s_{n} \ge s_{m}.
-\end{align*}
+defined. Note that equality can be defined on these symbols but the algebra remains undefined.
+An equivalent and perhaps more intuitive definition which is equivalent defines a sequence in terms of the [[id:e4ac2e89-1975-40de-9d6a-98281a3ca83e][open neighbourhoods]] of a point. In
+particular, a sequence $\lbrace s_{n} \rbrace$ converges to $s$ if and only if it is eventually in every open neighbourhood of $s$.
 
-#+begin_theorem
-The limit of monotone sequences always exists.
-#+end_theorem
-
-#+begin_proof
-We know:
-\begin{align*}
-\lim s_{n} = s \iff \forall \epsilon > 0, \exists N, n > N \implies | s_{n} - s | < \epsilon \\
-\end{align*}
-which is equivalent to:
-\begin{align*}
-\lim s_{n} = s \iff \forall \epsilon > 0, \exists N, n > N \implies s - \epsilon < s_{n} < s + \epsilon
-\end{align*}
-and our sequence $\{s_{n}\}$ is monotone. If $\{s_{n}\}$ is increasing, we have:
-\begin{align*}
-s_{n + 1} \ge s_{n}
-\end{align*}
-for all n. Without loss of generality we shall assume $\{s_{n}\}$ is increasing. Then we take two cases:
-1. $\{s_{n}\}$ is bounded.
-2. $\{s_{n}\}$ is unbounded.
-In the case $\{s_{n}\}$ is bounded:
-\begin{align}
-\label{}
-\exists M, \forall n, s_{n} \le M \\
-s_{0} \le ... \le s_{n} \le s_{n + 1} \le s_{n + 2} \le ... \le M
-\end{align}
-
-#+end_proof
-** Limits as Objects
-Limits can also be objects. This is most aptly demonstrated in more abstract fields of mathematics such as algebraic topology,
-where the central "object of importance" (a common theme in math is one where you have an object of importance) is the net.
-Specifically, the limits of universal nets have a deep relation to compactness, but here we will explore the most informative and essential
-form of this idea and its algebraic properties. We will quickly go over the one-point compactification, and then introduce the stone-cech
-compactification after.
-** One Point Compactification
+A sequence is just one kind of object that can have a limit. There are many other kinds of limits that operate on many different kinds of objects, yet
+a prime example of a limit would be the limit on sequences, and we cannot examine the structure of limits without at least one example! Therefore, we
+will sometimes link to external pages, but when the connection between different objects gets too intricate we will introduce the concepts inline. The
+[[id:1e484e9f-cfd5-48f7-a920-c242f732b452][Bolzano-Weierstrass Theorem]] in particular demonstrates the concept of limits nicely. To prove this theorem with a more general method, we will first
+introduce one-point compactification, and then we will introduce theorems relating specifically to [[id:6f24f731-60e5-4904-88d7-c63869505981][metric spaces]].
+* One Point Compactification
 :PROPERTIES:
 :ID:       339b32e7-ad89-40d7-8b11-5b293bd1056f
+:ROAM_ALIASES: sequence
 :END:
 The one-point compactification is the simplest possible compactification of a topological space as you are adding only one point, and it does have a
 rather simple definition, although it is really only interesting in locally compact hausdorff spaces.
 
-Let $X$ be a locally compact Hausdorff space, then its one-point compactification is $X \cup \lbrace \infty \rbrace$, where the topology defined on
+Let $X$ be a [[id:e0c63828-18a6-48b1-a3ad-3126a9b78102][locally compact Hausdorff]] space, then its one-point compactification is $X \cup \lbrace \infty \rbrace$, where the [[id:b0784577-9691-4c8e-a8e4-974a7c9c4949][topology]] defined on
 this is as follows:
 1. if $U$ is open in $X$, $U$ is open in $X \cup \lbrace \infty \rbrace$.
 2. if $F \subset X$ is a compact subset and $\infty \in F^{c}$, then $F^{c}$ is open.
-The topology generated by these open sets it the topology associated with the one-point compactification of $X$. If $X$ is locally compact hausdorff,
-then in fact this topology is compact hausdorff, which is why it is the notable case. We shall see this in a proof.
+The [[id:b0784577-9691-4c8e-a8e4-974a7c9c4949][topology]] generated by these open sets it the topology associated with the one-point compactification of $X$. If $X$ is locally compact hausdorff,
+then in fact this topology is a [[id:72deb4cd-46f7-4ef2-9c66-6943e47a9e83][compact]] [[id:deb370a5-41a3-4ae5-b83f-4ba65ca71e29][Hausdorff Space]], which is why it is the notable case. We shall see this in a proof.
 #+begin_theorem
 If $X$ is a locally compact Hausdorff space and $X^{\plus} = X \cup \lbrace \infty \rbrace$ is the one-point compactification of $X$, then $X^{\plus}$ is a
 compact Hausdorff space.
@@ -95,9 +59,9 @@ compact Hausdorff space.
 #+begin_proof
 In order to prove this, we must first prove it is compact, then we must prove it is Hausdorff. For the first we will use proof by
 contradiction. Let $\lbrace x_{\alpha}\rbrace$ be a universal net in
-$X^{\plus}$, then suppose $\lbrace  x_{\alpha}\rbrace$ does not converge in $X^{\plus}$. Then $\lbrace x_{\alpha} \rbrace$ also doesn't converge to $\infty$, and let $U_{\infty}$ be an open
-neighborhood of $\infty$ which $\lbrace x_{\alpha} \rbrace$ is not eventually in. Then the complement $U_{\infty}^{c}$ must be compact (the only way to define a
-neighborhood of $\infty$ is in terms of the complements of compact sets). But if $\lbrace x_{\alpha} \rbrace$ is eventually in $U_{\infty}^{c}$ it is eventually in a compact
+$X^{\plus}$, then suppose $\lbrace  x_{\alpha}\rbrace$ does not converge in $X^{\plus}$. Then $\lbrace x_{\alpha} \rbrace$ also doesn't converge to $\infty$, and let $U_{\infty}$ be an
+[[id:e4ac2e89-1975-40de-9d6a-98281a3ca83e][open neighbourhood]] of $\infty$ which $\lbrace x_{\alpha} \rbrace$ is not eventually in. Then the complement $U_{\infty}^{c}$ must be compact (the only way to define an
+open neighbourhood of $\infty$ is in terms of the complements of compact sets). But if $\lbrace x_{\alpha} \rbrace$ is eventually in $U_{\infty}^{c}$ it is eventually in a compact
 set and must converge. However $\lbrace x_{\alpha} \rbrace$ is universal and therefore must eventually be in either $U_{\infty}$ (impossible by construction) or $U_{\infty}^{c}$
 (also impossible). Contradiction!
 
@@ -109,18 +73,55 @@ $\overline{U}$ is compact, and this set exists due to locally compact property o
 Importantly, the one-point compactification can be thought of as a generalisation of the compactification of $\mathbb{R}^n$ via identification with
 $S^n$, and it can be thought of as undoing stereographic projection. It is also the smallest possible compactification as you are only adding one
 point. Note that it is possible for $X$ itself to be compact, and in that case $\infty$ is a disconnected component.
-** Stone-Cech Compactification
+
+Note that it is useless to talk about the compactification without some connection to extensions of [[id:fdcecb13-35e1-439c-ba13-5c63bd7342c3][mappings]], specifically to the new point we're
+adding, $\lbrace \infty \rbrace$. It turns out that this extension is /unique/ for a class of [[id:fdcecb13-35e1-439c-ba13-5c63bd7342c3][mappings]] called [[id:86bab66a-6f30-4330-966f-3ac319344602][proper maps]].
+** Bolzano-Weierstrass Theorem
+:PROPERTIES:
+:ID:       1e484e9f-cfd5-48f7-a920-c242f732b452
+:END:
+We shall prove a general result that will automatically prove the Bolzano Weierstrass theorem, which is a bit more generalisable as an
+intuition/concept than the Bolzano-Weierstrass theorem.
+#+begin_theorem
+if $\lbrace s_{n} \rbrace$ is a sequence in a [[id:72deb4cd-46f7-4ef2-9c66-6943e47a9e83][compact]] [[id:6f24f731-60e5-4904-88d7-c63869505981][metric space]] , then it has a convergent subsequence.
+#+end_theorem
+
+#+begin_proof
+For all $m \in \mathbb{N}$, we can cover $X$ with open balls $B(x, \frac{1}{m})$ for all $x \in X$, starting from $m = 1$. Take
+a finite subcover $\mathbb{U}_{0}$ , then $\lbrace s_{n} \rbrace_{0} = \lbrace s_{n} \rbrace$ is clearly [[id:222f5770-d618-4620-8bc0-5f7c1171f417][frequently]] in at least one of these open sets. For
+all $m \in \mathbb{N}$ take a subsequence $\lbrace s_{n} \rbrace_{m}$ of $\lbrace s_{n} \rbrace_{m-1}$ such that $\lbrace  s_{n}\rbrace$ is in
+some $B(x, \frac{1}{m})$, by taking covers and finite subcovers $U_{m}$. Then define a sequence $y_{n}$ such that $y_{m} = \lbrace s_{m} \rbrace_{m}$, which is eventually
+in every neighbourhood of some $x \in X$, and thus converges.
+#+end_proof
+and finally we get the Bolzano-Weierstrass theorem for $\mathbb{R}^{n}$ for free, as $\mathbb{R}^{n} \cup \lbrace \infty\rbrace$ is a compact metric space:
+#+begin_corollary
+Every sequence in $R^{n}$ either has a convergent subsequence, or has a subsequence that escapes to $\infty$.
+#+end_corollary
+Also, for the two-point compactification, it yields this result as well if you're working in that space:
+#+begin_corollary
+Every sequence in $\mathbb{R}$ has a subsequence that either converges in $\mathbb{R}$ or converges to one of $-\infty$, or $\infty$.
+#+end_corollary
+Also note that the proof above demonstrates the concept of /diagonalisation/, which is central in themes of /completion/ or
+compactification. Specifically, using diagonal arguments in order to construct or complete, or show the completeness of a space is a central theme in
+this branch of mathematics.
+* Limits as Objects
+Limits can also be objects. This is most aptly demonstrated in more abstract fields of mathematics such as algebraic topology,
+where the central "object of importance" (a common theme in math is one where you have an object of importance) is the net.
+Specifically, the limits of [[id:d6dd23da-78be-420f-9103-4a81745aa272][universal nets]] have a deep relation to [[id:72deb4cd-46f7-4ef2-9c66-6943e47a9e83][compactness]], but here we will explore the most informative and essential
+form of this idea and its algebraic properties. We will quickly go over the one-point compactification, and then introduce the stone-cech
+compactification after.
+* Stone-Cech Compactification
 :PROPERTIES:
 :ID:       14bebb09-2e38-4b55-adc0-97ba571331af
 :END:
-We can construct the Stone Cech Compcatification on a completely regular topological space $X$, which will require a specific construction
+We can construct the Stone Cech Compcatification on a [[id:0ac540c2-9707-415a-b628-f2f01d73788c][completely regular]] topological space $X$, which will require a specific construction
 but will at least give us the Hausdorff property in the compactified space. To start, let $A$ be the set of all $f_{\alpha}: X \rightarrow [0, 1]_{\alpha}$  such that $f$ is
-continuous (with $\alpha$ being an arbitrary but consistent index), and let us define a Tychonoff space $Y = \prod_{\alpha \in A}[0, 1]_{\alpha}$  and an embedding $\phi: X \rightarrow Y$
+[[id:fdcecb13-35e1-439c-ba13-5c63bd7342c3][continuous]] (with $\alpha$ being an arbitrary but consistent index), and let us define a [[id:0ac540c2-9707-415a-b628-f2f01d73788c][completely regular space]] $Y = \prod_{\alpha \in A}[0, 1]_{\alpha}$  and an embedding $\phi: X \rightarrow Y$
 where the embedding $\phi$ is defined as $(\phi(x))_{\alpha }= f_{\alpha}(x)$. Then the idea is that the /closure/ of $\phi(X)$ in $Y$ is a compactification of $X$.
 In fact, this is sort of analogous to currying in the theory of computer science, or delayed or /lazy evaluation/, and as we shall see, it will share
 similar algebraic properties.
 
-How do we know the space is compact? We know that $Y$ is compact because $[0, 1]$ is compact, and we apply Tychonoff's theorem. How do we know that
+How do we know the space is [[id:72deb4cd-46f7-4ef2-9c66-6943e47a9e83][compact]]? We know that $Y$ is compact because $[0, 1]$ is compact, and we apply [[id:80901a90-7ffd-4b86-9619-c8a71f4a2a72][Tychonoff's Theorem]]. How do we know that
 $\overline{\phi(X)}$ is compact? It is closed and a subset of a compact set. However, what we have /not/ shown thus far is that $\phi(X)$ is truly an embedding. To see
 this, the completely regular property of $X$ saves the day; if we /didn't/ have this property, then it would be possible for some two points to /never/ be
 separated by any function, and then you'd lose the one-to-one property of $\phi$. Also, $\phi$ is clearly always continuous; we use the property that
@@ -139,21 +140,25 @@ if $X$ is a completely regular space and $\phi: X \rightarrow \beta X$ is the ev
 #+end_theorem
 
 #+begin_proof
-In this proof we will use the net definition of continuity. Suppose $\phi(x_{\alpha}) \rightarrow \phi(x)$, yet $x_{\alpha} \not \rightarrow x$. Then there exists some open neighborhood  $U$ of
+In this proof we will use the net definition of continuity. Suppose $\phi(x_{\alpha}) \rightarrow \phi(x)$, yet $x_{\alpha} \not \rightarrow x$. Then there exists some [[id:e4ac2e89-1975-40de-9d6a-98281a3ca83e][open neighbourhood]]  $U$ of
 $x$ such that $x_{\alpha}$ is not eventually in $U$. Because of complete regularity, there exists a map $f$ separating $x$ from $U^{c}$. If
 $\phi(x_{\alpha}) \rightarrow \phi(x)$, then $\pi_{f} \circ \phi(x_{\alpha}) \rightarrow \pi_{f} \circ \phi(x)$, but clearly this is equivalent to $f(x_{\alpha}) \rightarrow f(x)$. Any subnet of a convergent net converges to the same
 value, so we create a subnet $\lbrace y_{\alpha}\rbrace$ of $\lbrace x_{\alpha} \rbrace$ such that $\lbrace y_{\alpha}\rbrace$ is eventually in
 $U^{c}$ (this is possible because $\lbrace x_{\alpha}\rbrace$ is frequently in $U^{c}$). Then $f(y_{\alpha}) \rightarrow 1$ ($f(U^{c}) \equiv 1$ by construction), yet $f(x) = 0$. But this is clearly absurd, because $\lbrace y_{\alpha} \rbrace$
 converges uniquely, and the constant $1$ net cannot converge to $0$! Contradiction.
 #+end_proof
-*** Algebra on Limits
+** Algebra on Limits
 Often times it is useful to think of limits as /objects in themselves/ rather than an object that you apply to, say, a sequence. Often times algebras on
-different /kinds/ of limits enables oneself to draw on connections between limits and many other fields of mathematics. For instance, the /closure/ of a
+different /kinds/ of limits enables oneself to draw on connections between limits and many other fields of mathematics. For instance, the [[id:1954ee72-ffce-4586-ad8a-a46c39c8f77d][closure]] of a
 set is exactly the same set with all its limit points included, and both closures, and as we will see, limits, are /idempotent/, which is to say,
 applying them once is the same thing as applying them twice. Note that if $f: X \rightarrow Y$ where $Y$ is any topological space and $f$ is any continuous
-function, then $\beta f(X) = f(\beta X)$, which one can represent with a commutative diagram, where $\beta f$ is the /unique extension/ of the mapping $f$. Actually, in a moment
+function, then $\beta f(X) = f(\beta X)$, which one can represent with a commutative diagram, where $\beta f$ is the /unique extension/ of the [[id:fdcecb13-35e1-439c-ba13-5c63bd7342c3][mapping]] $f$. Actually, in a moment
 we will see that the functor commuting is equivalent to the /limit/ commuting on nets.
-
-*** The Universal Property
-We say the following diagram commutes:
-
+* I'm Here For Sequences Dude
+Oh, sorry. In that case we can apply our learnings above for the purpose of giving you some concrete examples👍.
+** Limits on Reals/Complex Numbers
+I am pretty sure I already did this one above, but basically in $\mathbb{R}^{n}$ a limit converges iff each projection converges, in the same way as for
+product spaces in general. Complex numbers are a product space.
+**  Limits on Functions
+You can limit functions pointwise. What that means is for each $x$, you just do the limit thing. Also more importantly there is /uniform convergence/,
+but I mean, that's a measure theory thing, and that's lame.

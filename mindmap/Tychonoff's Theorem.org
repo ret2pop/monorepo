@@ -1,0 +1,24 @@
+:PROPERTIES:
+:ID:       80901a90-7ffd-4b86-9619-c8a71f4a2a72
+:END:
+#+title: Tychonoff's Theorem
+#+author: Preston Pan
+#+description:
+#+options: broken-links:t
+* Introduction
+Tychonoff's theorem is of great importance when dealing with the study of [[id:72deb4cd-46f7-4ef2-9c66-6943e47a9e83][compactness]], and has far reaching results in the construction of the
+[[id:14bebb09-2e38-4b55-adc0-97ba571331af][Stone-Cech Compactification]], notable for its universal property.
+#+begin_theorem
+The product of [[id:72deb4cd-46f7-4ef2-9c66-6943e47a9e83][compact]] [[id:b0784577-9691-4c8e-a8e4-974a7c9c4949][topological spaces]] is compact.
+#+end_theorem
+
+#+begin_proof
+Let $X = \prod_{\alpha \in A} X_{\alpha}$ be a Tychonoff space. We will use the [[id:d6dd23da-78be-420f-9103-4a81745aa272][universal nets]] definition of compactness to prove $X$ is compact.
+Also, we use the fact that the [[id:d6dd23da-78be-420f-9103-4a81745aa272][net]] $\lbrace x_{\beta} \rbrace$ converges in $X$ iff each of its projections $\pi_{\alpha} (x_{\beta})$ converges.
+
+If $f$ is a continuous mapping and  $\lbrace x_{\beta} \rbrace$ is a universal net, then $f(x_{\beta})$ is universal. Therefore, because $\pi_{\alpha}$ is continuous for all
+$\alpha$, and beacuse $X$ is compact for all $\alpha$, we conclude that for all universal nets $\lbrace x_{\beta} \rbrace$, the projections $\pi_{\alpha}(x_{\beta})$ converge for
+all $\alpha$, and thus $\lbrace x_{\beta} \rbrace$ converges.
+#+end_proof
+Note that we are proving that the product of an /arbitrary family/ of compact spaces is compact, which makes the task seem a lot less difficult than it
+is. Still, universal nets make the proof nice and easy. A special case is where all $X_{\alpha} = [0, 1]$.

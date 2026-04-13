@@ -73,17 +73,19 @@ DEADLINE: <2026-03-18 Wed>
 These are some habits I want to track. They are repeated according to a calendar schedule in
 general.
 ** TODO Merge Feature Branches to Monorepo Main
-SCHEDULED: <2026-04-05 Sun 10:00 ++1w>
+SCHEDULED: <2026-04-19 Sun 10:00 ++1w>
 :PROPERTIES:
-:LAST_REPEAT: [2026-04-01 Wed 13:48]
+:LAST_REPEAT: [2026-04-12 Sun 12:25]
 :END:
+- State "DONE"       from "TODO"       [2026-04-12 Sun 12:25]
 - State "DONE"       from "TODO"       [2026-04-01 Wed 13:48]
 I need to have a schedule for cleaning my git tree.
 ** TODO Skincare
-SCHEDULED: <2026-04-12 Sun 12:30 .+1d>
+SCHEDULED: <2026-04-13 Mon 12:30 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-04-11 Sat 13:20]
+:LAST_REPEAT: [2026-04-12 Sun 12:25]
 :END:
+- State "DONE"       from "TODO"       [2026-04-12 Sun 12:25]
 - State "DONE"       from "TODO"       [2026-04-11 Sat 13:20]
 - State "DONE"       from "TODO"       [2026-04-09 Thu 20:01]
 - State "DONE"       from "TODO"       [2026-04-06 Mon 20:45]
@@ -100,11 +102,12 @@ Current stack:
 - Hyaluronic acid (2x/day)
 - Glycerin for hands
 ** TODO Supplements
-SCHEDULED: <2026-04-12 Sun 12:00 .+1d>
+SCHEDULED: <2026-04-13 Mon 12:00 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-04-11 Sat 13:20]
+:LAST_REPEAT: [2026-04-12 Sun 12:25]
 :STYLE: habit
 :END:
+- State "DONE"       from "TODO"       [2026-04-12 Sun 12:25]
 - State "DONE"       from "TODO"       [2026-04-11 Sat 13:20]
 - State "DONE"       from "TODO"       [2026-04-09 Thu 20:01]
 - State "DONE"       from "TODO"       [2026-04-07 Tue 14:40]
@@ -245,10 +248,11 @@ SCHEDULED: <2026-04-12 Sun 22:00 .+1d>
 - State "DONE"       from "TODO"       [2025-01-11 Sat 02:25]
 I want to journal every day, at least a little bit, about my life and track it with a git repo.
 ** TODO Update Agenda
-SCHEDULED: <2026-04-12 Sun 11:00 .+1d>
+SCHEDULED: <2026-04-13 Mon 11:00 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-04-11 Sat 13:20]
+:LAST_REPEAT: [2026-04-12 Sun 12:25]
 :END:
+- State "DONE"       from "TODO"       [2026-04-12 Sun 12:25]
 - State "DONE"       from "TODO"       [2026-04-11 Sat 13:20]
 - State "DONE"       from "TODO"       [2026-04-09 Thu 20:01]
 - State "DONE"       from "TODO"       [2026-04-07 Tue 14:40]

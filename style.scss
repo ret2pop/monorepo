@@ -42,6 +42,13 @@ $isa: (
     }
 }
 
+@mixin hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    overflow-y: auto;
+    &::-webkit-scrollbar { display: none; }
+}
+
 @mixin custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--accent) 50%, transparent) color-mix(in srgb, var(--accent) 8%, transparent);
@@ -90,7 +97,7 @@ $isa: (
     --text-main: #4A3F35;
     --text-highlight: #ffe066;
     --accent: #D4A373;
-    --toc-bg: #F2EFE7;
+    --toc-bg: #f0e0b9;
     --link-color: #B0413E;
 
     --code-bg: #1e1e2e;
@@ -741,20 +748,7 @@ h1.title {
     overflow-y: auto;
     overflow-x: hidden;
     
-    @include custom-scrollbar;
-
-    &::before {
-        content: "NAVIGATION";
-        display: block;
-        padding: 24px 16px 12px 19px; 
-        font-family: var(--font-mono), monospace;
-        font-size: 11px;
-        font-weight: bold;
-        letter-spacing: 2px;
-        color: var(--text-main);
-        border-bottom: 1px solid accent_rgba(0.2);
-        margin-bottom: 10px;
-    }
+    @include hide-scrollbar;
 
     ul {
         list-style-type: none;

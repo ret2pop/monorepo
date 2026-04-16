@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: question
+# key: question
+# --
+#+begin_question
+$0
+#+end_question

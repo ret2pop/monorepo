@@ -291,5 +291,5 @@ SCHEDULED: <2026-04-16 Thu 11:00 .+1d>
 :END:
 If I didn't update the agenda today, take my agenda with a grain of salt.
 ** TODO Start Vacuum Robot
-Start the vacuum robot so that it can clean the floor, every day.
 SCHEDULED: <2025-10-16 Thu .+1d>
+Start the vacuum robot so that it can clean the floor, every day.

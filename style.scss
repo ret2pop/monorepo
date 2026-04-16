@@ -42,10 +42,28 @@ $isa: (
     }
 }
 
-@mixin hide-scrollbar {
-    &::-webkit-scrollbar { display: none; }
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+@mixin custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--accent) 50%, transparent) color-mix(in srgb, var(--accent) 8%, transparent);
+
+    &::-webkit-scrollbar {
+        height: 6px; 
+        width: 6px;  
+    }
+
+    &::-webkit-scrollbar-track {
+        background: color-mix(in srgb, var(--accent) 8%, transparent); 
+        border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: color-mix(in srgb, var(--accent) 50%, transparent);
+        border-radius: 4px;
+        
+        &:hover {
+            background-color: var(--accent);
+        }
+    }
 }
 
 @mixin horizontal-scroll {
@@ -226,7 +244,7 @@ table {
     line-height: 1.5;
     background: color-mix(in srgb, var(--accent) 4%, var(--bg-main));
     @include horizontal-scroll;
-    @include hide-scrollbar;
+    @include custom-scrollbar;
 }
 
 th, td {
@@ -332,7 +350,7 @@ math {
         }
 
         & mtd { text-align: left; }
-        @include hide-scrollbar;
+        @include custom-scrollbar;
         @include horizontal-scroll;
     }
 }
@@ -519,7 +537,7 @@ h1.title {
 }
 
 .src, .example {
-    @include hide-scrollbar;
+    @include custom-scrollbar;
     @include horizontal-scroll;
     
     position: relative;
@@ -548,48 +566,61 @@ h1.title {
     text-align: center;
 }
 
-// .org-src-container {
-//     position: relative;
-//     margin: 1.2em 0;
-//     color: var(--code-text);
-//     background: var(--code-bg);
-//     padding: 1.5rem 1rem 1rem 1rem;
-//     @include horizontal-scroll;
-//     @include hide-scrollbar;
+.question {
+    width: 80%;
+    margin: 40px auto;
+    font-style: normal; 
+    color: var(--text-main);
+    padding: 1.5em 30px 1.5em 60px;
+    border-left: 4px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    line-height: 1.6;
+    position: relative;
+    z-index: 1;
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
 
-//     pre.src {
-//         overflow: visible;
-//         margin: 0;
-//         border: none;
-//         padding-inline-end: 1rem;
-//         box-sizing: border-box;
-//         & > code {
-//             white-space: pre;
-//         }
-//     }
-// }
-// .org-src-container {
-//     position: relative;
-//     margin: 1.2em 0;
-//     color: var(--code-text);
-//     background: var(--code-bg);
-//     padding: 1.5rem 1rem 1rem 1rem;
-//     overflow-x: auto;
+    @include bp('mobile') {
+        padding: 1em 15px 1em 40px;
+        width: 100%;
+    }
 
-//     pre.src {
-//         margin: 0;
-//         border: none;
-//         overflow: visible;
-//     }
+    &::before {
+        font-family: var(--font-serif), serif;
+        content: "?";
+        color: var(--accent);
+        font-size: 5em;
+        position: absolute;
+        left: 15px; 
+        top: -15px; 
+        opacity: 0.5;
+        z-index: 0;
+    }
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        border-radius: inherit;
+        background-color: var(--accent);
+        opacity: 0.2; 
+        
+        // This is your exact SVG, just safely encoded in Base64
+        $svg-mask: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48dGV4dCB4PSIxNSIgeT0iMjIiIGZvbnQtZmFtaWx5PSJzeXN0ZW0tdWksIHNhbnMtc2VyaWYiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LXNpemU9IjIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4/PC90ZXh0Pjx0ZXh0IHg9IjQ1IiB5PSI1MiIgZm9udC1mYW1pbHk9InN5c3RlbS11aSwgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtc2l6ZT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPj88L3RleHQ+PC9zdmc+";
+        
+        -webkit-mask-image: url(#{$svg-mask});
+        mask-image: url(#{$svg-mask});
+        
+        -webkit-mask-size: 60px 60px;
+        mask-size: 60px 60px;
+        -webkit-mask-repeat: repeat;
+        mask-repeat: repeat;
+    }
 
-//     pre.src > code {
-//         display: inline-block;
-//         min-width: 100%;
-//         white-space: pre;
-//         padding-inline-end: 1rem;
-//         box-sizing: border-box;
-//     }
-// }
+    > * {
+        position: relative;
+    }
+}
 
 .equation-container {
     display: grid;
@@ -610,7 +641,7 @@ h1.title {
         & math[display="block"] { margin: 0; }
         
         @include horizontal-scroll;
-        @include hide-scrollbar;
+        @include custom-scrollbar;
     }
 
     .equation-label {
@@ -627,7 +658,7 @@ h1.title {
     padding: 1.5rem 1rem 1rem 1rem;
     overflow-x: auto;
     overflow-y: hidden;
-    @include hide-scrollbar;
+    @include custom-scrollbar;
 
     pre.src {
         margin: 0;
@@ -710,7 +741,7 @@ h1.title {
     overflow-y: auto;
     overflow-x: hidden;
     
-    @include hide-scrollbar;
+    @include custom-scrollbar;
 
     &::before {
         content: "NAVIGATION";

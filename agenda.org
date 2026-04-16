@@ -77,14 +77,17 @@ SCHEDULED: <2026-04-19 Sun 10:00 ++1w>
 :PROPERTIES:
 :LAST_REPEAT: [2026-04-12 Sun 12:25]
 :END:
+:LOGBOOK:
 - State "DONE"       from "TODO"       [2026-04-12 Sun 12:25]
 - State "DONE"       from "TODO"       [2026-04-01 Wed 13:48]
+:END:
 I need to have a schedule for cleaning my git tree.
 ** TODO Skincare
 SCHEDULED: <2026-04-13 Mon 12:30 .+1d>
 :PROPERTIES:
 :LAST_REPEAT: [2026-04-12 Sun 12:25]
 :END:
+:LOGBOOK:
 - State "DONE"       from "TODO"       [2026-04-12 Sun 12:25]
 - State "DONE"       from "TODO"       [2026-04-11 Sat 13:20]
 - State "DONE"       from "TODO"       [2026-04-09 Thu 20:01]
@@ -96,17 +99,20 @@ SCHEDULED: <2026-04-13 Mon 12:30 .+1d>
 - State "DONE"       from "TODO"       [2026-03-27 Fri 11:29]
 - State "DONE"       from "TODO"       [2026-03-19 Thu 03:36]
 - State "DONE"       from "TODO"       [2025-10-16 Thu 18:06]
+:END:
 Current stack:
 - Retinol (2x/day)
 - Salicylic acid Cleanser (2x/day)
 - Hyaluronic acid (2x/day)
 - Glycerin for hands
 ** TODO Supplements
-SCHEDULED: <2026-04-13 Mon 12:00 .+1d>
+SCHEDULED: <2026-04-16 Thu 12:00 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-04-12 Sun 12:25]
+:LAST_REPEAT: [2026-04-15 Wed 13:43]
 :STYLE: habit
 :END:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2026-04-15 Wed 13:43]
 - State "DONE"       from "TODO"       [2026-04-12 Sun 12:25]
 - State "DONE"       from "TODO"       [2026-04-11 Sat 13:20]
 - State "DONE"       from "TODO"       [2026-04-09 Thu 20:01]
@@ -146,6 +152,7 @@ SCHEDULED: <2026-04-13 Mon 12:00 .+1d>
 - State "DONE"       from "TODO"       [2025-03-11 Tue 00:34]
 - State "DONE"       from "TODO"       [2025-03-10 Mon 23:23]
 - State "DONE"       from "TODO"       [2025-03-10 Mon 01:08]
+:END:
 Current stack:
 - Iron
 - Vitamin D3
@@ -158,6 +165,7 @@ SCHEDULED: <2025-10-17 Fri 14:00 .+2d>
 :LAST_REPEAT: [2025-10-16 Thu 18:08]
 :STYLE: habit
 :END:
+:LOGBOOK:
 - State "DONE"       from "TODO"       [2025-10-16 Thu 18:08]
 - State "DONE"       from "TODO"       [2025-09-28 Sun 20:52]
 - State "DONE"       from "TODO"       [2025-09-24 Wed 07:08]
@@ -171,15 +179,18 @@ SCHEDULED: <2025-10-17 Fri 14:00 .+2d>
 - State "DONE"       from "TODO"       [2025-08-25 Mon 21:16]
 - State "DONE"       from "TODO"       [2025-03-21 Fri 04:49]
 - State "DONE"       from "TODO"       [2025-03-11 Tue 00:16]
+:END:
 I want to be healthy.
 ** TODO Run
 SCHEDULED: <2025-09-29 Mon 16:00 .+1d>
 :PROPERTIES:
 :LAST_REPEAT: [2025-09-28 Sun 20:52]
 :END:
+:LOGBOOK:
 - State "DONE"       from "TODO"       [2025-09-28 Sun 20:52]
 - State "DONE"       from "TODO"       [2025-08-25 Mon 21:17]
 - State "DONE"       from "TODO"       [2025-06-26 Thu 23:22]
+:END:
 I want to be able to run or bike every day so that I get my exercise in.
 ** TODO Stretch
 SCHEDULED: <2026-04-04 Sat 00:00 .+1d>
@@ -187,6 +198,7 @@ SCHEDULED: <2026-04-04 Sat 00:00 .+1d>
 :LAST_REPEAT: [2026-04-03 Fri 00:01]
 :STYLE: habit
 :END:
+:LOGBOOK:
 - State "DONE"       from "TODO"       [2026-04-03 Fri 00:01]
 - State "DONE"       from "TODO"       [2026-03-19 Thu 03:36]
 - State "DONE"       from "TODO"       [2025-09-24 Wed 07:08]
@@ -198,6 +210,7 @@ SCHEDULED: <2026-04-04 Sat 00:00 .+1d>
 - State "DONE"       from "TODO"       [2025-09-08 Mon 04:47]
 - State "DONE"       from "TODO"       [2025-02-11 Tue 04:01]
 - State "DONE"       from "TODO"       [2025-01-11 Sat 02:26]
+:END:
 I want to stretch every day so that I can become more flexible.
 Stretches:
 - Splits attempt
@@ -213,6 +226,7 @@ SCHEDULED: <2026-04-12 Sun 22:00 .+1d>
 :LAST_REPEAT: [2026-04-11 Sat 13:21]
 :STYLE: habit
 :END:
+:LOGBOOK:
 - State "DONE"       from "TODO"       [2026-04-11 Sat 13:21]
 - State "DONE"       from "TODO"       [2026-04-02 Thu 22:09]
 - State "DONE"       from "TODO"       [2026-04-01 Wed 00:22]
@@ -246,12 +260,15 @@ SCHEDULED: <2026-04-12 Sun 22:00 .+1d>
 - State "DONE"       from "TODO"       [2025-01-19 Sun 11:53]
 - State "DONE"       from "TODO"       [2025-01-16 Thu 19:19]
 - State "DONE"       from "TODO"       [2025-01-11 Sat 02:25]
+:END:
 I want to journal every day, at least a little bit, about my life and track it with a git repo.
 ** TODO Update Agenda
-SCHEDULED: <2026-04-13 Mon 11:00 .+1d>
+SCHEDULED: <2026-04-16 Thu 11:00 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-04-12 Sun 12:25]
+:LAST_REPEAT: [2026-04-15 Wed 13:43]
 :END:
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2026-04-15 Wed 13:43]
 - State "DONE"       from "TODO"       [2026-04-12 Sun 12:25]
 - State "DONE"       from "TODO"       [2026-04-11 Sat 13:20]
 - State "DONE"       from "TODO"       [2026-04-09 Thu 20:01]
@@ -271,6 +288,7 @@ SCHEDULED: <2026-04-13 Mon 11:00 .+1d>
 - State "DONE"       from "TODO"       [2026-03-21 Sat 10:26]
 - State "DONE"       from "TODO"       [2026-03-19 Thu 03:36]
 - State "DONE"       from "TODO"       [2026-03-18 Wed 22:51]
+:END:
 If I didn't update the agenda today, take my agenda with a grain of salt.
 ** TODO Start Vacuum Robot
 Start the vacuum robot so that it can clean the floor, every day.

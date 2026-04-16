@@ -23,6 +23,12 @@ Because why not? I don't have anything against them.
 Yes, probably, but you know what, we're just going to run with it.
 
 * Visual Eye-Candy
+To start with, let us ask a motivating question:
+#+begin_question
+Why does this webpage even exist in the way that it does? How come I made this thing? Why?
+#+end_question
+Which will be answered very shortly I'm sure!
+
 Do you want to see some cool code blocks, and other such visual elements? Well you've discovered just the webpage!
 #+begin_src python :results output :exports both
 import math

@@ -12,9 +12,6 @@ project, it can be referenced here.
 * Tasks
 These are general life tasks that I need to do, which don't depend on a specific time or date.
 ** TODO [#B] Monorepo
-- [X] add an RSS feed of my blogs to my website.
-- [X] finish up my SCSS abstractions and learning how to write in it (also finish touching up my CSS).
-- [X] touch up emacs.
 - [ ] finish my automated testing matrix.
 - [ ] write a shell script to get passwords from my run path.
 - [ ] write tests for installer script.
@@ -25,11 +22,9 @@ These are general life tasks that I need to do, which don't depend on a specific
   - [X] Should have an SSH server.
   - [ ] Should have simple cronjobs.
 - [ ] Gitolite
-- [ ] AI Agent integration
+- [X] AI Agent integration
 ** TODO [#B] Nullring
 Update the nullring to be in org mode, and also include a couple more sites.
-** TODO RTOS
-Write an RTOS for ARM and an emulator maybe?
 ** TODO Advanced Amateur Radio License
 ** Music and Media
 *** TODO [#B] Write Another Song
@@ -38,22 +33,24 @@ I want to write another song.
 I want to start making YouTube videos.
 ** TODO [#C] Analogue Computer
 I want to make an analogue computer.
+** TODO Aquaponics
+** TODO Fix Ebike
+** TODO Raspberry Pi Setup
 * Skills
-** TODO Learn Supercollider Languages For Music Production
+** TODO Read AI Papers Until Know how LLMs Work
 ** TODO Learn Blender
-** TODO Drawing with Krita
-** DONE Circuit Design
-** TODO Learn More Solidity
-** TODO Learn Idris
-** TODO Learn Lean Theorem Prover
+** TODO Learn Lean4
+** TODO Learn CL
 * Academic
 ** TODO QFT
 ** TODO GM
-** TODO Complex Analysis
-** DONE Topology
-** DONE Measure Theory
-** TODO Category Theory
-** TODO ZK Proof Deep Dive
+** TODO Category Theory/Group/Algebra
+DEADLINE: <2026-06-23 Tue>
+** TODO Algebraic Topology and Geometry
+DEADLINE: <2026-11-23 Mon>
+** TODO Stochastic Calculus
+** TODO Statistics
+** TODO Functional Analysis
 * Scheduled tasks
 These are one-time tasks that are scheduled at a particular date, and that don't require regular
 schedules.
@@ -63,12 +60,6 @@ These are tasks related to my appointments which have to be at a specific time.
 These are tasks related to seeing my friends. There will be tasks listed here when I schedule
 something.
 ** Chores
-*** DONE Buy Fish Oil
-DEADLINE: <2026-03-18 Wed>
-*** DONE Take Out Trash
-DEADLINE: <2026-03-18 Wed>
-*** TODO Do Dishes
-DEADLINE: <2026-03-18 Wed>
 * Habits
 These are some habits I want to track. They are repeated according to a calendar schedule in
 general.
@@ -83,11 +74,13 @@ SCHEDULED: <2026-04-19 Sun 10:00 ++1w>
 :END:
 I need to have a schedule for cleaning my git tree.
 ** TODO Skincare
-SCHEDULED: <2026-04-16 Thu 12:30 .+1d>
+SCHEDULED: <2026-04-19 Sun 12:30 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-04-15 Wed 20:03]
+:LAST_REPEAT: [2026-04-18 Sat 12:41]
 :END:
 :LOGBOOK:
+- State "DONE"       from "TODO"       [2026-04-18 Sat 12:41]
+- State "DONE"       from "TODO"       [2026-04-16 Thu 19:52]
 - State "DONE"       from "TODO"       [2026-04-15 Wed 20:03]
 - State "DONE"       from "TODO"       [2026-04-12 Sun 12:25]
 - State "DONE"       from "TODO"       [2026-04-11 Sat 13:20]
@@ -107,12 +100,14 @@ Current stack:
 - Hyaluronic acid (2x/day)
 - Glycerin for hands
 ** TODO Supplements
-SCHEDULED: <2026-04-16 Thu 12:00 .+1d>
+SCHEDULED: <2026-04-19 Sun 12:00 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-04-15 Wed 13:43]
+:LAST_REPEAT: [2026-04-18 Sat 12:41]
 :STYLE: habit
 :END:
 :LOGBOOK:
+- State "DONE"       from "TODO"       [2026-04-18 Sat 12:41]
+- State "DONE"       from "TODO"       [2026-04-16 Thu 19:52]
 - State "DONE"       from "TODO"       [2026-04-15 Wed 13:43]
 - State "DONE"       from "TODO"       [2026-04-12 Sun 12:25]
 - State "DONE"       from "TODO"       [2026-04-11 Sat 13:20]
@@ -161,12 +156,13 @@ Current stack:
 - Creatine Monohydrate
 - Coffee
 ** TODO Strength Training
-SCHEDULED: <2025-10-17 Fri 14:00 .+2d>
+SCHEDULED: <2026-04-17 Fri 14:00 .+2d>
 :PROPERTIES:
-:LAST_REPEAT: [2025-10-16 Thu 18:08]
+:LAST_REPEAT: [2026-04-15 Wed 23:20]
 :STYLE: habit
 :END:
 :LOGBOOK:
+- State "DONE"       from "TODO"       [2026-04-15 Wed 23:20]
 - State "DONE"       from "TODO"       [2025-10-16 Thu 18:08]
 - State "DONE"       from "TODO"       [2025-09-28 Sun 20:52]
 - State "DONE"       from "TODO"       [2025-09-24 Wed 07:08]
@@ -194,12 +190,14 @@ SCHEDULED: <2025-09-29 Mon 16:00 .+1d>
 :END:
 I want to be able to run or bike every day so that I get my exercise in.
 ** TODO Stretch
-SCHEDULED: <2026-04-04 Sat 00:00 .+1d>
+SCHEDULED: <2026-04-18 Sat 00:00 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-04-03 Fri 00:01]
+:LAST_REPEAT: [2026-04-17 Fri 00:00]
 :STYLE: habit
 :END:
 :LOGBOOK:
+- State "DONE"       from "TODO"       [2026-04-17 Fri 00:00]
+- State "DONE"       from "TODO"       [2026-04-16 Thu 23:58]
 - State "DONE"       from "TODO"       [2026-04-03 Fri 00:01]
 - State "DONE"       from "TODO"       [2026-03-19 Thu 03:36]
 - State "DONE"       from "TODO"       [2025-09-24 Wed 07:08]
@@ -222,12 +220,13 @@ Stretches:
 - Seal
 - Cat
 ** TODO Journal
-SCHEDULED: <2026-04-12 Sun 22:00 .+1d>
+SCHEDULED: <2026-04-17 Fri 22:00 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-04-11 Sat 13:21]
+:LAST_REPEAT: [2026-04-16 Thu 23:57]
 :STYLE: habit
 :END:
 :LOGBOOK:
+- State "DONE"       from "TODO"       [2026-04-16 Thu 23:57]
 - State "DONE"       from "TODO"       [2026-04-11 Sat 13:21]
 - State "DONE"       from "TODO"       [2026-04-02 Thu 22:09]
 - State "DONE"       from "TODO"       [2026-04-01 Wed 00:22]
@@ -264,11 +263,13 @@ SCHEDULED: <2026-04-12 Sun 22:00 .+1d>
 :END:
 I want to journal every day, at least a little bit, about my life and track it with a git repo.
 ** TODO Update Agenda
-SCHEDULED: <2026-04-16 Thu 11:00 .+1d>
+SCHEDULED: <2026-04-19 Sun 11:00 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-04-15 Wed 13:43]
+:LAST_REPEAT: [2026-04-18 Sat 12:41]
 :END:
 :LOGBOOK:
+- State "DONE"       from "TODO"       [2026-04-18 Sat 12:41]
+- State "DONE"       from "TODO"       [2026-04-16 Thu 19:52]
 - State "DONE"       from "TODO"       [2026-04-15 Wed 13:43]
 - State "DONE"       from "TODO"       [2026-04-12 Sun 12:25]
 - State "DONE"       from "TODO"       [2026-04-11 Sat 13:20]

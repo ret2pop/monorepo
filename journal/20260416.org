@@ -1,0 +1,10 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Thursday, 16 April 2026
+** 23:58 
+I did some more complex analysis today, and I have committed to doing complex analysis, then focus entirely on algebraic topology and functional
+analysis entirely.

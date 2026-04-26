@@ -1,0 +1,9 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Wednesday, 15 April 2026
+** 23:20
+I was at Ainslie's place for the past couple days. Now I'm doing more complex analysis, and just fixed some CSS on my website.

@@ -30,6 +30,9 @@ My own mailing list feed.
 I like to get new information about recent studies related to technology.
 *** [[http://www.nature.com/nmat/current_issue/rss/][Nature]]
 Nature is a prestigious journal with a good bit of good content.
+*** HuggingFace Feeds                                           :huggingface:
+**** [[https://github.com/huangboming/huggingface-daily-paper-feed/blob/main/feed.xml][HuggingFace Daily Feed]]
+Notifies me on new AI papers that I can read.
 *** NASA                                                                  :nasa:
 This is a list of NASA feeds:
 **** [[https://www.nasa.gov/technology/feed/][NASA Tech]]

@@ -206,6 +206,18 @@ h4 { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
 h5 { font-size: 1rem; font-weight: 700; color: var(--link-color); }
 h6 { font-size: 0.85rem; font-weight: 400; text-transform: uppercase; letter-spacing: 1px; color: color-mix(in srgb, var(--text-main) 60%, transparent); }
 
+h1, h2, h3, h4, h5, h6 {
+    [class^="section-number-"] {
+        font-family: var(--font-mono), monospace;
+        color: color-mix(in srgb, var(--text-main) 35%, transparent); 
+        font-weight: 400;
+        font-size: 0.65em;
+        letter-spacing: 0.05em;
+        margin-right: 0.75em;
+        vertical-align: middle;
+    }
+}
+
 p, ul, ol { margin-top: 1rem; margin-bottom: 1rem; }
 li { margin-top: 0.3rem; }
 
@@ -360,6 +372,18 @@ math {
         @include custom-scrollbar;
         @include horizontal-scroll;
     }
+}
+
+.outline-text-2 > p:first-of-type::first-letter,
+#text-1 > p:first-of-type::first-letter {
+    float: left;
+    font-size: 3.5rem;
+    line-height: 0.8;
+    margin-right: 0.15em;
+    margin-top: 0.1em;
+    font-family: var(--font-header), serif;
+    font-weight: 700;
+    color: var(--accent);
 }
 
 h1.title {

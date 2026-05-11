@@ -267,7 +267,7 @@ xvfb-run -a emacs -q -l ${self}/tests/ci-runner.el || {
 printf "after emacs\n"
 CSS_HASH="$(python3 $HOME/monorepo/tests/test-csp-hash.py $HOME/website_html/index.html)"
 cat <<EOF > $HOME/website_html/csp_header.conf
-add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'sha256-$CSS_HASH'; font-src 'self';";
+add_header Content-Security-Policy "default-src 'none'; script-src 'none'; style-src 'self' 'sha256-$CSS_HASH'; font-src 'self'; img-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none';";
 EOF
 
 echo "Setting up Graph View..."

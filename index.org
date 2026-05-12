@@ -12,7 +12,12 @@
 #+caption: All Hope Abandon, Ye Who Enter Here
 [[./img/logo.webp]]
 
-Hello! I'm a person on the internet that does things, such as:
+* Whoami?
+Ret2pop is a person on the internet that does things. As a thing-doer, I'm naturally interested in how things work,
+and also /explaining/ the world around me. Naturally, most explanations of how things work aren't satisfying, and as
+such, I've decided to monopolise the art of explaining.
+
+Naturally, this website will be about:
 - Music
 - Programming
 - Mathematics

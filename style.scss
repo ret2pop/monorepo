@@ -572,7 +572,7 @@ h1.title {
     position: relative;
     margin-bottom: 30px;
     padding-right: 1.2em;
-    &::before { content: "Proof.\00a0\00a0"; }
+    &::before { content: "Proof:\00a0\00a0"; }
     &::after {
         content: "";
         position: absolute;

@@ -882,3 +882,69 @@ img.org-svg, .org-svg {
   margin-top: 1rem;
   margin-bottom: 0.5rem;
 }
+
+/* =========================================================
+   DARK MODE
+   ========================================================= */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-main: #1F1C1A;
+        --text-main: #DFD7CE;
+        
+        --text-highlight: #7A6217;
+        
+        --accent: #E5B98D; 
+        --toc-bg: #292421;
+        
+        --link-color: #D66D68; 
+
+        --code-bg: #141210; 
+        --code-text: #D4CFC9;
+    }
+
+    body {
+        background:
+            radial-gradient(rgba(223, 215, 206, 0.05) 1px, transparent 1px),
+            var(--bg-main);
+        background-size: 6px 6px;
+    }
+
+    .title .subtitle {
+        color: #A39B93;
+    }
+
+    .todo.TODO {
+        color: #E2A681;
+        background-color: color-mix(in srgb, var(--accent) 15%, var(--bg-main));
+        border-color: #9C6C52;
+    }
+
+    .done.DONE {
+        color: #9BB88B;
+        background-color: color-mix(in srgb, #9BB88B 15%, var(--bg-main));
+        border-color: #6A825D; 
+    }
+
+    .timestamp-wrapper {
+        color: #C2B6BE;
+        background-color: #352A30;
+        border-color: #4A3A43;
+    }
+
+    .isa_info {
+        color: #93B9FA;
+        background-color: #1A2332;
+    }
+    .isa_success {
+        color: #8ECDA1;
+        background-color: #192B1E;
+    }
+    .isa_warning {
+        color: #F8DA82;
+        background-color: #362D15;
+    }
+    .isa_error {
+        color: #F49B93;
+        background-color: #3B1E1C;
+    }
+}

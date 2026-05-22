@@ -40,7 +40,8 @@ I want to make an analogue computer.
 ** TODO Read AI Papers Until Know how LLMs Work
 ** TODO Learn Blender
 ** TODO Learn Lean4
-** TODO Learn CL
+If I figure out how to prove simple things in lean4, this will be marked as done.
+** TODO Learn CL/Scheme
 * Academic
 ** TODO QFT
 ** TODO GM
@@ -48,6 +49,9 @@ I want to make an analogue computer.
 DEADLINE: <2026-06-23 Tue>
 ** TODO Algebraic Topology and Geometry
 DEADLINE: <2026-11-23 Mon>
+:LOGBOOK:
+CLOCK: [2026-05-21 Thu 14:58]--[2026-05-21 Thu 17:06] =>  2:08
+:END:
 ** TODO Stochastic Calculus
 ** TODO Statistics
 ** TODO Functional Analysis
@@ -74,11 +78,12 @@ SCHEDULED: <2026-04-19 Sun 10:00 ++1w>
 :END:
 I need to have a schedule for cleaning my git tree.
 ** TODO Skincare
-SCHEDULED: <2026-04-19 Sun 12:30 .+1d>
+SCHEDULED: <2026-05-22 Fri 12:30 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-04-18 Sat 12:41]
+:LAST_REPEAT: [2026-05-21 Thu 13:58]
 :END:
 :LOGBOOK:
+- State "DONE"       from "TODO"       [2026-05-21 Thu 13:58]
 - State "DONE"       from "TODO"       [2026-04-18 Sat 12:41]
 - State "DONE"       from "TODO"       [2026-04-16 Thu 19:52]
 - State "DONE"       from "TODO"       [2026-04-15 Wed 20:03]
@@ -100,12 +105,13 @@ Current stack:
 - Hyaluronic acid (2x/day)
 - Glycerin for hands
 ** TODO Supplements
-SCHEDULED: <2026-04-19 Sun 12:00 .+1d>
+SCHEDULED: <2026-05-22 Fri 12:00 .+1d>
 :PROPERTIES:
-:LAST_REPEAT: [2026-04-18 Sat 12:41]
+:LAST_REPEAT: [2026-05-21 Thu 13:58]
 :STYLE: habit
 :END:
 :LOGBOOK:
+- State "DONE"       from "TODO"       [2026-05-21 Thu 13:58]
 - State "DONE"       from "TODO"       [2026-04-18 Sat 12:41]
 - State "DONE"       from "TODO"       [2026-04-16 Thu 19:52]
 - State "DONE"       from "TODO"       [2026-04-15 Wed 13:43]

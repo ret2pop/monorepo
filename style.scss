@@ -980,7 +980,7 @@ img.org-svg, .org-svg {
     }
 
     .src, pre.src, .example, .org-src-container {
-        background: transparent;
+        background: var(--code-bg);
         border: 2px solid var(--text-main);
     }
 

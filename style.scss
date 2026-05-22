@@ -50,8 +50,8 @@ $themes: (
         'accent': #000000,
         'toc-bg': #FFFFFF,
         'link-color': #0000EE,
-        'code-bg': #FFFFFF,
-        'code-text': #000000
+        'code-bg': #000000,
+        'code-text': #FFFFFF
     ),
 
     'hc-dark': (
@@ -925,9 +925,6 @@ img.org-svg, .org-svg {
   margin-bottom: 0.5rem;
 }
 
-/* =========================================================
-   DARK MODE
-   ========================================================= */
 @media (prefers-color-scheme: dark) {
     :root { @include apply-theme(dark); }
 
@@ -961,7 +958,6 @@ img.org-svg, .org-svg {
     }
 }
 
-/* New stuff */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.01ms !important;
@@ -973,9 +969,10 @@ img.org-svg, .org-svg {
 
 @media (prefers-contrast: more) {
     :root { @include apply-theme('hc-light'); }
-
     @media (prefers-color-scheme: dark) { :root { @include apply-theme('hc-dark'); } }
+}
 
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
     .theorem, .lemma, .corollary, .definition, .proof, blockquote, .question, .equation-container {
         background: transparent;
         border: 2px solid var(--text-main);
@@ -991,15 +988,8 @@ img.org-svg, .org-svg {
         background: transparent;
         border: 2px solid var(--text-main);
     }
-    
-    th, td {
-        border-bottom: 1px solid var(--text-main);
-    }
-    
-    thead th {
-        background: transparent;
-        border-bottom: 3px solid var(--text-main);
-    }
+    th, td { border-bottom: 1px solid var(--text-main); }
+    thead th { background: transparent; border-bottom: 3px solid var(--text-main); }
 
     .tag, .timestamp-wrapper, .todo, .done {
         background: transparent !important;
@@ -1010,6 +1000,11 @@ img.org-svg, .org-svg {
 
 @media print {
     :root { @include apply-theme('print'); }
+
+    /* Strip Emacs inline syntax highlighting so it doesn't vanish on white paper */
+    pre.src span {
+        color: #000000 !important;
+    }
 
     body {
         background: none;

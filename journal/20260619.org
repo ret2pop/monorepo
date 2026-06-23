@@ -1,0 +1,82 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Friday, 19 June 2026
+** 19:59 
+Sometimes I think about what I would say to my younger selves.
+
+I remember when I was just three years old, and I got a /Thomas the Tank Engine/ tin for Christmas. I didn't understand what was happening, but I
+remember that my mom had told me that Santa gave me this gift. I didn't understand what the gift was supposed to do, but everyone around me was so
+happy for me that I didn't think to understand what the gift /was/, or how I was going to use it. I saw how happy everyone was /for/ me that I had
+received something, and that was enough for me to conclude that /whatever/ the gift was, it was probably special. I remember my childhood friend,
+/Gloria/, had told me that /Thomas the Tank Engine/ was for boys, and that that was the reason why she didn't want to watch it with me. I didn't
+understand what it meant for something to be /for boys/ or /for girls/. I was utterly confused in that moment, but I wanted a friend to watch a show with
+me, so I decided to watch other things instead.
+
+I remember being five. I wish I could talk to that child again. The child was alone in their own thoughts, waiting for someone to listen to them about
+addition or multiplication, or basic algebra problems. I don't remember why those were so important to me at that age. Nobody had told me that simple
+arithmetic problems would be important for my future, or that they would help me solve more complicated problems. Rather, I /felt/ their importance on a
+deep enough level, at a sufficiently young age that it became /the thing/, before I even knew it was.
+
+I had gone to school at a Catholic school, St. Andrews Elementary, which is now shut down. I had many friends there, like my friend Mark and my friend
+Dominic. But there was one peculiar friend I had named Eliza. She seemed to have no interest at all in doing things typically associated with
+girls, and because I was so young, I did not register how strange this was compared to the rest of the world. She, Dominic, and I would spend many recess
+hours outside talking about topics typically associated with boys. I remember her telling me what pasta was. I think her parents were Italian
+immigrants. In dark school uniforms, we look forward to pajama day though none of us understand why. Strict gendered dress codes and fundamentalist
+Christian teachings overshadow the flowers in the community garden, leaving plants to grow in no apparent direction. But weeds grow everywhere, even
+in the cracks on sidewalks, and on the parking lots of St. Andrews Catholic school.
+
+At thirteen, I remember playing badminton and looking around at everyone else in my class, and how much better they were at the game. I didn't hate
+badminton at all. I had started playing the game since I was just six years old. I should have been good at the game. I worked hard. I remember the
+coaches telling me to focus or to stop goofing around, and I didn't understand what they meant. In my own head, I was taking the game as seriously as
+I could. Around the same time, I quit playing piano, badminton, and started pursuing computer programming.
+
+My dream was to work at a technology company. Even though I tried hard at school, I never got great grades; I would get some B's, and maybe some A's as
+well. I knew that I wouldn't be able to do well in school, so to keep my own spirits up, to keep the five year old inside of me alive, I told myself
+that I'd drop out of university and get hired as a software engineer based on my skills and portfolio. Of course, because I was only fourteen when I
+had this thought, I had no way to /know/ if it would happen. I didn't have a portfolio to speak of, and I certainly didn't know what university would
+feel like.
+
+In this time, I forget entirely about my love for mathematics. Of course, at this time I'm not good at school in the first place, so I have little
+reason to think I'm uniquely good at mathematics. But before my sixteenth birthday comes around, I am sitting in chemistry class, in my own mind, and
+remember something my physics teacher had said about rates of change. By the end of the class, I had taken a derivative of $x^{2}$, and by the end of the
+day, I could take a derivative of /any/ polynomial. I was taking tangent lines, not derivatives, because I did not know that the slope was the important
+part.
+
+At eighteen, I'm a /LayerZero Labs/ employee. Incredibly, my dream at fourteen came true. But my dream at age five had not. To risk it all, I quit my
+job, and start working on mathematics. I go through math textbooks like I had done since I was sixteen, but this time, the math gets noticeably more
+difficult. To add insult to injury, my friends who are in university try their hand at higher maths, and their performance is striking. Yes, I had
+felt this feeling before. Back in badminton class, the instructor yelling at me, yelling at me to focus, to take my own work seriously, lest I be left
+behind by my friends, who've already started attending more advanced classes. Only this time, I have only myself as my own instructor. My mind races to
+a couple of these memories, including the ones here, over and over again. Yet there's one memory that I often reflect on, that I wish I didn't have.
+
+When I was in grade five, my teacher, Ms. Owens, asks the class to solve a BEDMAS problem. I obviously know the order of operations and exactly how to
+solve these kinds of problems, /in theory/. I raise my hand and answer the question on the board. She says it is wrong, and I quickly reply, "oh, I
+misread the question, I thought the multiplication was a plus sign". Irritated, Ms. Owens tells the class, "This is why Preston will never be good at
+mathematics".
+
+Come to think of it, there are similar ones to this memory as well. My dad, at age thirteen, tells me that I'm a
+failure because I almost fail grade eight English. I run up the stairs and cry. My parents giving up on me after I quit playing the piano. My English teacher in grade ten, whom I'd argue with
+about my assignments and how /I/ thought I was making rational arguments about the text. And of course, my coaches, who'd tell me, without fail, to
+focus. Now I remember, the kids in badminton would sometimes bully me. I was one of the worst players in the class, and they'd call me dumb, which I
+distinctly remember. I remember getting selected last in games where we'd split into two teams, and people not wanting to play doubles, or
+even /singles/ with me, because I was not good enough at the game. And also, how people treated me after I had
+succeeded. Those people, many of whom would never so much as talk to me before, recognise my abilities now. But I feel just as helpless as before. I
+don't care about what they have to say to me now. Is it too much to ask from others to feel the same struggle as I've felt?
+
+Ironically, I was always told to be better at writing, yet I am now told I write well. I was always told to be better at piano, and now some people call me
+a prodigy. People always told me to go to university, and I went right past it towards a six-figure job. Yet all of these wins ring hollow in
+the face of the struggle to make a five year old happy.
+
+Similarly, I am not just the five year old child. I am also the three year old child who is confused by social scripts. I am a fourteen year old that
+will tell you about /return oriented programming/ or what the different syscalls do, or how an interpreter works. I am a sixteen year old who is just
+about to independently rediscover the theory of linear operators and their utility in solving an /eigenvalue problem differential equation/ that I had been struggling
+with. And of course, I am a twenty year old who has trouble doing the practice problems in the /topological groups/ chapter of a differential geometry
+textbook. And I consequently work to make /all/ of these people happy.
+
+Many of my old friends still tell me to go back to LayerZero, or to go back to university. Some of my friends don't know I work on mathematics for ten or
+more hours a day, seven days a week. Some don't know I dropped out of university. My LayerZero friends tell me I made the right decision to quit, and
+my math friends tell me I made the right decision to drop out. It has been two years since my employment. Now I know, if I could go back in time and talk to my previous selves, I'd just listen.

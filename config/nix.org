@@ -311,6 +311,36 @@ and now for the main flake:
   fi
                 ''}";
             };
+
+            label-commit = {
+              enable = true;
+              name = "Label Commit";
+              always_run = true;
+              description = "Label commits with same text as generation boot label";
+              stages = [ "post-commit" ];
+              pass_filenames = false;
+              entry = "${pkgs.writeShellScript "label-commit"''
+set -e
+
+# absolute paths from the git project root
+REPO_ROOT=$(git rev-parse --show-toplevel)
+LABEL_DIR="$REPO_ROOT/data"
+LABEL_FILE="$LABEL_DIR/boot-label.txt"
+
+mkdir -p "$LABEL_DIR"
+PARENTS=$(git log -1 --format=%P)
+if [ $(echo "$PARENTS" | wc -w) -gt 1 ]; then
+    exit 0
+fi
+COMMIT_MSG=$(git log -1 --format=%B)
+if [ -f "$LABEL_FILE" ] && [ "$(cat "$LABEL_FILE")" = "$COMMIT_MSG" ]; then
+    exit 0
+fi
+printf "%s" "$COMMIT_MSG" > "$LABEL_FILE"
+git add "$LABEL_FILE"
+git commit --amend --no-edit --no-verify
+              ''}";
+            };
           };
         };
       in
@@ -2559,6 +2589,7 @@ because they enhance security.
 #+begin_src nix :tangle ../nix/modules/configuration.nix
 { config, pkgs, lib, system, ... }:
 let
+  labelFile = ./data/boot-label.txt;
   userGroups = [
     "nginx"
     "git"
@@ -2578,6 +2609,11 @@ let
 
   prodHosts = map (dom: "${config.monorepo.profiles.server.ipv4} ${dom}") allDomains;
   vmHosts = map (dom: "127.0.0.1 ${dom}") allDomains;
+
+  rawLabel = if builtins.pathExists labelFile
+             then lib.removeSuffix "\n" (builtins.readFile labelFile)
+             else "nolabel";
+  bootMessage = builtins.replaceStrings [ " " ] [ "-" ] rawLabel;
 in
 {
   environment.etc."wpa_supplicant.conf".text = ''
@@ -3124,6 +3160,8 @@ in
   time.timeZone = config.monorepo.vars.timeZone;
   i18n.defaultLocale = "en_CA.UTF-8";
   system.stateVersion = "24.11";
+  # We want to label the generation after the commit message
+  system.nixos.label = "${config.networking.hostName}-${bootMessage}";
 }
 #+end_src
 ** Disko
@@ -3414,7 +3452,7 @@ in
                     ]) else [])
                     ++
                     (if config.monorepo.profiles.lang-lean.enable then (with pkgs; [
-                      lean4
+                      elan
                     ]) else [])
                     ++
                     (if config.monorepo.profiles.lang-agda.enable then (with pkgs; [

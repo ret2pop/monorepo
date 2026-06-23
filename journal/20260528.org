@@ -1,0 +1,10 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Thursday, 28 May 2026
+** 22:03 
+Today I read some Wittgenstein. I will obviously have to reread what i read again and deeply. Yet also I am not sure how to fully digest philosophy,
+so I will do a bit of thinking about that.

@@ -1,0 +1,9 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Wednesday, 27 May 2026
+** 22:05 
+I'm formalising some basic theorems in lean and it is actually extremely fun.

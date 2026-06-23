@@ -1,0 +1,10 @@
+#+TITLE: Daily Journal
+#+STARTUP: showeverything
+#+DESCRIPTION: My daily journal entry
+#+AUTHOR: Preston Pan
+#+date:
+#+options: broken-links:t
+* Tuesday, 26 May 2026
+** 15:17 
+I am doing some math today, and seeing Kai. The mathematics I am doing is involving transversality in differential geometry.
+I hope to learn more about algebraic topology, but also notably physics and finance in the future.
